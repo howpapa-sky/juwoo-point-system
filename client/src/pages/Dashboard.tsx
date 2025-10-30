@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { trpc } from "@/lib/trpc";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { Coins, TrendingUp, TrendingDown, Activity, ArrowLeft } from "lucide-react";
+import { Coins, TrendingUp, TrendingDown, Activity, ArrowLeft, X } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
@@ -19,6 +20,25 @@ export default function Dashboard() {
     { limit: 5 },
     { enabled: isAuthenticated }
   );
+  const utils = trpc.useUtils();
+  const cancelMutation = trpc.transactions.cancel.useMutation({
+    onSuccess: () => {
+      utils.points.balance.invalidate();
+      utils.points.transactions.invalidate();
+      utils.points.stats.invalidate();
+      toast.success("포인트가 취소되었습니다!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "취소에 실패했습니다.");
+    },
+  });
+
+  const handleCancel = (transactionId: number) => {
+    if (!user?.id) return;
+    if (confirm("정말로 이 거래를 취소하시겠습니까?")) {
+      cancelMutation.mutate({ transactionId, userId: user.id });
+    }
+  };
 
   if (authLoading || !isAuthenticated) {
     return (
@@ -141,18 +161,31 @@ export default function Dashboard() {
                             })}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <div
-                            className={`text-xl font-bold ${
-                              tx.amount > 0 ? "text-green-600" : "text-red-600"
-                            }`}
-                          >
-                            {tx.amount > 0 ? "+" : ""}
-                            {tx.amount.toLocaleString()}
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <div
+                              className={`text-xl font-bold ${
+                                tx.amount > 0 ? "text-green-600" : "text-red-600"
+                              }`}
+                            >
+                              {tx.amount > 0 ? "+" : ""}
+                              {tx.amount.toLocaleString()}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              잔액: {tx.balanceAfter.toLocaleString()}
+                            </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            잔액: {tx.balanceAfter.toLocaleString()}
-                          </div>
+                          {user?.role === "admin" && !tx.note?.startsWith("취소:") && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8"
+                              onClick={() => handleCancel(tx.id)}
+                              disabled={cancelMutation.isPending}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))}

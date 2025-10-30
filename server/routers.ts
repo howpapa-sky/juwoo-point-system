@@ -94,6 +94,35 @@ export const appRouter = router({
 
         return { success: true, newBalance };
       }),
+
+    cancel: adminProcedure
+      .input(z.object({
+        transactionId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Get transaction details
+        const transactions = await db.getUserTransactions(ctx.user.id, 1000);
+        const transaction = transactions.find(t => t.id === input.transactionId);
+        
+        if (!transaction) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: '거래 내역을 찾을 수 없습니다.' });
+        }
+
+        // Get current balance
+        const currentBalance = await db.getUserPointBalance(ctx.user.id);
+        const newBalance = currentBalance - transaction.amount;
+
+        // Create reversal transaction
+        await db.createPointTransaction({
+          userId: ctx.user.id,
+          amount: -transaction.amount,
+          balanceAfter: newBalance,
+          note: `취소: ${transaction.note || transaction.ruleName || '포인트 변동'}`,
+          createdBy: ctx.user.id,
+        });
+
+        return { success: true, newBalance };
+      }),
   }),
 
   // Shop
@@ -146,6 +175,39 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         return await db.createShopItem(input);
+      }),
+  }),
+
+  // Transaction Management
+  transactions: router({
+    cancel: adminProcedure
+      .input(z.object({
+        transactionId: z.number(),
+        userId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Get transaction details
+        const transactions = await db.getUserTransactions(input.userId, 1000);
+        const transaction = transactions.find(t => t.id === input.transactionId);
+        
+        if (!transaction) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: '거래 내역을 찾을 수 없습니다.' });
+        }
+
+        // Get current balance
+        const currentBalance = await db.getUserPointBalance(input.userId);
+        const newBalance = currentBalance - transaction.amount;
+
+        // Create reversal transaction
+        await db.createPointTransaction({
+          userId: input.userId,
+          amount: -transaction.amount,
+          balanceAfter: newBalance,
+          note: `취소: ${transaction.note || transaction.ruleName || '포인트 변동'}`,
+          createdBy: ctx.user.id,
+        });
+
+        return { success: true, newBalance };
       }),
   }),
 

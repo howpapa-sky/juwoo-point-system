@@ -34,9 +34,8 @@ export default function Dashboard() {
   });
 
   const handleCancel = (transactionId: number) => {
-    if (!user?.id) return;
     if (confirm("정말로 이 거래를 취소하시겠습니까?")) {
-      cancelMutation.mutate({ transactionId, userId: user.id });
+      cancelMutation.mutate({ transactionId });
     }
   };
 

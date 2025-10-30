@@ -116,9 +116,6 @@ export default function AdminPanel() {
                           </div>
                           <div className="space-y-1 text-sm text-muted-foreground">
                             <p>
-                              <span className="font-medium">사용자:</span> {purchase.userName}
-                            </p>
-                            <p>
                               <span className="font-medium">요청 시간:</span>{" "}
                               {new Date(purchase.createdAt).toLocaleString("ko-KR", {
                                 year: "numeric",

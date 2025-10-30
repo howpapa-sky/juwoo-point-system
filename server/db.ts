@@ -6,11 +6,15 @@ import {
   pointTransactions, InsertPointTransaction,
   shopItems, InsertShopItem,
   purchases, InsertPurchase,
-  goals, InsertGoal
+  goals, InsertGoal,
+  juwooProfile, InsertJuwooProfile
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
+
+// Juwoo's profile ID (always 1)
+const JUWOO_ID = 1;
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
@@ -95,6 +99,37 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+// Juwoo Profile
+export async function getOrCreateJuwooProfile() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(juwooProfile).where(eq(juwooProfile.id, JUWOO_ID)).limit(1);
+  
+  if (result.length > 0) {
+    return result[0];
+  }
+  
+  // Create Juwoo's profile if it doesn't exist
+  await db.insert(juwooProfile).values({
+    id: JUWOO_ID,
+    name: "주우",
+    currentPoints: 0,
+  });
+  
+  const newResult = await db.select().from(juwooProfile).where(eq(juwooProfile.id, JUWOO_ID)).limit(1);
+  return newResult[0];
+}
+
+export async function updateJuwooPoints(points: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(juwooProfile)
+    .set({ currentPoints: points, updatedAt: new Date() })
+    .where(eq(juwooProfile.id, JUWOO_ID));
+}
+
 // Point Rules
 export async function getAllPointRules() {
   const db = await getDb();
@@ -110,27 +145,29 @@ export async function createPointRule(rule: InsertPointRule) {
 }
 
 // Point Transactions
-export async function getUserPointBalance(userId: number) {
-  const db = await getDb();
-  if (!db) return 0;
-  
-  const result = await db.select({ balance: pointTransactions.balanceAfter })
-    .from(pointTransactions)
-    .where(eq(pointTransactions.userId, userId))
-    .orderBy(desc(pointTransactions.createdAt))
-    .limit(1);
-  
-  return result.length > 0 ? result[0].balance : 0;
+export async function getJuwooPointBalance() {
+  const profile = await getOrCreateJuwooProfile();
+  return profile.currentPoints;
 }
 
-export async function createPointTransaction(transaction: InsertPointTransaction) {
+export async function createPointTransaction(transaction: Omit<InsertPointTransaction, 'juwooId'> & { juwooId?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(pointTransactions).values(transaction);
+  
+  const txData = {
+    ...transaction,
+    juwooId: JUWOO_ID,
+  };
+  
+  const result = await db.insert(pointTransactions).values(txData);
+  
+  // Update Juwoo's current points
+  await updateJuwooPoints(transaction.balanceAfter);
+  
   return result;
 }
 
-export async function getUserTransactions(userId: number, limit = 50) {
+export async function getJuwooTransactions(limit = 50) {
   const db = await getDb();
   if (!db) return [];
   
@@ -145,12 +182,12 @@ export async function getUserTransactions(userId: number, limit = 50) {
   })
   .from(pointTransactions)
   .leftJoin(pointRules, eq(pointTransactions.ruleId, pointRules.id))
-  .where(eq(pointTransactions.userId, userId))
+  .where(eq(pointTransactions.juwooId, JUWOO_ID))
   .orderBy(desc(pointTransactions.createdAt))
   .limit(limit);
 }
 
-export async function getTransactionStats(userId: number, days = 7) {
+export async function getTransactionStats(days = 7) {
   const db = await getDb();
   if (!db) return { earned: 0, spent: 0, count: 0 };
   
@@ -161,7 +198,7 @@ export async function getTransactionStats(userId: number, days = 7) {
     .from(pointTransactions)
     .where(
       and(
-        eq(pointTransactions.userId, userId),
+        eq(pointTransactions.juwooId, JUWOO_ID),
         sql`${pointTransactions.createdAt} >= ${cutoffDate}`
       )
     );
@@ -194,14 +231,20 @@ export async function createShopItem(item: InsertShopItem) {
 }
 
 // Purchases
-export async function createPurchase(purchase: InsertPurchase) {
+export async function createPurchase(purchase: Omit<InsertPurchase, 'juwooId'> & { juwooId?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(purchases).values(purchase);
+  
+  const purchaseData = {
+    ...purchase,
+    juwooId: JUWOO_ID,
+  };
+  
+  const result = await db.insert(purchases).values(purchaseData);
   return result;
 }
 
-export async function getUserPurchases(userId: number) {
+export async function getJuwooPurchases() {
   const db = await getDb();
   if (!db) return [];
   
@@ -216,7 +259,7 @@ export async function getUserPurchases(userId: number) {
   })
   .from(purchases)
   .leftJoin(shopItems, eq(purchases.itemId, shopItems.id))
-  .where(eq(purchases.userId, userId))
+  .where(eq(purchases.juwooId, JUWOO_ID))
   .orderBy(desc(purchases.createdAt));
 }
 
@@ -226,8 +269,7 @@ export async function getPendingPurchases() {
   
   return await db.select({
     id: purchases.id,
-    userId: purchases.userId,
-    userName: users.name,
+    juwooId: purchases.juwooId,
     itemName: shopItems.name,
     pointCost: purchases.pointCost,
     status: purchases.status,
@@ -235,7 +277,6 @@ export async function getPendingPurchases() {
     createdAt: purchases.createdAt,
   })
   .from(purchases)
-  .leftJoin(users, eq(purchases.userId, users.id))
   .leftJoin(shopItems, eq(purchases.itemId, shopItems.id))
   .where(eq(purchases.status, "pending"))
   .orderBy(desc(purchases.createdAt));
@@ -261,18 +302,24 @@ export async function updatePurchaseStatus(
 }
 
 // Goals
-export async function getUserGoals(userId: number) {
+export async function getJuwooGoals() {
   const db = await getDb();
   if (!db) return [];
   return await db.select().from(goals)
-    .where(eq(goals.userId, userId))
+    .where(eq(goals.juwooId, JUWOO_ID))
     .orderBy(desc(goals.createdAt));
 }
 
-export async function createGoal(goal: InsertGoal) {
+export async function createGoal(goal: Omit<InsertGoal, 'juwooId'> & { juwooId?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const result = await db.insert(goals).values(goal);
+  
+  const goalData = {
+    ...goal,
+    juwooId: JUWOO_ID,
+  };
+  
+  const result = await db.insert(goals).values(goalData);
   return result;
 }
 

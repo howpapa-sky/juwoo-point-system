@@ -48,76 +48,45 @@ export const appRouter = router({
       }),
   }),
 
-  // Point Transactions
+  // Point Transactions (Juwoo's points)
   points: router({
-    balance: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getUserPointBalance(ctx.user.id);
+    balance: protectedProcedure.query(async () => {
+      return await db.getJuwooPointBalance();
     }),
 
     transactions: protectedProcedure
       .input(z.object({
         limit: z.number().optional().default(50),
       }))
-      .query(async ({ ctx, input }) => {
-        return await db.getUserTransactions(ctx.user.id, input.limit);
+      .query(async ({ input }) => {
+        return await db.getJuwooTransactions(input.limit);
       }),
 
     stats: protectedProcedure
       .input(z.object({
         days: z.number().optional().default(7),
       }))
-      .query(async ({ ctx, input }) => {
-        return await db.getTransactionStats(ctx.user.id, input.days);
+      .query(async ({ input }) => {
+        return await db.getTransactionStats(input.days);
       }),
 
     add: adminProcedure
       .input(z.object({
-        userId: z.number(),
         ruleId: z.number().optional(),
         amount: z.number(),
         note: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Get current balance
-        const currentBalance = await db.getUserPointBalance(input.userId);
+        const currentBalance = await db.getJuwooPointBalance();
         const newBalance = currentBalance + input.amount;
 
         // Create transaction
         await db.createPointTransaction({
-          userId: input.userId,
           ruleId: input.ruleId,
           amount: input.amount,
           balanceAfter: newBalance,
           note: input.note,
-          createdBy: ctx.user.id,
-        });
-
-        return { success: true, newBalance };
-      }),
-
-    cancel: adminProcedure
-      .input(z.object({
-        transactionId: z.number(),
-      }))
-      .mutation(async ({ ctx, input }) => {
-        // Get transaction details
-        const transactions = await db.getUserTransactions(ctx.user.id, 1000);
-        const transaction = transactions.find(t => t.id === input.transactionId);
-        
-        if (!transaction) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: '거래 내역을 찾을 수 없습니다.' });
-        }
-
-        // Get current balance
-        const currentBalance = await db.getUserPointBalance(ctx.user.id);
-        const newBalance = currentBalance - transaction.amount;
-
-        // Create reversal transaction
-        await db.createPointTransaction({
-          userId: ctx.user.id,
-          amount: -transaction.amount,
-          balanceAfter: newBalance,
-          note: `취소: ${transaction.note || transaction.ruleName || '포인트 변동'}`,
           createdBy: ctx.user.id,
         });
 
@@ -136,7 +105,7 @@ export const appRouter = router({
         itemId: z.number(),
         note: z.string().optional(),
       }))
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ input }) => {
         // Get item
         const item = await db.getShopItemById(input.itemId);
         if (!item) {
@@ -144,14 +113,13 @@ export const appRouter = router({
         }
 
         // Check balance
-        const balance = await db.getUserPointBalance(ctx.user.id);
+        const balance = await db.getJuwooPointBalance();
         if (balance < item.pointCost) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: '포인트가 부족합니다.' });
         }
 
         // Create purchase request
         await db.createPurchase({
-          userId: ctx.user.id,
           itemId: input.itemId,
           pointCost: item.pointCost,
           note: input.note,
@@ -161,8 +129,8 @@ export const appRouter = router({
         return { success: true, message: '구매 요청이 완료되었습니다. 승인을 기다려주세요.' };
       }),
 
-    myPurchases: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getUserPurchases(ctx.user.id);
+    myPurchases: protectedProcedure.query(async () => {
+      return await db.getJuwooPurchases();
     }),
 
     createItem: adminProcedure
@@ -183,11 +151,10 @@ export const appRouter = router({
     cancel: adminProcedure
       .input(z.object({
         transactionId: z.number(),
-        userId: z.number(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Get transaction details
-        const transactions = await db.getUserTransactions(input.userId, 1000);
+        const transactions = await db.getJuwooTransactions(1000);
         const transaction = transactions.find(t => t.id === input.transactionId);
         
         if (!transaction) {
@@ -195,12 +162,11 @@ export const appRouter = router({
         }
 
         // Get current balance
-        const currentBalance = await db.getUserPointBalance(input.userId);
+        const currentBalance = await db.getJuwooPointBalance();
         const newBalance = currentBalance - transaction.amount;
 
         // Create reversal transaction
         await db.createPointTransaction({
-          userId: input.userId,
           amount: -transaction.amount,
           balanceAfter: newBalance,
           note: `취소: ${transaction.note || transaction.ruleName || '포인트 변동'}`,
@@ -235,11 +201,10 @@ export const appRouter = router({
           }
 
           // Deduct points
-          const currentBalance = await db.getUserPointBalance(purchase.userId);
+          const currentBalance = await db.getJuwooPointBalance();
           const newBalance = currentBalance - purchase.pointCost;
 
           await db.createPointTransaction({
-            userId: purchase.userId,
             amount: -purchase.pointCost,
             balanceAfter: newBalance,
             note: `${purchase.itemName} 구매`,
@@ -256,8 +221,8 @@ export const appRouter = router({
 
   // Goals
   goals: router({
-    list: protectedProcedure.query(async ({ ctx }) => {
-      return await db.getUserGoals(ctx.user.id);
+    list: protectedProcedure.query(async () => {
+      return await db.getJuwooGoals();
     }),
 
     create: protectedProcedure
@@ -265,9 +230,8 @@ export const appRouter = router({
         title: z.string(),
         targetPoints: z.number(),
       }))
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ input }) => {
         return await db.createGoal({
-          userId: ctx.user.id,
           title: input.title,
           targetPoints: input.targetPoints,
           currentPoints: 0,

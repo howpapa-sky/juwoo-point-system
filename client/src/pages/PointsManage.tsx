@@ -65,10 +65,7 @@ export default function PointsManage() {
   }
 
   const handleApplyRule = async (ruleId: number, ruleName: string, amount: number) => {
-    if (!user?.id) return;
-    
     addPointsMutation.mutate({
-      userId: user.id,
       ruleId,
       amount,
       note: ruleName,

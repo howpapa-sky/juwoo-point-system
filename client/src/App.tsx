@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import AdminSettings from "./pages/AdminSettings";
 import Dashboard from "./pages/Dashboard";
 import PointsManage from "./pages/PointsManage";
 import Transactions from "./pages/Transactions";
@@ -20,7 +21,8 @@ function Router() {
       <Route path={"/points"} component={PointsManage} />
       <Route path={"/transactions"} component={Transactions} />
       <Route path={"/shop"} component={Shop} />
-      <Route path={"/admin"} component={AdminPanel} />
+      <Route path={"/admin/panel"} component={AdminPanel} />
+      <Route path={"/admin/settings"} component={AdminSettings} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

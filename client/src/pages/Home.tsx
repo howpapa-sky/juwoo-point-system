@@ -87,10 +87,14 @@ export default function Home() {
                 <CardDescription>포인트 사용 기록</CardDescription>
               </CardHeader>
               <CardContent>
-                <Link href="/transactions">
-                  <Button className="w-full">바로가기</Button>
+                <div className="space-y-2">
+                <Link href="/admin/panel">
+                  <Button className="w-full">관리자 패널</Button>
                 </Link>
-              </CardContent>
+                <Link href="/admin/settings">
+                  <Button className="w-full" variant="outline">관리자 등록</Button>
+                </Link>
+              </div>             </CardContent>
             </Card>
           </div>
 

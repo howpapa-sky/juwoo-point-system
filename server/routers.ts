@@ -5,6 +5,9 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { users } from "../drizzle/schema";
+import { desc, eq } from "drizzle-orm";
+import { getDb } from "./db";
 
 // Admin-only procedure
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -177,8 +180,30 @@ export const appRouter = router({
       }),
   }),
 
-  // Admin - Purchase Management
+  // Admin - User Management
   admin: router({
+    users: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(users).orderBy(desc(users.lastSignedIn));
+    }),
+
+    updateUserRole: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        role: z.enum(["admin", "user"]),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: '데이터베이스에 연결할 수 없습니다.' });
+        
+        await db.update(users)
+          .set({ role: input.role })
+          .where(eq(users.id, input.userId));
+        
+        return { success: true };
+      }),
+
     pendingPurchases: adminProcedure.query(async () => {
       return await db.getPendingPurchases();
     }),

@@ -15,6 +15,13 @@
       "when": 1761822999446,
       "tag": "0001_happy_spyke",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1761826806681,
+      "tag": "0002_graceful_namora",
+      "breakpoints": true
     }
   ]
 }

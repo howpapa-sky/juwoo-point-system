@@ -19,6 +19,20 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /**
+ * Juwoo profile table - single child profile for the point system
+ */
+export const juwooProfile = mysqlTable("juwoo_profile", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).default("주우").notNull(),
+  currentPoints: int("current_points").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export type JuwooProfile = typeof juwooProfile.$inferSelect;
+export type InsertJuwooProfile = typeof juwooProfile.$inferInsert;
+
+/**
  * Point rules table - defines all possible ways to earn or lose points
  */
 export const pointRules = mysqlTable("point_rules", {
@@ -43,7 +57,7 @@ export type InsertPointRule = typeof pointRules.$inferInsert;
  */
 export const pointTransactions = mysqlTable("point_transactions", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+  juwooId: int("juwoo_id").default(1).notNull(), // always points to the single Juwoo profile
   ruleId: int("rule_id"), // nullable for manual adjustments
   amount: int("amount").notNull(), // positive or negative
   balanceAfter: int("balance_after").notNull(),
@@ -80,7 +94,7 @@ export type InsertShopItem = typeof shopItems.$inferInsert;
  */
 export const purchases = mysqlTable("purchases", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+  juwooId: int("juwoo_id").default(1).notNull(), // always points to the single Juwoo profile
   itemId: int("item_id").notNull(),
   pointCost: int("point_cost").notNull(),
   status: mysqlEnum("status", ["pending", "approved", "rejected", "completed"]).default("pending").notNull(),
@@ -98,7 +112,7 @@ export type InsertPurchase = typeof purchases.$inferInsert;
  */
 export const goals = mysqlTable("goals", {
   id: int("id").autoincrement().primaryKey(),
-  userId: int("user_id").notNull(),
+  juwooId: int("juwoo_id").default(1).notNull(), // always points to the single Juwoo profile
   title: varchar("title", { length: 255 }).notNull(),
   targetPoints: int("target_points").notNull(),
   currentPoints: int("current_points").default(0).notNull(),

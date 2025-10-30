@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -119,6 +120,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -174,4 +179,56 @@
       max-width: 1280px; /* Standard content width */
     }
   }
+}
+
+/* Custom animations */
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.5s ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+/* Point badge styles */
+.point-badge {
+  @apply inline-flex items-center gap-1 px-3 py-1 rounded-full font-semibold text-sm;
+}
+
+.point-badge.positive {
+  @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400;
+}
+
+.point-badge.negative {
+  @apply bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400;
+}
+
+/* Category badges */
+.category-badge {
+  @apply inline-flex items-center px-2 py-1 rounded-md text-xs font-medium;
 }

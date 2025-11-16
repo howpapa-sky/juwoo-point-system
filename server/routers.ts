@@ -73,6 +73,18 @@ export const appRouter = router({
         return await db.getTransactionStats(input.days);
       }),
 
+    dailyStats: protectedProcedure
+      .input(z.object({
+        days: z.number().optional().default(7),
+      }))
+      .query(async ({ input }) => {
+        return await db.getDailyStats(input.days);
+      }),
+
+    categoryStats: protectedProcedure.query(async () => {
+      return await db.getCategoryStats();
+    }),
+
     add: adminProcedure
       .input(z.object({
         ruleId: z.number().optional(),
@@ -245,6 +257,16 @@ export const appRouter = router({
   }),
 
   // Goals
+  english: router({
+    randomWord: publicProcedure
+      .input(z.object({
+        level: z.number().optional().default(1),
+      }))
+      .query(async ({ input }) => {
+        return await db.getRandomEnglishWord(input.level);
+      }),
+  }),
+
   goals: router({
     list: protectedProcedure.query(async () => {
       return await db.getJuwooGoals();

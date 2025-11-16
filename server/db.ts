@@ -333,3 +333,110 @@ export async function updateGoalProgress(goalId: number, currentPoints: number) 
   
   return result;
 }
+
+// Statistics functions
+export async function getDailyStats(days: number = 7) {
+  const db = await getDb();
+  if (!db) return [];
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
+  const transactions = await db
+    .select()
+    .from(pointTransactions)
+    .where(
+      and(
+        eq(pointTransactions.juwooId, JUWOO_ID),
+        sql`${pointTransactions.createdAt} >= ${cutoffDate}`
+      )
+    )
+    .orderBy(pointTransactions.createdAt);
+  // Group by date
+  const dailyMap = new Map<string, { earned: number; spent: number }>();
+  
+  transactions.forEach(t => {
+    const date = new Date(t.createdAt).toISOString().split('T')[0];
+    if (!dailyMap.has(date)) {
+      dailyMap.set(date, { earned: 0, spent: 0 });
+    }
+    const stats = dailyMap.get(date)!;
+    if (t.amount > 0) {
+      stats.earned += t.amount;
+    } else {
+      stats.spent += Math.abs(t.amount);
+    }
+  });
+  
+  // Convert to array and fill missing dates
+  const result = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    const stats = dailyMap.get(dateStr) || { earned: 0, spent: 0 };
+    result.push({
+      date: dateStr,
+      earned: stats.earned,
+      spent: stats.spent,
+    });
+  }
+  
+  return result;
+}
+
+export async function getCategoryStats() {
+  const db = await getDb();
+  if (!db) return [];
+  const transactions = await db
+    .select({
+      category: pointRules.category,
+      amount: pointTransactions.amount,
+    })
+    .from(pointTransactions)
+    .leftJoin(pointRules, eq(pointTransactions.ruleId, pointRules.id))
+    .where(
+      and(
+        eq(pointTransactions.juwooId, JUWOO_ID),
+        sql`${pointTransactions.amount} > 0` // Only positive points
+      )
+    );
+  // Group by category
+  const categoryMap = new Map<string, number>();
+  
+  transactions.forEach(t => {
+    const category = t.category || "기타";
+    categoryMap.set(category, (categoryMap.get(category) || 0) + (t.amount || 0));
+  });
+  // Convert to array
+  const result = Array.from(categoryMap.entries())
+    .map(([category, total]) => ({ category, total }))
+    .sort((a, b) => b.total - a.total);
+  
+  return result;
+}
+
+// English learning functions
+export async function getRandomEnglishWord(level: number = 1) {
+  const db = await getDb();
+  if (!db) return null;
+  const result: any = await db.execute(sql`
+    SELECT * FROM english_words
+    WHERE level = ${level}
+    ORDER BY RAND()
+    LIMIT 1
+  `);
+  const rows = result[0] as any[];
+  return rows.length > 0 ? rows[0] : null;
+}
+
+export async function checkEnglishAnswer(wordId: number, userAnswer: string) {
+  const db = await getDb();
+  if (!db) return false;
+  const result: any = await db.execute(sql`
+    SELECT * FROM english_words
+    WHERE id = ${wordId}
+  `);
+  const rows = result[0] as any[];
+  if (rows.length === 0) return false;
+  const word = rows[0];
+  return word.word.toLowerCase() === userAnswer.toLowerCase();
+}

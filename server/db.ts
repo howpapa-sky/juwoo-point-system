@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://vqxuavqpevllzzgkpudp.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxeHVhdnFwZXZsbHp6Z2twdWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE3MjQwOTMsImV4cCI6MjA0NzMwMDA5M30.ZcCNXYFPLDZkHdT7Bh9Vy9DxW7xkBvOxdOEOTtJCzfE';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxeHVhdnFwZXZsbHp6Z2twdWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxNjkyNzQsImV4cCI6MjA3ODc0NTI3NH0.HBxOjed8E0lS8QgJkBbwr7Z7Gt9PsPxEyGA0IvC1IYM';
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -9,23 +9,38 @@ const JUWOO_ID = 1;
 
 // User functions
 export async function upsertUser(user: any) {
-  const { data, error } = await supabase
-    .from('users')
-    .upsert({
+  try {
+    // Prepare user data with proper null handling
+    const userData = {
       open_id: user.openId,
-      name: user.name,
-      email: user.email,
-      login_method: user.loginMethod,
+      name: user.name || null,
+      email: user.email || null,
+      login_method: user.loginMethod || null,
       role: user.role || 'user',
       last_signed_in: new Date().toISOString(),
-    }, {
-      onConflict: 'open_id',
-    })
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
+    };
+
+    console.log('[DB] Upserting user:', { open_id: userData.open_id, name: userData.name });
+
+    const { data, error } = await supabase
+      .from('users')
+      .upsert(userData, {
+        onConflict: 'open_id',
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('[DB] Upsert error:', error);
+      throw new Error(`Failed to upsert user: ${error.message}`);
+    }
+    
+    console.log('[DB] User upserted successfully:', data?.id);
+    return data;
+  } catch (err) {
+    console.error('[DB] Upsert user failed:', err);
+    throw err;
+  }
 }
 
 export async function getUserByOpenId(openId: string) {

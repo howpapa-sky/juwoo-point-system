@@ -124,3 +124,66 @@ export const goals = mysqlTable("goals", {
 
 export type Goal = typeof goals.$inferSelect;
 export type InsertGoal = typeof goals.$inferInsert;
+
+/**
+ * English words table - vocabulary for learning
+ */
+export const englishWords = mysqlTable("english_words", {
+  id: int("id").autoincrement().primaryKey(),
+  word: varchar("word", { length: 100 }).notNull(),
+  korean: varchar("korean", { length: 100 }).notNull(),
+  level: int("level").default(1).notNull(), // 1=beginner, 2=intermediate, 3=advanced
+  category: varchar("category", { length: 50 }).notNull(),
+  exampleSentence: text("example_sentence"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type EnglishWord = typeof englishWords.$inferSelect;
+export type InsertEnglishWord = typeof englishWords.$inferInsert;
+
+/**
+ * Word learning progress table - tracks which words Juwoo has learned
+ */
+export const wordLearningProgress = mysqlTable("word_learning_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  juwooId: int("juwoo_id").default(1).notNull(),
+  wordId: int("word_id").notNull(),
+  status: mysqlEnum("status", ["learning", "mastered"]).default("learning").notNull(),
+  correctCount: int("correct_count").default(0).notNull(),
+  incorrectCount: int("incorrect_count").default(0).notNull(),
+  lastPracticedAt: timestamp("last_practiced_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export type WordLearningProgress = typeof wordLearningProgress.$inferSelect;
+export type InsertWordLearningProgress = typeof wordLearningProgress.$inferInsert;
+
+/**
+ * Badges table - achievements and milestones
+ */
+export const badges = mysqlTable("badges", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 100 }), // emoji or icon name
+  category: mysqlEnum("category", ["points", "learning", "streak", "special"]).notNull(),
+  requirement: int("requirement").notNull(), // threshold to earn (e.g., 1000 points, 10 days streak)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type Badge = typeof badges.$inferSelect;
+export type InsertBadge = typeof badges.$inferInsert;
+
+/**
+ * User badges table - tracks which badges Juwoo has earned
+ */
+export const userBadges = mysqlTable("user_badges", {
+  id: int("id").autoincrement().primaryKey(),
+  juwooId: int("juwoo_id").default(1).notNull(),
+  badgeId: int("badge_id").notNull(),
+  earnedAt: timestamp("earned_at").defaultNow().notNull(),
+});
+
+export type UserBadge = typeof userBadges.$inferSelect;
+export type InsertUserBadge = typeof userBadges.$inferInsert;

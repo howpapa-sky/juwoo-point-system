@@ -51,6 +51,13 @@ export const appRouter = router({
       }),
   }),
 
+  // Juwoo Profile
+  juwoo: router({
+    profile: protectedProcedure.query(async () => {
+      return await db.getJuwooProfile();
+    }),
+  }),
+
   // Point Transactions (Juwoo's points)
   points: router({
     balance: protectedProcedure.query(async () => {
@@ -245,18 +252,97 @@ export const appRouter = router({
       }),
   }),
 
-  // Goals
+  // English Learning
   english: router({
-    randomWord: publicProcedure
-      .input(z.object({
-        level: z.number().optional().default(1),
-      }))
+    allWords: protectedProcedure.query(async () => {
+      return await db.getAllEnglishWords();
+    }),
+
+    wordsByCategory: protectedProcedure
+      .input(z.object({ category: z.string() }))
       .query(async ({ input }) => {
-        return await db.getRandomEnglishWord(input.level);
+        return await db.getEnglishWordsByCategory(input.category);
+      }),
+
+    wordsByLevel: protectedProcedure
+      .input(z.object({ level: z.number() }))
+      .query(async ({ input }) => {
+        return await db.getEnglishWordsByLevel(input.level);
+      }),
+
+    categories: protectedProcedure.query(async () => {
+      return await db.getWordCategories();
+    }),
+
+    progress: protectedProcedure.query(async () => {
+      return await db.getWordLearningProgress();
+    }),
+
+    updateProgress: protectedProcedure
+      .input(z.object({
+        wordId: z.number(),
+        isCorrect: z.boolean(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const result = await db.updateWordProgress({
+          wordId: input.wordId,
+          isCorrect: input.isCorrect,
+        });
+
+        // Award points for correct answer (50 points per word)
+        if (input.isCorrect) {
+          await db.addPointTransaction({
+            amount: 50,
+            note: `영어 단어 학습 완료`,
+            createdBy: ctx.user.id,
+          });
+        }
+
+        return result;
       }),
   }),
 
-  // Goals feature removed for now
+  // Goals
+  goals: router({
+    list: protectedProcedure.query(async () => {
+      return await db.getActiveGoals();
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        title: z.string(),
+        targetPoints: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.createGoal(input);
+      }),
+
+    updateProgress: protectedProcedure
+      .input(z.object({
+        goalId: z.number(),
+        currentPoints: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.updateGoalProgress(input.goalId, input.currentPoints);
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ goalId: z.number() }))
+      .mutation(async ({ input }) => {
+        return await db.deleteGoal(input.goalId);
+      }),
+  }),
+
+  // Badges
+  badges: router({
+    all: protectedProcedure.query(async () => {
+      return await db.getAllBadges();
+    }),
+
+    userBadges: protectedProcedure.query(async () => {
+      return await db.getUserBadges();
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -471,3 +471,246 @@ export async function checkEnglishAnswer(wordId: number, userAnswer: string) {
   
   return data.word.toLowerCase() === userAnswer.toLowerCase();
 }
+
+
+// ============================================
+// English Word Learning Functions
+// ============================================
+
+export async function getAllEnglishWords() {
+  const { data, error } = await supabase
+    .from('english_words')
+    .select('*')
+    .order('category', { ascending: true })
+    .order('word', { ascending: true });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getEnglishWordsByCategory(category: string) {
+  const { data, error } = await supabase
+    .from('english_words')
+    .select('*')
+    .eq('category', category)
+    .order('word', { ascending: true });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getEnglishWordsByLevel(level: number) {
+  const { data, error } = await supabase
+    .from('english_words')
+    .select('*')
+    .eq('level', level)
+    .order('category', { ascending: true })
+    .order('word', { ascending: true });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getWordLearningProgress(juwooId: number = JUWOO_ID) {
+  const { data, error } = await supabase
+    .from('word_learning_progress')
+    .select('*, english_words(*)')
+    .eq('juwoo_id', juwooId);
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function updateWordProgress(params: {
+  juwooId?: number;
+  wordId: number;
+  isCorrect: boolean;
+}) {
+  const juwooId = params.juwooId || JUWOO_ID;
+  
+  // Check if progress exists
+  const { data: existing } = await supabase
+    .from('word_learning_progress')
+    .select('*')
+    .eq('juwoo_id', juwooId)
+    .eq('word_id', params.wordId)
+    .single();
+  
+  if (existing) {
+    // Update existing progress
+    const { data, error } = await supabase
+      .from('word_learning_progress')
+      .update({
+        correct_count: params.isCorrect ? existing.correct_count + 1 : existing.correct_count,
+        incorrect_count: !params.isCorrect ? existing.incorrect_count + 1 : existing.incorrect_count,
+        status: (existing.correct_count + (params.isCorrect ? 1 : 0)) >= 3 ? 'mastered' : 'learning',
+        last_practiced_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } else {
+    // Create new progress
+    const { data, error } = await supabase
+      .from('word_learning_progress')
+      .insert({
+        juwoo_id: juwooId,
+        word_id: params.wordId,
+        correct_count: params.isCorrect ? 1 : 0,
+        incorrect_count: !params.isCorrect ? 1 : 0,
+        status: 'learning',
+        last_practiced_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+}
+
+export async function getWordCategories() {
+  const { data, error } = await supabase
+    .from('english_words')
+    .select('category')
+    .order('category', { ascending: true });
+  
+  if (error) throw error;
+  
+  // Get unique categories
+  const uniqueCategories = new Set(data?.map(item => item.category) || []);
+  return Array.from(uniqueCategories);
+}
+
+// ============================================
+// Goals Functions
+// ============================================
+
+export async function getActiveGoals(juwooId: number = JUWOO_ID) {
+  const { data, error } = await supabase
+    .from('goals')
+    .select('*')
+    .eq('juwoo_id', juwooId)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createGoal(params: {
+  juwooId?: number;
+  title: string;
+  targetPoints: number;
+}) {
+  const { data, error } = await supabase
+    .from('goals')
+    .insert({
+      juwoo_id: params.juwooId || JUWOO_ID,
+      title: params.title,
+      target_points: params.targetPoints,
+      current_points: 0,
+      status: 'active',
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function updateGoalProgress(goalId: number, currentPoints: number) {
+  const { data: goal } = await supabase
+    .from('goals')
+    .select('*')
+    .eq('id', goalId)
+    .single();
+  
+  if (!goal) throw new Error('Goal not found');
+  
+  const isCompleted = currentPoints >= goal.target_points;
+  
+  const { data, error } = await supabase
+    .from('goals')
+    .update({
+      current_points: currentPoints,
+      status: isCompleted ? 'completed' : 'active',
+      completed_at: isCompleted ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', goalId)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteGoal(goalId: number) {
+  const { error } = await supabase
+    .from('goals')
+    .delete()
+    .eq('id', goalId);
+  
+  if (error) throw error;
+  return { success: true };
+}
+
+// ============================================
+// Badges Functions
+// ============================================
+
+export async function getAllBadges() {
+  const { data, error } = await supabase
+    .from('badges')
+    .select('*')
+    .order('category', { ascending: true })
+    .order('requirement', { ascending: true });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getUserBadges(juwooId: number = JUWOO_ID) {
+  const { data, error } = await supabase
+    .from('user_badges')
+    .select('*, badges(*)')
+    .eq('juwoo_id', juwooId)
+    .order('earned_at', { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function awardBadge(params: {
+  juwooId?: number;
+  badgeId: number;
+}) {
+  // Check if already earned
+  const { data: existing } = await supabase
+    .from('user_badges')
+    .select('*')
+    .eq('juwoo_id', params.juwooId || JUWOO_ID)
+    .eq('badge_id', params.badgeId)
+    .single();
+  
+  if (existing) {
+    return existing; // Already earned
+  }
+  
+  const { data, error } = await supabase
+    .from('user_badges')
+    .insert({
+      juwoo_id: params.juwooId || JUWOO_ID,
+      badge_id: params.badgeId,
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}

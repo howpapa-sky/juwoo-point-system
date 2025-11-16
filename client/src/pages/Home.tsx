@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { Sparkles, TrendingUp, Gift, Target, Star } from "lucide-react";
+import { Sparkles, TrendingUp, Gift, Target, Star, BookOpen, BarChart3 } from "lucide-react";
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -32,7 +32,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <Card className="hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: "0.1s" }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -81,25 +81,51 @@ export default function Home() {
             <Card className="hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: "0.4s" }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Target className="h-6 w-6 text-blue-500" />
-                  거래 내역
+                  <BookOpen className="h-6 w-6 text-blue-500" />
+                  영어 학습
+                </CardTitle>
+                <CardDescription>단어를 배우고 포인트 획득!</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/english">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700">학습하기</Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: "0.5s" }}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-6 w-6 text-indigo-500" />
+                  목표 설정
+                </CardTitle>
+                <CardDescription>포인트 목표 달성하기</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/goals">
+                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700">목표 보기</Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: "0.6s" }}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-6 w-6 text-orange-500" />
+                  통계
                 </CardTitle>
                 <CardDescription>포인트 사용 기록</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                <Link href="/admin/panel">
-                  <Button className="w-full">관리자 패널</Button>
+                <Link href="/statistics">
+                  <Button className="w-full bg-orange-600 hover:bg-orange-700">보기</Button>
                 </Link>
-                <Link href="/admin/settings">
-                  <Button className="w-full" variant="outline">관리자 등록</Button>
-                </Link>
-              </div>             </CardContent>
+              </CardContent>
             </Card>
           </div>
 
           {user?.role === "admin" && (
-            <Card className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 border-purple-300 animate-slide-up" style={{ animationDelay: "0.5s" }}>
+            <Card className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 border-purple-300 animate-slide-up" style={{ animationDelay: "0.7s" }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Star className="h-6 w-6 text-yellow-500" />
@@ -107,9 +133,12 @@ export default function Home() {
                 </CardTitle>
                 <CardDescription>포인트 관리 및 승인</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Link href="/admin">
-                  <Button variant="outline" className="w-full md:w-auto">관리자 페이지로 이동</Button>
+              <CardContent className="flex gap-4">
+                <Link href="/admin/panel">
+                  <Button variant="outline">관리자 패널</Button>
+                </Link>
+                <Link href="/admin/settings">
+                  <Button variant="outline">관리자 등록</Button>
                 </Link>
               </CardContent>
             </Card>
@@ -135,6 +164,7 @@ export default function Home() {
             <p>✨ 숙제를 일찍 끝내면 포인트 적립</p>
             <p>🏃 운동을 하면 포인트 적립</p>
             <p>📚 책을 읽으면 포인트 적립</p>
+            <p>🎓 영어 단어를 배우면 포인트 적립</p>
             <p>🎮 포인트로 게임 시간 구매</p>
             <p>🎁 포인트로 장난감 구매</p>
           </div>

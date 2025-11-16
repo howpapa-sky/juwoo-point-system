@@ -14,6 +14,7 @@ import AdminPanel from "./pages/AdminPanel";
 import Statistics from "./pages/Statistics";
 import EnglishLearning from "./pages/EnglishLearning";
 import Goals from "./pages/Goals";
+import Badges from "./pages/Badges";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -28,7 +29,8 @@ function Router() {
       <Route path={"/admin/settings"} component={AdminSettings} />
       <Route path={"/statistics"} component={Statistics} />
       <Route path={"/english"} component={EnglishLearning} />
-      <Route path={"/goals"} component={Goals} />
+       <Route path="/goals" component={Goals} />
+      <Route path="/badges" component={Badges} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

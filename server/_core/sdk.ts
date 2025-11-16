@@ -293,7 +293,7 @@ class SDKServer {
     }
 
     await db.upsertUser({
-      openId: user.openId,
+      openId: user.open_id || user.openId,
       lastSignedIn: signedInAt,
     });
 

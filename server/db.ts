@@ -51,6 +51,22 @@ export async function getUserByOpenId(openId: string) {
     .single();
   
   if (error && error.code !== 'PGRST116') throw error;
+  
+  // Convert snake_case to camelCase for TypeScript compatibility
+  if (data) {
+    return {
+      id: data.id,
+      openId: data.open_id,
+      name: data.name,
+      email: data.email,
+      loginMethod: data.login_method,
+      role: data.role,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      lastSignedIn: data.last_signed_in,
+    } as any;
+  }
+  
   return data;
 }
 

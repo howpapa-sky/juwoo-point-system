@@ -1,360 +1,376 @@
-import { eq, desc, and, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
-import { 
-  InsertUser, users, 
-  pointRules, InsertPointRule,
-  pointTransactions, InsertPointTransaction,
-  shopItems, InsertShopItem,
-  purchases, InsertPurchase,
-  goals, InsertGoal,
-  juwooProfile, InsertJuwooProfile
-} from "../drizzle/schema";
-import { ENV } from './_core/env';
+import { createClient } from '@supabase/supabase-js';
 
-let _db: ReturnType<typeof drizzle> | null = null;
+const supabaseUrl = process.env.SUPABASE_URL || 'https://vqxuavqpevllzzgkpudp.supabase.co';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxeHVhdnFwZXZsbHp6Z2twdWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE3MjQwOTMsImV4cCI6MjA0NzMwMDA5M30.ZcCNXYFPLDZkHdT7Bh9Vy9DxW7xkBvOxdOEOTtJCzfE';
 
-// Juwoo's profile ID (always 1)
+export const supabase = createClient(supabaseUrl, supabaseKey);
+
 const JUWOO_ID = 1;
 
-export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
-    try {
-      _db = drizzle(process.env.DATABASE_URL);
-    } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
-      _db = null;
-    }
-  }
-  return _db;
-}
-
-export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
-
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
-  }
-
-  try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
-
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
-
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
-    }
-
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
-  } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
-    throw error;
-  }
+// User functions
+export async function upsertUser(user: any) {
+  const { data, error } = await supabase
+    .from('users')
+    .upsert({
+      open_id: user.openId,
+      name: user.name,
+      email: user.email,
+      login_method: user.loginMethod,
+      role: user.role || 'user',
+      last_signed_in: new Date().toISOString(),
+    }, {
+      onConflict: 'open_id',
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
 }
 
 export async function getUserByOpenId(openId: string) {
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
-
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
-  return result.length > 0 ? result[0] : undefined;
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('open_id', openId)
+    .single();
+  
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
 }
 
-// Juwoo Profile
-export async function getOrCreateJuwooProfile() {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
+export async function getAllUsers() {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .order('created_at', { ascending: false });
   
-  const result = await db.select().from(juwooProfile).where(eq(juwooProfile.id, JUWOO_ID)).limit(1);
-  
-  if (result.length > 0) {
-    return result[0];
-  }
-  
-  // Create Juwoo's profile if it doesn't exist
-  await db.insert(juwooProfile).values({
-    id: JUWOO_ID,
-    name: "주우",
-    currentPoints: 0,
-  });
-  
-  const newResult = await db.select().from(juwooProfile).where(eq(juwooProfile.id, JUWOO_ID)).limit(1);
-  return newResult[0];
+  if (error) throw error;
+  return data || [];
 }
 
-export async function updateJuwooPoints(points: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
+export async function updateUserRole(userId: number, role: string) {
+  const { data, error } = await supabase
+    .from('users')
+    .update({ role })
+    .eq('id', userId)
+    .select()
+    .single();
   
-  await db.update(juwooProfile)
-    .set({ currentPoints: points, updatedAt: new Date() })
-    .where(eq(juwooProfile.id, JUWOO_ID));
+  if (error) throw error;
+  return data;
 }
 
-// Point Rules
+// Juwoo profile functions
+export async function getJuwooProfile() {
+  const { data, error } = await supabase
+    .from('juwoo_profile')
+    .select('*')
+    .eq('id', JUWOO_ID)
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function getJuwooBalance() {
+  const profile = await getJuwooProfile();
+  return profile?.current_points || 0;
+}
+
+export async function updateJuwooBalance(newBalance: number) {
+  const { data, error } = await supabase
+    .from('juwoo_profile')
+    .update({ 
+      current_points: newBalance,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', JUWOO_ID)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+// Point rules functions
 export async function getAllPointRules() {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(pointRules).where(eq(pointRules.isActive, true));
+  const { data, error } = await supabase
+    .from('point_rules')
+    .select('*')
+    .order('category', { ascending: true });
+  
+  if (error) throw error;
+  return data || [];
 }
 
-export async function createPointRule(rule: InsertPointRule) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(pointRules).values(rule);
-  return result;
+export async function getPointRuleById(id: number) {
+  const { data, error } = await supabase
+    .from('point_rules')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) throw error;
+  return data;
 }
 
-// Point Transactions
-export async function getJuwooPointBalance() {
-  const profile = await getOrCreateJuwooProfile();
-  return profile.currentPoints;
+export async function createPointRule(rule: {
+  name: string;
+  description?: string;
+  category: string;
+  pointAmount: number;
+}) {
+  const { data, error } = await supabase
+    .from('point_rules')
+    .insert({
+      name: rule.name,
+      description: rule.description,
+      category: rule.category,
+      point_amount: rule.pointAmount,
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
 }
 
-export async function createPointTransaction(transaction: Omit<InsertPointTransaction, 'juwooId'> & { juwooId?: number }) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
+// Point transactions functions
+export async function addPointTransaction(transaction: {
+  ruleId?: number;
+  amount: number;
+  note?: string;
+  createdBy?: number;
+}) {
+  const currentBalance = await getJuwooBalance();
+  const newBalance = currentBalance + transaction.amount;
   
-  const txData = {
-    ...transaction,
-    juwooId: JUWOO_ID,
-  };
+  const { data, error } = await supabase
+    .from('point_transactions')
+    .insert({
+      juwoo_id: JUWOO_ID,
+      rule_id: transaction.ruleId,
+      amount: transaction.amount,
+      balance_after: newBalance,
+      note: transaction.note,
+      created_by: transaction.createdBy,
+    })
+    .select()
+    .single();
   
-  const result = await db.insert(pointTransactions).values(txData);
+  if (error) throw error;
   
-  // Update Juwoo's current points
-  await updateJuwooPoints(transaction.balanceAfter);
+  await updateJuwooBalance(newBalance);
   
-  return result;
+  return data;
 }
 
-export async function getJuwooTransactions(limit = 50) {
-  const db = await getDb();
-  if (!db) return [];
+export async function getJuwooTransactions(limit: number = 50) {
+  const { data, error } = await supabase
+    .from('point_transactions')
+    .select(`
+      *,
+      point_rules (name, category),
+      users (name)
+    `)
+    .eq('juwoo_id', JUWOO_ID)
+    .order('created_at', { ascending: false })
+    .limit(limit);
   
-  return await db.select({
-    id: pointTransactions.id,
-    amount: pointTransactions.amount,
-    balanceAfter: pointTransactions.balanceAfter,
-    note: pointTransactions.note,
-    createdAt: pointTransactions.createdAt,
-    ruleName: pointRules.name,
-    ruleCategory: pointRules.category,
-  })
-  .from(pointTransactions)
-  .leftJoin(pointRules, eq(pointTransactions.ruleId, pointRules.id))
-  .where(eq(pointTransactions.juwooId, JUWOO_ID))
-  .orderBy(desc(pointTransactions.createdAt))
-  .limit(limit);
+  if (error) throw error;
+  return data || [];
 }
 
-export async function getTransactionStats(days = 7) {
-  const db = await getDb();
-  if (!db) return { earned: 0, spent: 0, count: 0 };
+export async function cancelTransaction(transactionId: number) {
+  const { data: transaction, error: fetchError } = await supabase
+    .from('point_transactions')
+    .select('*')
+    .eq('id', transactionId)
+    .single();
   
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - days);
+  if (fetchError) throw fetchError;
+  if (!transaction) throw new Error('Transaction not found');
   
-  const transactions = await db.select()
-    .from(pointTransactions)
-    .where(
-      and(
-        eq(pointTransactions.juwooId, JUWOO_ID),
-        sql`${pointTransactions.createdAt} >= ${cutoffDate}`
-      )
-    );
+  const reverseAmount = -transaction.amount;
+  const currentBalance = await getJuwooBalance();
+  const newBalance = currentBalance + reverseAmount;
   
-  const earned = transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0);
-  const spent = Math.abs(transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0));
+  const { data, error } = await supabase
+    .from('point_transactions')
+    .insert({
+      juwoo_id: JUWOO_ID,
+      amount: reverseAmount,
+      balance_after: newBalance,
+      note: `취소: ${transaction.note || 'ID ' + transactionId}`,
+    })
+    .select()
+    .single();
   
-  return { earned, spent, count: transactions.length };
+  if (error) throw error;
+  
+  await updateJuwooBalance(newBalance);
+  
+  return data;
 }
 
-// Shop Items
+// Shop items functions
 export async function getAllShopItems() {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(shopItems).where(eq(shopItems.isAvailable, true));
+  const { data, error } = await supabase
+    .from('shop_items')
+    .select('*')
+    .eq('is_available', true)
+    .order('category', { ascending: true });
+  
+  if (error) throw error;
+  return data || [];
 }
 
 export async function getShopItemById(id: number) {
-  const db = await getDb();
-  if (!db) return undefined;
-  const result = await db.select().from(shopItems).where(eq(shopItems.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  const { data, error } = await supabase
+    .from('shop_items')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) throw error;
+  return data;
 }
 
-export async function createShopItem(item: InsertShopItem) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  const result = await db.insert(shopItems).values(item);
-  return result;
+export async function createShopItem(item: any) {
+  const { data, error } = await supabase
+    .from('shop_items')
+    .insert(item)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
 }
 
-// Purchases
-export async function createPurchase(purchase: Omit<InsertPurchase, 'juwooId'> & { juwooId?: number }) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
+// Purchase functions
+export async function createPurchase(purchase: {
+  itemId: number;
+  pointCost: number;
+  note?: string;
+}) {
+  const { data, error } = await supabase
+    .from('purchases')
+    .insert({
+      juwoo_id: JUWOO_ID,
+      item_id: purchase.itemId,
+      point_cost: purchase.pointCost,
+      note: purchase.note,
+      status: 'pending',
+    })
+    .select()
+    .single();
   
-  const purchaseData = {
-    ...purchase,
-    juwooId: JUWOO_ID,
-  };
-  
-  const result = await db.insert(purchases).values(purchaseData);
-  return result;
+  if (error) throw error;
+  return data;
 }
 
 export async function getJuwooPurchases() {
-  const db = await getDb();
-  if (!db) return [];
+  const { data, error } = await supabase
+    .from('purchases')
+    .select(`
+      *,
+      shop_items (name, category)
+    `)
+    .eq('juwoo_id', JUWOO_ID)
+    .order('created_at', { ascending: false });
   
-  return await db.select({
-    id: purchases.id,
-    itemName: shopItems.name,
-    pointCost: purchases.pointCost,
-    status: purchases.status,
-    note: purchases.note,
-    createdAt: purchases.createdAt,
-    approvedAt: purchases.approvedAt,
-  })
-  .from(purchases)
-  .leftJoin(shopItems, eq(purchases.itemId, shopItems.id))
-  .where(eq(purchases.juwooId, JUWOO_ID))
-  .orderBy(desc(purchases.createdAt));
+  if (error) throw error;
+  return data || [];
 }
 
 export async function getPendingPurchases() {
-  const db = await getDb();
-  if (!db) return [];
+  const { data, error } = await supabase
+    .from('purchases')
+    .select(`
+      *,
+      shop_items (name, category, point_cost)
+    `)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
   
-  return await db.select({
-    id: purchases.id,
-    juwooId: purchases.juwooId,
-    itemName: shopItems.name,
-    pointCost: purchases.pointCost,
-    status: purchases.status,
-    note: purchases.note,
-    createdAt: purchases.createdAt,
-  })
-  .from(purchases)
-  .leftJoin(shopItems, eq(purchases.itemId, shopItems.id))
-  .where(eq(purchases.status, "pending"))
-  .orderBy(desc(purchases.createdAt));
+  if (error) throw error;
+  return data || [];
 }
 
-export async function updatePurchaseStatus(
-  purchaseId: number, 
-  status: "approved" | "rejected" | "completed", 
-  approvedBy: number
-) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
+export async function approvePurchase(purchaseId: number, adminId: number) {
+  const { data: purchase, error: fetchError } = await supabase
+    .from('purchases')
+    .select('*')
+    .eq('id', purchaseId)
+    .single();
   
-  const result = await db.update(purchases)
-    .set({ 
-      status, 
-      approvedBy, 
-      approvedAt: new Date() 
+  if (fetchError) throw fetchError;
+  if (!purchase) throw new Error('Purchase not found');
+  
+  const currentBalance = await getJuwooBalance();
+  const newBalance = currentBalance - purchase.point_cost;
+  
+  if (newBalance < 0) {
+    throw new Error('Insufficient points');
+  }
+  
+  const { data, error } = await supabase
+    .from('purchases')
+    .update({
+      status: 'approved',
+      approved_by: adminId,
+      approved_at: new Date().toISOString(),
     })
-    .where(eq(purchases.id, purchaseId));
+    .eq('id', purchaseId)
+    .select()
+    .single();
   
-  return result;
+  if (error) throw error;
+  
+  await addPointTransaction({
+    amount: -purchase.point_cost,
+    note: `구매: ${purchase.note || 'ID ' + purchaseId}`,
+    createdBy: adminId,
+  });
+  
+  return data;
 }
 
-// Goals
-export async function getJuwooGoals() {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(goals)
-    .where(eq(goals.juwooId, JUWOO_ID))
-    .orderBy(desc(goals.createdAt));
-}
-
-export async function createGoal(goal: Omit<InsertGoal, 'juwooId'> & { juwooId?: number }) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
+export async function rejectPurchase(purchaseId: number, adminId: number) {
+  const { data, error } = await supabase
+    .from('purchases')
+    .update({
+      status: 'rejected',
+      approved_by: adminId,
+      approved_at: new Date().toISOString(),
+    })
+    .eq('id', purchaseId)
+    .select()
+    .single();
   
-  const goalData = {
-    ...goal,
-    juwooId: JUWOO_ID,
-  };
-  
-  const result = await db.insert(goals).values(goalData);
-  return result;
-}
-
-export async function updateGoalProgress(goalId: number, currentPoints: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  const result = await db.update(goals)
-    .set({ currentPoints, updatedAt: new Date() })
-    .where(eq(goals.id, goalId));
-  
-  return result;
+  if (error) throw error;
+  return data;
 }
 
 // Statistics functions
 export async function getDailyStats(days: number = 7) {
-  const db = await getDb();
-  if (!db) return [];
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
-  const transactions = await db
-    .select()
-    .from(pointTransactions)
-    .where(
-      and(
-        eq(pointTransactions.juwooId, JUWOO_ID),
-        sql`${pointTransactions.createdAt} >= ${cutoffDate}`
-      )
-    )
-    .orderBy(pointTransactions.createdAt);
-  // Group by date
+  
+  const { data, error } = await supabase
+    .from('point_transactions')
+    .select('*')
+    .eq('juwoo_id', JUWOO_ID)
+    .gte('created_at', cutoffDate.toISOString())
+    .order('created_at', { ascending: true });
+  
+  if (error) throw error;
+  
   const dailyMap = new Map<string, { earned: number; spent: number }>();
   
-  transactions.forEach(t => {
-    const date = new Date(t.createdAt).toISOString().split('T')[0];
+  (data || []).forEach(t => {
+    const date = new Date(t.created_at).toISOString().split('T')[0];
     if (!dailyMap.has(date)) {
       dailyMap.set(date, { earned: 0, spent: 0 });
     }
@@ -366,7 +382,6 @@ export async function getDailyStats(days: number = 7) {
     }
   });
   
-  // Convert to array and fill missing dates
   const result = [];
   for (let i = days - 1; i >= 0; i--) {
     const date = new Date();
@@ -384,29 +399,24 @@ export async function getDailyStats(days: number = 7) {
 }
 
 export async function getCategoryStats() {
-  const db = await getDb();
-  if (!db) return [];
-  const transactions = await db
-    .select({
-      category: pointRules.category,
-      amount: pointTransactions.amount,
-    })
-    .from(pointTransactions)
-    .leftJoin(pointRules, eq(pointTransactions.ruleId, pointRules.id))
-    .where(
-      and(
-        eq(pointTransactions.juwooId, JUWOO_ID),
-        sql`${pointTransactions.amount} > 0` // Only positive points
-      )
-    );
-  // Group by category
+  const { data, error } = await supabase
+    .from('point_transactions')
+    .select(`
+      amount,
+      point_rules (category)
+    `)
+    .eq('juwoo_id', JUWOO_ID)
+    .gt('amount', 0);
+  
+  if (error) throw error;
+  
   const categoryMap = new Map<string, number>();
   
-  transactions.forEach(t => {
-    const category = t.category || "기타";
-    categoryMap.set(category, (categoryMap.get(category) || 0) + (t.amount || 0));
+  (data || []).forEach((t: any) => {
+    const category = t.point_rules?.category || '기타';
+    categoryMap.set(category, (categoryMap.get(category) || 0) + t.amount);
   });
-  // Convert to array
+  
   const result = Array.from(categoryMap.entries())
     .map(([category, total]) => ({ category, total }))
     .sort((a, b) => b.total - a.total);
@@ -414,29 +424,50 @@ export async function getCategoryStats() {
   return result;
 }
 
+export async function getJuwooStats() {
+  const balance = await getJuwooBalance();
+  const transactions = await getJuwooTransactions(1000);
+  
+  const totalEarned = transactions
+    .filter(t => t.amount > 0)
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const totalSpent = Math.abs(transactions
+    .filter(t => t.amount < 0)
+    .reduce((sum, t) => sum + t.amount, 0));
+  
+  return {
+    currentBalance: balance,
+    totalEarned,
+    totalSpent,
+    transactionCount: transactions.length,
+  };
+}
+
 // English learning functions
 export async function getRandomEnglishWord(level: number = 1) {
-  const db = await getDb();
-  if (!db) return null;
-  const result: any = await db.execute(sql`
-    SELECT * FROM english_words
-    WHERE level = ${level}
-    ORDER BY RAND()
-    LIMIT 1
-  `);
-  const rows = result[0] as any[];
-  return rows.length > 0 ? rows[0] : null;
+  const { data, error } = await supabase
+    .from('english_words')
+    .select('*')
+    .eq('level', level)
+    .limit(100);
+  
+  if (error) throw error;
+  if (!data || data.length === 0) return null;
+  
+  const randomIndex = Math.floor(Math.random() * data.length);
+  return data[randomIndex];
 }
 
 export async function checkEnglishAnswer(wordId: number, userAnswer: string) {
-  const db = await getDb();
-  if (!db) return false;
-  const result: any = await db.execute(sql`
-    SELECT * FROM english_words
-    WHERE id = ${wordId}
-  `);
-  const rows = result[0] as any[];
-  if (rows.length === 0) return false;
-  const word = rows[0];
-  return word.word.toLowerCase() === userAnswer.toLowerCase();
+  const { data, error } = await supabase
+    .from('english_words')
+    .select('*')
+    .eq('id', wordId)
+    .single();
+  
+  if (error) throw error;
+  if (!data) return false;
+  
+  return data.word.toLowerCase() === userAnswer.toLowerCase();
 }

@@ -106,7 +106,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-4xl font-bold text-green-600 mb-2">
-                    +{stats?.earned.toLocaleString() || 0}
+                    +{stats?.totalEarned.toLocaleString() || 0}
                   </div>
                   <p className="text-muted-foreground">포인트</p>
                 </CardContent>
@@ -121,7 +121,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-4xl font-bold text-red-600 mb-2">
-                    -{stats?.spent.toLocaleString() || 0}
+                    -{stats?.totalSpent.toLocaleString() || 0}
                   </div>
                   <p className="text-muted-foreground">포인트</p>
                 </CardContent>

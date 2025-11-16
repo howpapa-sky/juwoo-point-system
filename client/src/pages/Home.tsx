@@ -1,12 +1,12 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import { Sparkles, TrendingUp, Gift, Target, Star, BookOpen, BarChart3, Award } from "lucide-react";
 
 export default function Home() {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading } = useSupabaseAuth();
+  const isAuthenticated = !!user;
 
   if (loading) {
     return (
@@ -66,7 +66,7 @@ export default function Home() {
             <Card className="hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: "0.3s" }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Gift className="h-6 w-6 text-pink-500" />
+                  <Gift className="h-6 w-6 text-red-500" />
                   포인트 상점
                 </CardTitle>
                 <CardDescription>포인트로 구매하기</CardDescription>
@@ -88,7 +88,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <Link href="/english">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">학습하기</Button>
+                  <Button className="w-full">학습하기</Button>
                 </Link>
               </CardContent>
             </Card>
@@ -96,14 +96,14 @@ export default function Home() {
             <Card className="hover:shadow-lg transition-shadow animate-slide-up" style={{ animationDelay: "0.5s" }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Target className="h-6 w-6 text-indigo-500" />
+                  <Target className="h-6 w-6 text-purple-500" />
                   목표 설정
                 </CardTitle>
-                <CardDescription>포인트 목표 달성하기</CardDescription>
+                <CardDescription>포인트 목표 달성하기!</CardDescription>
               </CardHeader>
               <CardContent>
                 <Link href="/goals">
-                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700">목표 보기</Button>
+                  <Button className="w-full">목표 보기</Button>
                 </Link>
               </CardContent>
             </Card>
@@ -114,11 +114,11 @@ export default function Home() {
                   <Award className="h-6 w-6 text-yellow-500" />
                   배지
                 </CardTitle>
-                <CardDescription>획득한 배지 보기</CardDescription>
+                <CardDescription>획득한 배지 보기!</CardDescription>
               </CardHeader>
               <CardContent>
                 <Link href="/badges">
-                  <Button className="w-full bg-yellow-600 hover:bg-yellow-700">배지 보기</Button>
+                  <Button className="w-full">배지 보기</Button>
                 </Link>
               </CardContent>
             </Card>
@@ -133,61 +133,56 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <Link href="/statistics">
-                  <Button className="w-full bg-orange-600 hover:bg-orange-700">보기</Button>
+                  <Button className="w-full">보기</Button>
                 </Link>
               </CardContent>
             </Card>
           </div>
-
-          {user?.role === "admin" && (
-            <Card className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 border-purple-300 animate-slide-up" style={{ animationDelay: "0.7s" }}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-6 w-6 text-yellow-500" />
-                  관리자 패널
-                </CardTitle>
-                <CardDescription>포인트 관리 및 승인</CardDescription>
-              </CardHeader>
-              <CardContent className="flex gap-4">
-                <Link href="/admin/panel">
-                  <Button variant="outline">관리자 패널</Button>
-                </Link>
-                <Link href="/admin/settings">
-                  <Button variant="outline">관리자 등록</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     );
   }
 
+  // Not authenticated - show landing page
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950 flex items-center justify-center p-4">
-      <Card className="max-w-md w-full animate-bounce-in">
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 flex items-center justify-center p-4">
+      <Card className="max-w-2xl w-full">
         <CardHeader className="text-center">
-          <div className="text-6xl mb-4">🌟</div>
-          <CardTitle className="text-3xl mb-2">주우의 포인트 시스템</CardTitle>
-          <CardDescription className="text-base">
-            좋은 행동으로 포인트를 모으고<br />
-            원하는 것을 얻어보세요!
+          <div className="text-6xl mb-4">⭐</div>
+          <CardTitle className="text-4xl font-bold mb-2">주우의 포인트 시스템</CardTitle>
+          <CardDescription className="text-lg">
+            좋은 행동으로 포인트를 모으고, 원하는 것을 얻어보세요!
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <p>✨ 숙제를 일찍 끝내면 포인트 적립</p>
-            <p>🏃 운동을 하면 포인트 적립</p>
-            <p>📚 책을 읽으면 포인트 적립</p>
-            <p>🎓 영어 단어를 배우면 포인트 적립</p>
-            <p>🎮 포인트로 게임 시간 구매</p>
-            <p>🎁 포인트로 장난감 구매</p>
+          <div className="space-y-3 text-center">
+            <p className="flex items-center justify-center gap-2">
+              ✨ 숙제를 일찍 끝내면 포인트 적립
+            </p>
+            <p className="flex items-center justify-center gap-2">
+              🏃 운동을 하면 포인트 적립
+            </p>
+            <p className="flex items-center justify-center gap-2">
+              📚 책을 읽으면 포인트 적립
+            </p>
+            <p className="flex items-center justify-center gap-2">
+              🎓 영어 단어를 배우면 포인트 적립
+            </p>
+            <p className="flex items-center justify-center gap-2">
+              🎮 포인트로 게임 시간 구매
+            </p>
+            <p className="flex items-center justify-center gap-2">
+              🎁 포인트로 장난감 구매
+            </p>
           </div>
-          <a href={getLoginUrl()}>
-            <Button className="w-full" size="lg">
-              로그인하고 시작하기
-            </Button>
-          </a>
+
+          <Button 
+            className="w-full text-lg py-6" 
+            size="lg"
+            onClick={() => window.location.href = '/login'}
+          >
+            로그인하고 시작하기
+          </Button>
         </CardContent>
       </Card>
     </div>

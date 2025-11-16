@@ -4,7 +4,9 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
 import Home from "./pages/Home";
+import Login from "./pages/Login";
 import AdminSettings from "./pages/AdminSettings";
 import Dashboard from "./pages/Dashboard";
 import PointsManage from "./pages/PointsManage";
@@ -21,6 +23,7 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/login"} component={Login} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/points"} component={PointsManage} />
       <Route path={"/transactions"} component={Transactions} />
@@ -46,15 +49,17 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
+      <SupabaseAuthProvider>
+        <ThemeProvider
+          defaultTheme="light"
+          // switchable
+        >
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </ThemeProvider>
+      </SupabaseAuthProvider>
     </ErrorBoundary>
   );
 }

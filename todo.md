@@ -83,3 +83,12 @@
 - [ ] 코드 푸시
 - [ ] Netlify 배포 설정
 - [ ] 배포 완료 및 URL 확인
+
+## Supabase Auth 전환
+- [x] Supabase Auth 활성화 및 설정
+- [ ] Google OAuth 프로바이더 설정 (Supabase Dashboard에서 수동 설정 필요)
+- [ ] Manus OAuth 코드 제거 (선택 사항)
+- [x] Supabase Auth 클라이언트 통합
+- [x] 로그인/회원가입 UI 구현
+- [x] 세션 관리 구현
+- [ ] 로그인 테스트 및 검증

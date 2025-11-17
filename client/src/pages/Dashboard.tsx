@@ -93,7 +93,7 @@ export default function Dashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-5xl font-bold mb-2">{balance?.toLocaleString() || 0}</div>
+                  <div className="text-5xl font-bold mb-2">{balance != null ? balance.toLocaleString() : 0}</div>
                   <p className="text-purple-100">포인트</p>
                 </CardContent>
               </Card>
@@ -107,7 +107,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-4xl font-bold text-green-600 mb-2">
-                    +{stats?.totalEarned.toLocaleString() || 0}
+                    +{stats?.totalEarned != null ? stats.totalEarned.toLocaleString() : 0}
                   </div>
                   <p className="text-muted-foreground">포인트</p>
                 </CardContent>
@@ -122,7 +122,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-4xl font-bold text-red-600 mb-2">
-                    -{stats?.totalSpent.toLocaleString() || 0}
+                    -{stats?.totalSpent != null ? stats.totalSpent.toLocaleString() : 0}
                   </div>
                   <p className="text-muted-foreground">포인트</p>
                 </CardContent>
@@ -169,10 +169,10 @@ export default function Dashboard() {
                               }`}
                             >
                               {tx.amount > 0 ? "+" : ""}
-                              {tx.amount.toLocaleString()}
+                              {tx.amount != null ? tx.amount.toLocaleString() : 0}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              잔액: {tx.balanceAfter.toLocaleString()}
+                              잔액: {tx.balanceAfter != null ? tx.balanceAfter.toLocaleString() : 0}
                             </div>
                           </div>
                           {user?.role === "admin" && !tx.note?.startsWith("취소:") && (

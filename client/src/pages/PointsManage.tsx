@@ -157,7 +157,7 @@ export default function PointsManage() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-2xl font-bold text-green-600">
-                            +{rule.pointAmount.toLocaleString()}
+                            +{rule.pointAmount != null ? rule.pointAmount.toLocaleString() : 0}
                           </span>
                           <Button
                             size="sm"
@@ -201,7 +201,7 @@ export default function PointsManage() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-2xl font-bold text-red-600">
-                            {rule.pointAmount.toLocaleString()}
+                            {rule.pointAmount != null ? rule.pointAmount.toLocaleString() : 0}
                           </span>
                           <Button
                             size="sm"

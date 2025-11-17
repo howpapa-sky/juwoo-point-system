@@ -93,7 +93,7 @@ export default function Shop() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 mb-1">내 포인트</p>
-                <p className="text-4xl font-bold">{balance?.toLocaleString() || 0}</p>
+                <p className="text-4xl font-bold">{balance != null ? balance.toLocaleString() : 0}</p>
               </div>
               <Coins className="h-16 w-16 opacity-50" />
             </div>
@@ -122,7 +122,7 @@ export default function Shop() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-red-600">-{purchase.pointCost.toLocaleString()}</p>
+                      <p className="font-bold text-red-600">-{purchase.pointCost != null ? purchase.pointCost.toLocaleString() : 0}</p>
                       <p className="text-xs text-muted-foreground">승인 대기</p>
                     </div>
                   </div>
@@ -174,7 +174,7 @@ export default function Shop() {
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">가격</p>
                         <p className="text-2xl font-bold text-purple-600">
-                          {item.pointCost.toLocaleString()}
+                          {item.pointCost != null ? item.pointCost.toLocaleString() : 0}
                         </p>
                       </div>
                       <ShoppingCart className="h-10 w-10 text-muted-foreground" />
@@ -210,7 +210,7 @@ export default function Shop() {
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                   <span className="font-medium">가격</span>
                   <span className="text-2xl font-bold text-purple-600">
-                    {selectedItem.pointCost.toLocaleString()} 포인트
+                    {selectedItem.pointCost != null ? selectedItem.pointCost.toLocaleString() : 0} 포인트
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4">

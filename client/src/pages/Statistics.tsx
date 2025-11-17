@@ -122,7 +122,7 @@ export default function Statistics() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-blue-600">
-                {balance?.toLocaleString() || 0}P
+                {balance != null ? balance.toLocaleString() : 0}P
               </div>
             </CardContent>
           </Card>
@@ -138,7 +138,7 @@ export default function Statistics() {
               <div className="text-3xl font-bold text-green-600">
                 {dailyStats
                   ?.reduce((sum: number, day: any) => sum + (day.earned || 0), 0)
-                  .toLocaleString() || 0}
+                  .toLocaleString()}
                 P
               </div>
             </CardContent>
@@ -155,7 +155,7 @@ export default function Statistics() {
               <div className="text-3xl font-bold text-purple-600">
                 {dailyStats
                   ?.reduce((sum: number, day: any) => sum + (day.spent || 0), 0)
-                  .toLocaleString() || 0}
+                  .toLocaleString()}
                 P
               </div>
             </CardContent>

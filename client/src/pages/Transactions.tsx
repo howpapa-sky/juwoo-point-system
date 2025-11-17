@@ -121,10 +121,10 @@ export default function Transactions() {
                             }`}
                           >
                             {tx.amount > 0 ? "+" : ""}
-                            {tx.amount.toLocaleString()}
+                            {tx.amount != null ? tx.amount.toLocaleString() : 0}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            잔액: {tx.balanceAfter.toLocaleString()}
+                            잔액: {tx.balanceAfter != null ? tx.balanceAfter.toLocaleString() : 0}
                           </div>
                         </div>
                         {user?.role === "admin" && !tx.note?.startsWith("취소:") && (

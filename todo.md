@@ -164,3 +164,11 @@
 - [ ] 포인트 적립/차감 기능 테스트
 - [ ] 상점 구매 기능 테스트
 - [ ] 영어 학습 기능 테스트
+
+
+## Dashboard toLocaleString 오류 수정
+- [x] Dashboard.tsx 351번 라인 오류 확인
+- [x] toLocaleString 오류 수정 (undefined 체크 추가)
+- [x] 모든 페이지에서 toLocaleString 오류 일괄 수정 (7개 파일, 23개 위치)
+- [x] TypeScript 오류 없음 확인
+- [x] 개발 서버 정상 작동 확인

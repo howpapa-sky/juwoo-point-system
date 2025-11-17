@@ -135,7 +135,7 @@ export default function AdminPanel() {
                         </div>
                         <div className="text-right ml-4">
                           <p className="text-2xl font-bold text-red-600">
-                            -{purchase.pointCost.toLocaleString()}
+                            -{purchase.pointCost != null ? purchase.pointCost.toLocaleString() : 0}
                           </p>
                           <p className="text-sm text-muted-foreground">포인트</p>
                         </div>

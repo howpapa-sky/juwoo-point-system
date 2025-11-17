@@ -186,7 +186,7 @@ export default function Goals() {
             <CardTitle className="text-white">현재 포인트</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-5xl font-bold">{currentPoints.toLocaleString()} P</div>
+            <div className="text-5xl font-bold">{currentPoints != null ? currentPoints.toLocaleString() : 0} P</div>
           </CardContent>
         </Card>
 
@@ -224,7 +224,7 @@ export default function Goals() {
                             )}
                           </CardTitle>
                           <CardDescription className="mt-2">
-                            {currentPoints.toLocaleString()} / {goal.target_points.toLocaleString()} P
+                            {currentPoints != null ? currentPoints.toLocaleString() : 0} / {goal.target_points != null ? goal.target_points.toLocaleString() : 0} P
                           </CardDescription>
                         </div>
                         <Button
@@ -244,7 +244,7 @@ export default function Goals() {
                             🎉 목표 달성! 축하합니다!
                           </span>
                         ) : (
-                          `${Math.round(progress)}% 달성 - ${(goal.target_points - currentPoints).toLocaleString()}P 남음`
+                          `${Math.round(progress)}% 달성 - ${(goal.target_points - currentPoints) != null ? (goal.target_points - currentPoints).toLocaleString() : 0}P 남음`
                         )}
                       </p>
                     </CardContent>
@@ -271,7 +271,7 @@ export default function Goals() {
                       {goal.title}
                     </CardTitle>
                     <CardDescription>
-                      {goal.target_points.toLocaleString()} P 달성
+                      {goal.target_points != null ? goal.target_points.toLocaleString() : 0} P 달성
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

@@ -92,3 +92,11 @@
 - [x] 로그인/회원가입 UI 구현
 - [x] 세션 관리 구현
 - [ ] 로그인 테스트 및 검증
+
+## Google OAuth 설정
+- [x] Google Cloud Console에서 프로젝트 생성/선택
+- [x] OAuth 2.0 Client ID 생성
+- [x] Authorized redirect URIs 설정
+- [x] Client ID/Secret을 Supabase에 입력
+- [x] Google 로그인 redirect URL 수정
+- [ ] Google 로그인 테스트

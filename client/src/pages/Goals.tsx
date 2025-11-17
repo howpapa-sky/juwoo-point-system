@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -13,7 +13,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export default function Goals() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { user, loading: authLoading } = useSupabaseAuth();
+  const isAuthenticated = !!user;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newGoalTitle, setNewGoalTitle] = useState("");
   const [newGoalPoints, setNewGoalPoints] = useState("");

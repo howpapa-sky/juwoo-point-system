@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 
 export default function PointsManage() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { user, loading: authLoading } = useSupabaseAuth();
+  const isAuthenticated = !!user;
   const { data: rules, isLoading: rulesLoading } = trpc.pointRules.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });

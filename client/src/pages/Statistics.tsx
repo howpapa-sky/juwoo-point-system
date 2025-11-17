@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
@@ -23,7 +23,8 @@ import {
 import { useState } from "react";
 
 export default function Statistics() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { user, loading: authLoading } = useSupabaseAuth();
+  const isAuthenticated = !!user;
   const [period, setPeriod] = useState<"week" | "month" | "all">("week");
 
   const { data: dailyStats, isLoading: dailyLoading } = trpc.points.dailyStats.useQuery(

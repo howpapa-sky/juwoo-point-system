@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
@@ -8,7 +8,8 @@ import { ArrowLeft, Shield, User } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminSettings() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { user, loading: authLoading } = useSupabaseAuth();
+  const isAuthenticated = !!user;
   const { data: users, isLoading } = trpc.admin.users.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
   });

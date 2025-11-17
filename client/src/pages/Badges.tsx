@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { APP_TITLE, getLoginUrl } from "@/const";
@@ -7,7 +7,8 @@ import { Award, Lock } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Badges() {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading } = useSupabaseAuth();
+  const isAuthenticated = !!user;
   const { data: badges, isLoading: badgesLoading } = trpc.badges.all.useQuery(undefined, {
     enabled: isAuthenticated,
   });

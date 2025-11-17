@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
@@ -8,7 +8,8 @@ import { Coins, TrendingUp, TrendingDown, Activity, ArrowLeft, X } from "lucide-
 import { toast } from "sonner";
 
 export default function Dashboard() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const { user, loading: authLoading } = useSupabaseAuth();
+  const isAuthenticated = !!user;
   const { data: balance, isLoading: balanceLoading } = trpc.points.balance.useQuery(undefined, {
     enabled: isAuthenticated,
   });
@@ -72,7 +73,7 @@ export default function Dashboard() {
         </div>
 
         <div className="mb-8 animate-slide-up">
-          <h1 className="text-4xl font-bold mb-2">안녕하세요, {user?.name || "주우"}님! 👋</h1>
+          <h1 className="text-4xl font-bold mb-2">안녕하세요, {user?.user_metadata?.name || user?.email?.split('@')[0] || "주우"}님! 👋</h1>
           <p className="text-muted-foreground">오늘도 좋은 하루 보내세요!</p>
         </div>
 

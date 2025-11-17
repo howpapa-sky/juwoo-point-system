@@ -1,16 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { useLocation } from 'wouter';
 
 export default function Login() {
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useSupabaseAuth();
+  const { user, signInWithGoogle, signInWithEmail, signUpWithEmail } = useSupabaseAuth();
+  const [, setLocation] = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // 로그인 상태면 대시보드로 리다이렉트
+  useEffect(() => {
+    if (user) {
+      setLocation('/dashboard');
+    }
+  }, [user, setLocation]);
 
   const handleGoogleLogin = async () => {
     try {
@@ -30,9 +39,11 @@ export default function Login() {
       if (isSignUp) {
         await signUpWithEmail(email, password);
         toast.success('회원가입 성공! 이메일을 확인해주세요.');
+        // 이메일 확인이 비활성화된 경우 바로 로그인됨
       } else {
         await signInWithEmail(email, password);
         toast.success('로그인 성공!');
+        // useEffect에서 자동으로 리다이렉트됨
       }
     } catch (error: any) {
       toast.error(error.message || (isSignUp ? '회원가입 실패' : '로그인 실패'));

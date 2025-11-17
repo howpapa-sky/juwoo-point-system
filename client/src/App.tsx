@@ -17,6 +17,8 @@ import Statistics from "./pages/Statistics";
 import EnglishLearning from "./pages/EnglishLearning";
 import Goals from "./pages/Goals";
 import Badges from "./pages/Badges";
+import MyPage from "./pages/MyPage";
+import AppLayout from "./components/AppLayout";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -24,16 +26,83 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/login"} component={Login} />
-      <Route path={"/dashboard"} component={Dashboard} />
-      <Route path={"/points"} component={PointsManage} />
-      <Route path={"/transactions"} component={Transactions} />
-      <Route path={"/shop"} component={Shop} />
-      <Route path={"/admin/panel"} component={AdminPanel} />
-      <Route path={"/admin/settings"} component={AdminSettings} />
-      <Route path={"/statistics"} component={Statistics} />
-      <Route path={"/english"} component={EnglishLearning} />
-       <Route path="/goals" component={Goals} />
-      <Route path="/badges" component={Badges} />
+      <Route path={"/dashboard"}>
+        {() => (
+          <AppLayout>
+            <Dashboard />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/points-manage"}>
+        {() => (
+          <AppLayout>
+            <PointsManage />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/transactions"}>
+        {() => (
+          <AppLayout>
+            <Transactions />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/shop"}>
+        {() => (
+          <AppLayout>
+            <Shop />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/admin/panel"}>
+        {() => (
+          <AppLayout>
+            <AdminPanel />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/admin/settings"}>
+        {() => (
+          <AppLayout>
+            <AdminSettings />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/statistics"}>
+        {() => (
+          <AppLayout>
+            <Statistics />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/english-learning"}>
+        {() => (
+          <AppLayout>
+            <EnglishLearning />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/goals">
+        {() => (
+          <AppLayout>
+            <Goals />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/badges">
+        {() => (
+          <AppLayout>
+            <Badges />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/my-page">
+        {() => (
+          <AppLayout>
+            <MyPage />
+          </AppLayout>
+        )}
+      </Route>
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

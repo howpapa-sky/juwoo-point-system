@@ -13,6 +13,8 @@ import {
   User,
   Menu,
   X,
+  Shield,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { APP_TITLE } from "@/const";
@@ -22,7 +24,7 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const { user, signOut } = useSupabaseAuth();
+  const { user, userRole, signOut } = useSupabaseAuth();
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -34,6 +36,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { path: "/goals", label: "목표 설정", icon: Target },
     { path: "/badges", label: "배지", icon: Award },
     { path: "/statistics", label: "통계", icon: BarChart3 },
+  ];
+
+  const adminMenuItems = [
+    { path: "/admin/panel", label: "관리자 패널", icon: Shield },
+    { path: "/admin/settings", label: "시스템 설정", icon: Settings },
   ];
 
   const handleLogout = async () => {
@@ -109,6 +116,40 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 );
               })}
             </ul>
+
+            {/* 관리자 메뉴 */}
+            {userRole === 'admin' && (
+              <>
+                <div className="mt-6 mb-2">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4">
+                    관리자
+                  </p>
+                </div>
+                <ul className="space-y-2">
+                  {adminMenuItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location === item.path;
+                    return (
+                      <li key={item.path}>
+                        <Link href={item.path}>
+                          <a
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                              isActive
+                                ? "bg-red-100 text-red-700 font-semibold"
+                                : "text-gray-700 hover:bg-gray-100"
+                            }`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span>{item.label}</span>
+                          </a>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
           </nav>
 
           {/* Footer */}

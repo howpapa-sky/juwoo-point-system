@@ -182,3 +182,28 @@
 - [ ] 마이페이지 기능 추가
 - [ ] 모든 페이지에 레이아웃 적용
 - [ ] 반응형 디자인 (모바일 대응)
+
+
+## 관리자 권한 및 데이터 마이그레이션
+- [ ] yong@howlab.co.kr에 최종 관리자 권한 부여
+- [ ] AppLayout에 관리자 메뉴 추가 (role 기반 조건부 표시)
+- [ ] 기존 포인트 입출금 내역 데이터 가져오기
+- [ ] 포인트 데이터 Supabase에 삽입
+- [ ] 관리자 로그인 테스트
+- [ ] 관리자 메뉴 표시 확인
+
+
+## Role 권한 문제 수정
+- [x] users 테이블에 yong@howlab.co.kr 계정 추가 및 admin 권한 부여
+- [x] SupabaseAuthContext에서 users 테이블 role 조회 기능 추가
+- [x] AppLayout에서 userRole 사용하도록 수정
+- [x] PointsManage 페이지에서 userRole 사용하도록 수정
+- [ ] yong@howlab.co.kr 계정으로 로그인 테스트
+
+
+## GitHub 및 Netlify 연결
+- [ ] Git 저장소 초기화
+- [ ] GitHub 원격 저장소 연결
+- [ ] 코드 커밋 및 푸시
+- [ ] Netlify 배포 설정 파일 작성
+- [ ] Netlify와 GitHub 저장소 연결

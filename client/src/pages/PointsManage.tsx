@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 
 export default function PointsManage() {
-  const { user, loading: authLoading } = useSupabaseAuth();
+  const { user, userRole, loading: authLoading } = useSupabaseAuth();
   const isAuthenticated = !!user;
   const { data: rules, isLoading: rulesLoading } = trpc.pointRules.list.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -47,7 +47,7 @@ export default function PointsManage() {
     );
   }
 
-  if (user?.role !== "admin") {
+  if (userRole !== "admin") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
         <Card className="max-w-md w-full">

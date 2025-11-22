@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  userRole: string | null;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
@@ -18,21 +19,46 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Fetch user role from users table
+      if (session?.user?.id) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('role')
+          .eq('open_id', session.user.id)
+          .single();
+        setUserRole(userData?.role || 'user');
+      }
+      
       setLoading(false);
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Fetch user role from users table
+      if (session?.user?.id) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('role')
+          .eq('open_id', session.user.id)
+          .single();
+        setUserRole(userData?.role || 'user');
+      } else {
+        setUserRole(null);
+      }
+      
       setLoading(false);
     });
 
@@ -74,6 +100,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     user,
     session,
     loading,
+    userRole,
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,

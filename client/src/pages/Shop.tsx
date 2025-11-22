@@ -2,10 +2,12 @@ import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { ArrowLeft, ShoppingCart, Coins } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Coins, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 
@@ -21,11 +23,12 @@ interface ShopItem {
 
 interface Purchase {
   id: number;
-  item_id: number;
+  item_id: number | null;
   point_cost: number;
   status: string;
   created_at: string;
   item_name: string;
+  note: string | null;
 }
 
 export default function Shop() {
@@ -39,6 +42,9 @@ export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [showCustomPurchase, setShowCustomPurchase] = useState(false);
+  const [customItemName, setCustomItemName] = useState('');
+  const [customItemCost, setCustomItemCost] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -76,6 +82,7 @@ export default function Shop() {
             point_cost,
             status,
             created_at,
+            note,
             shop_items (name)
           `)
           .eq('juwoo_id', 1)
@@ -89,7 +96,8 @@ export default function Shop() {
           point_cost: p.point_cost,
           status: p.status,
           created_at: p.created_at,
-          item_name: p.shop_items?.name || '알 수 없는 상품',
+          note: p.note,
+          item_name: p.shop_items?.name || (p.note?.replace('수기 입력: ', '') || '알 수 없는 상품'),
         }));
 
         setPurchases(formattedPurchases);
@@ -141,6 +149,53 @@ export default function Shop() {
     }
   };
 
+  const handleCustomPurchase = async () => {
+    if (!customItemName.trim() || !customItemCost) {
+      toast.error('항목명과 금액을 모두 입력해주세요.');
+      return;
+    }
+
+    const cost = parseInt(customItemCost);
+    if (isNaN(cost) || cost <= 0) {
+      toast.error('유효한 금액을 입력해주세요.');
+      return;
+    }
+
+    if (balance < cost) {
+      toast.error('포인트가 부족합니다.');
+      return;
+    }
+
+    setPurchasing(true);
+    try {
+      // 수기 입력 구매 내역 추가 (item_id는 null)
+      const { error: insertError } = await supabase
+        .from('purchases')
+        .insert({
+          juwoo_id: 1,
+          item_id: null,
+          point_cost: cost,
+          status: 'pending',
+          note: `수기 입력: ${customItemName.trim()}`,
+        });
+
+      if (insertError) throw insertError;
+
+      toast.success('구매 요청이 완료되었습니다!');
+      setShowCustomPurchase(false);
+      setCustomItemName('');
+      setCustomItemCost('');
+      
+      // Refresh purchases
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Error custom purchasing:', error);
+      toast.error('구매에 실패했습니다.');
+    } finally {
+      setPurchasing(false);
+    }
+  };
+
   if (authLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
@@ -159,7 +214,7 @@ export default function Shop() {
     );
   }
 
-  const categories = ["all", "게임시간", "장난감", "간식음식", "특별활동", "특권"];
+  const categories = ["all", "게임"];
 
   const filteredItems = items.filter(
     (item) => selectedCategory === "all" || item.category === selectedCategory
@@ -171,10 +226,10 @@ export default function Shop() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
       <div className="container py-8">
         <div className="mb-6">
-          <Link href="/">
+          <Link href="/dashboard">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              홈으로
+              대시보드로
             </Button>
           </Link>
         </div>
@@ -228,17 +283,28 @@ export default function Shop() {
           </Card>
         )}
 
-        <div className="mb-6 flex flex-wrap gap-2">
-          {categories.map((cat) => (
-            <Button
-              key={cat}
-              variant={selectedCategory === cat ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(cat)}
-            >
-              {cat === "all" ? "전체" : cat}
-            </Button>
-          ))}
+        <div className="mb-6 flex flex-wrap gap-2 items-center justify-between">
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <Button
+                key={cat}
+                variant={selectedCategory === cat ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(cat)}
+              >
+                {cat === "all" ? "전체" : cat}
+              </Button>
+            ))}
+          </div>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-green-600 hover:bg-green-700"
+            onClick={() => setShowCustomPurchase(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            수기 입력
+          </Button>
         </div>
 
         {loading ? (
@@ -289,6 +355,68 @@ export default function Shop() {
           </div>
         )}
 
+        {/* 수기 입력 다이얼로그 */}
+        <Dialog open={showCustomPurchase} onOpenChange={setShowCustomPurchase}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>수기 입력 구매</DialogTitle>
+              <DialogDescription>
+                항목명과 포인트 금액을 입력하세요.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              <div>
+                <Label htmlFor="itemName">항목명</Label>
+                <Input
+                  id="itemName"
+                  placeholder="예: 포켓몬고 10분"
+                  value={customItemName}
+                  onChange={(e) => setCustomItemName(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="itemCost">포인트 금액</Label>
+                <Input
+                  id="itemCost"
+                  type="number"
+                  placeholder="예: 3000"
+                  value={customItemCost}
+                  onChange={(e) => setCustomItemCost(e.target.value)}
+                />
+              </div>
+              <div className="p-4 rounded-lg bg-muted">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">현재 포인트</span>
+                  <span className="text-lg font-bold">{balance.toLocaleString()}</span>
+                </div>
+                {customItemCost && (
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-sm text-muted-foreground">구매 후 잔액</span>
+                    <span className={`text-sm font-bold ${
+                      balance - parseInt(customItemCost || '0') < 0 ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      {(balance - parseInt(customItemCost || '0')).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setShowCustomPurchase(false);
+                setCustomItemName('');
+                setCustomItemCost('');
+              }}>
+                취소
+              </Button>
+              <Button onClick={handleCustomPurchase} disabled={purchasing}>
+                구매 요청
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* 기존 상품 구매 다이얼로그 */}
         <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
           <DialogContent>
             <DialogHeader>

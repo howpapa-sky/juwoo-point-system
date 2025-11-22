@@ -84,27 +84,11 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
   };
 
   const signUpWithEmail = async (email: string, password: string) => {
-    console.log('[Auth] Attempting signup with:', email);
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
     });
-    
-    if (error) {
-      console.error('[Auth] Signup error:', {
-        code: error.code,
-        message: error.message,
-        status: error.status,
-        details: error,
-      });
-      throw error;
-    }
-    
-    console.log('[Auth] Signup successful:', {
-      userId: data.user?.id,
-      email: data.user?.email,
-      hasSession: !!data.session,
-    });
+    if (error) throw error;
   };
 
   const signOut = async () => {

@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { ArrowLeft, Receipt } from "lucide-react";
+import { ArrowLeft, Receipt, X } from "lucide-react";
+import { toast } from "sonner";
 import { useState, useEffect } from "react";
 
 interface Transaction {
@@ -15,6 +16,7 @@ interface Transaction {
   balance_after: number;
   rule_name: string | null;
   rule_category: string | null;
+  is_cancelled: boolean;
 }
 
 export default function Transactions() {
@@ -24,6 +26,7 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(50);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -39,6 +42,7 @@ export default function Transactions() {
             note,
             created_at,
             balance_after,
+            is_cancelled,
             point_rules (name, category)
           `)
           .eq('juwoo_id', 1)
@@ -53,6 +57,7 @@ export default function Transactions() {
           note: tx.note,
           created_at: tx.created_at,
           balance_after: tx.balance_after,
+          is_cancelled: tx.is_cancelled || false,
           rule_name: tx.point_rules?.name || null,
           rule_category: tx.point_rules?.category || null,
         }));
@@ -67,6 +72,96 @@ export default function Transactions() {
 
     fetchTransactions();
   }, [isAuthenticated, limit]);
+
+  const handleCancelTransaction = async (transactionId: number, amount: number) => {
+    if (!confirm('이 거래를 취소하시겠습니까? 포인트가 자동으로 복원됩니다.')) {
+      return;
+    }
+
+    setCancellingId(transactionId);
+    try {
+      // 1. 거래 취소 상태로 변경
+      const { error: updateError } = await supabase
+        .from('point_transactions')
+        .update({ is_cancelled: true })
+        .eq('id', transactionId);
+
+      if (updateError) throw updateError;
+
+      // 2. 포인트 복원 (반대 금액 적용)
+      const { data: juwooData, error: juwooError } = await supabase
+        .from('juwoo_profile')
+        .select('total_points')
+        .eq('id', 1)
+        .single();
+
+      if (juwooError) throw juwooError;
+
+      const newBalance = (juwooData?.total_points || 0) - amount;
+
+      const { error: updateBalanceError } = await supabase
+        .from('juwoo_profile')
+        .update({ total_points: newBalance })
+        .eq('id', 1);
+
+      if (updateBalanceError) throw updateBalanceError;
+
+      // 3. 취소 거래 내역 추가
+      const { error: insertError } = await supabase
+        .from('point_transactions')
+        .insert({
+          juwoo_id: 1,
+          amount: -amount,
+          balance_after: newBalance,
+          note: '거래 취소',
+          is_cancelled: false,
+        });
+
+      if (insertError) throw insertError;
+
+      toast.success('거래가 취소되었습니다', {
+        description: `${Math.abs(amount).toLocaleString()} 포인트가 복원되었습니다.`,
+      });
+
+      // 목록 새로고침
+      setLimit(50);
+      const { data, error } = await supabase
+        .from('point_transactions')
+        .select(`
+          id,
+          amount,
+          note,
+          created_at,
+          balance_after,
+          is_cancelled,
+          point_rules (name, category)
+        `)
+        .eq('juwoo_id', 1)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (!error && data) {
+        const formattedTransactions = data.map((tx: any) => ({
+          id: tx.id,
+          amount: tx.amount,
+          note: tx.note,
+          created_at: tx.created_at,
+          balance_after: tx.balance_after,
+          is_cancelled: tx.is_cancelled || false,
+          rule_name: tx.point_rules?.name || null,
+          rule_category: tx.point_rules?.category || null,
+        }));
+        setTransactions(formattedTransactions);
+      }
+    } catch (error: any) {
+      console.error('Error cancelling transaction:', error);
+      toast.error('거래 취소 실패', {
+        description: error.message || '다시 시도해주세요.',
+      });
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   if (authLoading || !isAuthenticated) {
     return (
@@ -125,11 +220,18 @@ export default function Transactions() {
                   {transactions.map((tx) => (
                     <div
                       key={tx.id}
-                      className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                      className={`flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-shadow ${
+                        tx.is_cancelled ? 'opacity-50 bg-gray-50' : ''
+                      }`}
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-semibold">{tx.note || tx.rule_name || "포인트 변동"}</p>
+                          <p className="font-semibold">
+                            {tx.note || tx.rule_name || "포인트 변동"}
+                            {tx.is_cancelled && (
+                              <span className="ml-2 text-xs text-red-600">(취소됨)</span>
+                            )}
+                          </p>
                           {tx.rule_category && (
                             <span className="category-badge bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
                               {tx.rule_category}
@@ -146,18 +248,35 @@ export default function Transactions() {
                           })}
                         </p>
                       </div>
-                      <div className="text-right ml-4">
-                        <div
-                          className={`text-2xl font-bold ${
-                            tx.amount > 0 ? "text-green-600" : "text-red-600"
-                          }`}
-                        >
-                          {tx.amount > 0 ? "+" : ""}
-                          {tx.amount.toLocaleString()}
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div
+                            className={`text-2xl font-bold ${
+                              tx.amount > 0 ? "text-green-600" : "text-red-600"
+                            }`}
+                          >
+                            {tx.amount > 0 ? "+" : ""}
+                            {tx.amount.toLocaleString()}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            잔액: {tx.balance_after.toLocaleString()}
+                          </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          잔액: {tx.balance_after.toLocaleString()}
-                        </div>
+                        {!tx.is_cancelled && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleCancelTransaction(tx.id, tx.amount)}
+                            disabled={cancellingId === tx.id}
+                          >
+                            {cancellingId === tx.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                            ) : (
+                              <X className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}

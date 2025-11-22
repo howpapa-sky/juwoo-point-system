@@ -202,8 +202,8 @@
 
 
 ## GitHub 및 Netlify 연결
-- [ ] Git 저장소 초기화
-- [ ] GitHub 원격 저장소 연결
-- [ ] 코드 커밋 및 푸시
-- [ ] Netlify 배포 설정 파일 작성
-- [ ] Netlify와 GitHub 저장소 연결
+- [x] Git 저장소 초기화
+- [x] GitHub 원격 저장소 연결 (https://github.com/howpapa-sky/juwoo-point-system)
+- [x] 코드 커밋 및 푸시
+- [x] Netlify 배포 설정 파일 작성 (netlify.toml)
+- [ ] Netlify와 GitHub 저장소 연결 (수동 설정 필요)

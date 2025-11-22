@@ -141,6 +141,44 @@
 - [x] 반응형 디자인 개선 (sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4)
 - [x] 현재 포인트 카드 디자인 고급화 (그라디언트 보더)
 - [x] 규칙 카드 hover 효과 강화
+- [x] GitHub 푸시 (c3133a7)
+- [ ] Netlify 배포 확인 (진행 중)
+- [ ] 디자인 확인
+
+
+## 영어 학습 기능 개발 (7살 주우용)
+### Phase 1: 데이터베이스 설계
+- [x] english_words 테이블 생성 (단어, 뜻, 이미지, 발음, 주제)
+- [x] english_learning_progress 테이블 생성 (학습 진행률)
+- [x] english_quiz_results 테이블 생성 (퀴즈 결과)
+- [ ] 샘플 단어 데이터 추가 (Supabase 캐시 문제로 보류)
+
+### Phase 2: 플래시카드 학습
+- [x] FlashCard.tsx 페이지 생성
+- [x] 카드 뒤집기 애니메이션 (3D flip)
+- [x] 클릭 인터랙션 (아는 단어/모르는 단어 버튼)
+- [x] 음성 재생 기능 (Web Speech API)
+- [x] 진행률 표시 (Progress bar)
+- [x] 학습 완료 화면 (통계 표시)
+- [x] App.tsx에 라우트 추가
+
+### Phase 3: 퀴즈
+- [x] EnglishQuiz.tsx 페이지 생성
+- [x] 4지선다형 퀴즈 (10문제)
+- [x] 정답/오답 애니메이션 (축하 confetti 효과)
+- [x] 점수 계산 및 별점 표시 (3별 시스템)
+- [x] 음성 재생 기능
+- [x] 결과 화면 (점수, 별점, 메시지)
+- [x] App.tsx에 라우트 추가
+- [x] canvas-confetti 패키지 설치
+
+### Phase 4: 학습 통계
+- [x] 기존 EnglishLearning.tsx 활용
+- [x] 통계 페이지는 기존 페이### Phase 5: 포인트 연동
+- [x] 플래시카드 학습 완료 시 +500P 적립
+- [x] 퀴즈 만점 (100점) 시 +1000P 적립
+- [x] 퀴즈 70점 이상 시 +500P 적립
+- [x] 네비게이션 메뉴에 영어 학습 이미 있음### Phase 6: 배포
 - [ ] GitHub 푸시
 - [ ] Netlify 배포 확인
-- [ ] 디자인 확인
+- [ ] 기능 테스트

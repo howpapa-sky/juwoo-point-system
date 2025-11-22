@@ -16,6 +16,8 @@ import Shop from "./pages/Shop";
 import AdminPanel from "./pages/AdminPanel";
 import Statistics from "./pages/Statistics";
 import EnglishLearning from "./pages/EnglishLearning";
+import FlashCard from "./pages/FlashCard";
+import EnglishQuiz from "./pages/EnglishQuiz";
 import Goals from "./pages/Goals";
 import Badges from "./pages/Badges";
 import MyPage from "./pages/MyPage";
@@ -81,6 +83,20 @@ function Router() {
         {() => (
           <AppLayout>
             <EnglishLearning />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/english-flashcard"}>
+        {() => (
+          <AppLayout>
+            <FlashCard />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/english-quiz"}>
+        {() => (
+          <AppLayout>
+            <EnglishQuiz />
           </AppLayout>
         )}
       </Route>

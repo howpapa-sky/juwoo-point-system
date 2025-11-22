@@ -247,19 +247,39 @@
 - [ ] 대시보드 접속 테스트
 
 ## 전체 사이트 오류 점검 및 수정 (진행 중)
-- [ ] 홈 페이지 (/): 정상 작동 확인
-- [ ] 로그인 페이지 (/login): 오류 점검
-- [ ] 회원가입 페이지 (/signup): 오류 점검
-- [ ] 대시보드 (/dashboard): 오류 점검
-- [ ] 포인트 관리 (/points-manage): 오류 점검
+- [x] 홈 페이지 (/): 정상 작동 확인
+- [x] Netlify Functions 환경 변수 문제 수정 (SUPABASE_URL, SUPABASE_ANON_KEY 우선 사용)
+- [x] GitHub 푸시 완료 (870416d)
+- [ ] Netlify 자동 배포 대기 (2-3분)
+- [ ] 대시보드 (/dashboard): API 연결 테스트
 - [ ] 포인트 상점 (/shop): 오류 수정 필요 (사용자 보고)
 - [ ] 영어 학습 (/english): 오류 점검
 - [ ] 목표 설정 (/goals): 오류 점검
 - [ ] 배지 (/badges): 오류 점검
 - [ ] 통계 (/statistics): 오류 점검
-- [ ] 관리자 패널 (/admin): 오류 점검
-- [ ] 마이페이지 (/mypage): 오류 점검
 - [ ] Google 로그인 기능 테스트
 - [ ] 이메일 로그인 기능 테스트
 - [ ] 모든 오류 수정 완료
-- [ ] 최종 배포 및 검증
+- [ ] 최종 검증
+
+## tRPC 제거 및 Supabase 전용 아키텍처 전환 (진행 중)
+- [ ] tRPC 관련 패키지 및 코드 제거
+- [ ] Supabase Client 직접 통신 구조 설계
+- [ ] 모든 페이지의 데이터 fetching을 Supabase SDK로 변경
+  - [ ] Dashboard.tsx
+  - [ ] PointsManage.tsx
+  - [ ] Shop.tsx
+  - [ ] EnglishLearning.tsx
+  - [ ] Goals.tsx
+  - [ ] Badges.tsx
+  - [ ] Statistics.tsx
+  - [ ] AdminPanel.tsx
+  - [ ] MyPage.tsx
+- [ ] Netlify Functions 제거
+- [ ] netlify.toml 간소화 (정적 사이트 배포만)
+- [ ] package.json 정리 (불필요한 의존성 제거)
+- [ ] 빌드 스크립트 수정
+- [ ] 로컬 개발 서버 테스트
+- [ ] GitHub 푸시
+- [ ] Netlify 배포 및 테스트
+- [ ] 전체 기능 검증

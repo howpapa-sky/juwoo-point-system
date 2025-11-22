@@ -2,39 +2,144 @@ import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { trpc } from "@/lib/trpc";
+import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import { ArrowLeft, ShoppingCart, Coins } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+interface ShopItem {
+  id: number;
+  name: string;
+  description: string | null;
+  category: string;
+  point_cost: number;
+  image_url: string | null;
+  is_available: boolean;
+}
+
+interface Purchase {
+  id: number;
+  item_id: number;
+  point_cost: number;
+  status: string;
+  created_at: string;
+  item_name: string;
+}
 
 export default function Shop() {
   const { user, loading: authLoading } = useSupabaseAuth();
   const isAuthenticated = !!user;
-  const { data: items, isLoading: itemsLoading } = trpc.shop.items.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
-  const { data: balance } = trpc.points.balance.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
-  const { data: purchases } = trpc.shop.myPurchases.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
-  const utils = trpc.useUtils();
-  const purchaseMutation = trpc.shop.purchase.useMutation({
-    onSuccess: (data) => {
-      utils.shop.myPurchases.invalidate();
-      toast.success(data.message);
-      setSelectedItem(null);
-    },
-    onError: (error) => {
-      toast.error(error.message || "구매에 실패했습니다.");
-    },
-  });
-
+  
+  const [items, setItems] = useState<ShopItem[]>([]);
+  const [balance, setBalance] = useState<number>(0);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
+  const [purchasing, setPurchasing] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // 1. Fetch shop items
+        const { data: itemsData, error: itemsError } = await supabase
+          .from('shop_items')
+          .select('*')
+          .eq('is_available', true)
+          .order('category')
+          .order('point_cost');
+
+        if (itemsError) throw itemsError;
+        setItems(itemsData || []);
+
+        // 2. Fetch balance
+        const { data: profileData, error: profileError } = await supabase
+          .from('juwoo_profile')
+          .select('current_points')
+          .eq('id', 1)
+          .single();
+
+        if (profileError) throw profileError;
+        setBalance(profileData?.current_points || 0);
+
+        // 3. Fetch my purchases
+        const { data: purchasesData, error: purchasesError } = await supabase
+          .from('purchases')
+          .select(`
+            id,
+            item_id,
+            point_cost,
+            status,
+            created_at,
+            shop_items (name)
+          `)
+          .eq('juwoo_id', 1)
+          .order('created_at', { ascending: false });
+
+        if (purchasesError) throw purchasesError;
+
+        const formattedPurchases = (purchasesData || []).map((p: any) => ({
+          id: p.id,
+          item_id: p.item_id,
+          point_cost: p.point_cost,
+          status: p.status,
+          created_at: p.created_at,
+          item_name: p.shop_items?.name || '알 수 없는 상품',
+        }));
+
+        setPurchases(formattedPurchases);
+      } catch (error: any) {
+        console.error('Error fetching shop data:', error);
+        toast.error('데이터를 불러오는데 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [isAuthenticated]);
+
+  const handlePurchase = async () => {
+    if (!selectedItem) return;
+    
+    setPurchasing(true);
+    try {
+      // Check if user has enough points
+      if (balance < selectedItem.point_cost) {
+        toast.error('포인트가 부족합니다.');
+        return;
+      }
+
+      // Insert purchase record
+      const { error: insertError } = await supabase
+        .from('purchases')
+        .insert({
+          juwoo_id: 1,
+          item_id: selectedItem.id,
+          point_cost: selectedItem.point_cost,
+          status: 'pending',
+          note: `${selectedItem.name} 구매 요청`,
+        });
+
+      if (insertError) throw insertError;
+
+      toast.success('구매 요청이 완료되었습니다! 관리자의 승인을 기다려주세요.');
+      setSelectedItem(null);
+      
+      // Refresh purchases
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Error purchasing item:', error);
+      toast.error('구매에 실패했습니다.');
+    } finally {
+      setPurchasing(false);
+    }
+  };
 
   if (authLoading || !isAuthenticated) {
     return (
@@ -54,22 +159,13 @@ export default function Shop() {
     );
   }
 
-  const handlePurchase = () => {
-    if (!selectedItem) return;
-    
-    purchaseMutation.mutate({
-      itemId: selectedItem.id,
-      note: `${selectedItem.name} 구매 요청`,
-    });
-  };
-
   const categories = ["all", "게임시간", "장난감", "간식음식", "특별활동", "특권"];
 
-  const filteredItems = items?.filter(
+  const filteredItems = items.filter(
     (item) => selectedCategory === "all" || item.category === selectedCategory
   );
 
-  const pendingPurchases = purchases?.filter((p) => p.status === "pending");
+  const pendingPurchases = purchases.filter((p) => p.status === "pending");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
@@ -93,14 +189,14 @@ export default function Shop() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 mb-1">내 포인트</p>
-                <p className="text-4xl font-bold">{balance != null ? balance.toLocaleString() : 0}</p>
+                <p className="text-4xl font-bold">{balance.toLocaleString()}</p>
               </div>
               <Coins className="h-16 w-16 opacity-50" />
             </div>
           </CardContent>
         </Card>
 
-        {pendingPurchases && pendingPurchases.length > 0 && (
+        {pendingPurchases.length > 0 && (
           <Card className="mb-6 border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 animate-slide-up">
             <CardHeader>
               <CardTitle className="text-yellow-800 dark:text-yellow-200">승인 대기 중</CardTitle>
@@ -116,13 +212,13 @@ export default function Shop() {
                     className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-gray-800"
                   >
                     <div>
-                      <p className="font-medium">{purchase.itemName}</p>
+                      <p className="font-medium">{purchase.item_name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(purchase.createdAt).toLocaleDateString("ko-KR")}
+                        {new Date(purchase.created_at).toLocaleDateString("ko-KR")}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-red-600">-{purchase.pointCost != null ? purchase.pointCost.toLocaleString() : 0}</p>
+                      <p className="font-bold text-red-600">-{purchase.point_cost.toLocaleString()}</p>
                       <p className="text-xs text-muted-foreground">승인 대기</p>
                     </div>
                   </div>
@@ -145,15 +241,15 @@ export default function Shop() {
           ))}
         </div>
 
-        {itemsLoading ? (
+        {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-muted-foreground">상품을 불러오는 중...</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredItems?.map((item, index) => {
-              const canAfford = (balance || 0) >= item.pointCost;
+            {filteredItems.map((item, index) => {
+              const canAfford = balance >= item.point_cost;
               return (
                 <Card
                   key={item.id}
@@ -174,14 +270,14 @@ export default function Shop() {
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">가격</p>
                         <p className="text-2xl font-bold text-purple-600">
-                          {item.pointCost != null ? item.pointCost.toLocaleString() : 0}
+                          {item.point_cost.toLocaleString()}
                         </p>
                       </div>
                       <ShoppingCart className="h-10 w-10 text-muted-foreground" />
                     </div>
                     <Button
                       className="w-full"
-                      disabled={!canAfford || purchaseMutation.isPending}
+                      disabled={!canAfford || purchasing}
                       onClick={() => setSelectedItem(item)}
                     >
                       {canAfford ? "구매하기" : "포인트 부족"}
@@ -210,7 +306,7 @@ export default function Shop() {
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
                   <span className="font-medium">가격</span>
                   <span className="text-2xl font-bold text-purple-600">
-                    {selectedItem.pointCost != null ? selectedItem.pointCost.toLocaleString() : 0} 포인트
+                    {selectedItem.point_cost.toLocaleString()} 포인트
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4">
@@ -222,7 +318,7 @@ export default function Shop() {
               <Button variant="outline" onClick={() => setSelectedItem(null)}>
                 취소
               </Button>
-              <Button onClick={handlePurchase} disabled={purchaseMutation.isPending}>
+              <Button onClick={handlePurchase} disabled={purchasing}>
                 구매 요청
               </Button>
             </DialogFooter>

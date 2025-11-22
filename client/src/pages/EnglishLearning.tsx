@@ -91,7 +91,7 @@ export default function EnglishLearning() {
                   <span>학습 완료 시 +500P</span>
                 </div>
               </div>
-              <Link href="/flashcard">
+              <Link href="/english-flashcard">
                 <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-lg py-6 group-hover:scale-105 transition-transform">
                   학습 시작하기
                   <BookOpen className="ml-2 h-5 w-5" />

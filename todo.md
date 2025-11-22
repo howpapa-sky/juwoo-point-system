@@ -202,5 +202,17 @@
 - [x] 플래시카드 학습 버튼 추가 (/flashcard)
 - [x] 퀴즈 풀기 버튼 추가 (/english-quiz)
 - [x] 학습 팁 섹션 추가
+- [x] 체크포인트 저장 (03e77b9f)
+- [ ] Netlify 배포 확인 (진행 중)
+
+
+## Supabase 백엔드 설정 및 포인트 적립 정상화
+- [x] english_words 테이블 RLS 정책 설정 (공개 읽기)
+- [x] english_learning_progress 테이블 RLS 정책 설정 (전체 접근)
+- [x] english_quiz_results 테이블 RLS 정책 설정 (전체 접근)
+- [x] 영어 단어 샘플 데이터 추가 (50개, 10개 카테고리)
+- [x] 플래시카드 라우트 수정 (/flashcard → /english-flashcard)
+- [x] point_transactions 및 juwoo_profile 테이블 RLS 정책 설정
+- [x] 포인트 적립 로직 테스트 (플래시카드 +500P, 퀴즈 50점 포인트 없음 확인)
 - [ ] 체크포인트 저장
 - [ ] 배포 확인

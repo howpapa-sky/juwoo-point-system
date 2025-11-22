@@ -87,7 +87,7 @@ export default function Home() {
                 <CardDescription>단어를 배우고 포인트 획득!</CardDescription>
               </CardHeader>
               <CardContent>
-                <Link href="/english">
+                <Link href="/english-learning">
                   <Button className="w-full">학습하기</Button>
                 </Link>
               </CardContent>

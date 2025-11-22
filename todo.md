@@ -103,3 +103,19 @@
 - [ ] GitHub 푸시
 - [ ] Netlify 배포 확인
 - [ ] 구매 테스트
+
+## 포인트 상점 자동 승인 완료
+- [x] Shop.tsx에서 구매 시 바로 포인트 차감 로직 추가
+- [x] transactions 테이블에 거래 내역 자동 추가
+- [x] juwoo_profile current_points 업데이트
+- [x] purchases status를 'approved'로 저장
+- [x] GitHub 푸시 (a048f72)
+- [ ] Netlify 배포 확인
+- [ ] 구매 테스트
+
+
+## 포인트 상점 구매 오류 수정
+- [ ] 오류 원인 파악 (Supabase 권한 또는 컬럼 문제)
+- [ ] 수정 및 테스트
+- [ ] GitHub 푸시
+- [ ] Netlify 배포 확인

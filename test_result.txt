@@ -1,0 +1,14 @@
+1. 현재 포인트 조회...
+현재 포인트: 9,300P
+
+2. 포인트 차감 테스트...
+✅ 포인트 차감 성공
+
+3. 거래 내역 추가 테스트 (point_transactions)...
+❌ 거래 내역 추가 실패: {
+  code: 'PGRST204',
+  details: null,
+  hint: null,
+  message: "Could not find the 'balance_after' column of 'point_transactions' in the schema cache"
+}
+포인트 롤백 완료

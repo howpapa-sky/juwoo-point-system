@@ -133,15 +133,14 @@ export default function Shop() {
 
       if (updateError) throw updateError;
 
-      // 2. 거래 내역 추가 (transactions)
+      // 2. 거래 내역 추가 (point_transactions)
       const { error: transactionError } = await supabase
-        .from('transactions')
+        .from('point_transactions')
         .insert({
           juwoo_id: 1,
           rule_id: null,
-          point_amount: -selectedItem.point_cost,
-          balance_after: newBalance,
-          description: `[상점] ${selectedItem.name}`,
+          amount: -selectedItem.point_cost,
+          note: `[상점] ${selectedItem.name}`,
           is_cancelled: false,
         });
 
@@ -203,15 +202,14 @@ export default function Shop() {
 
       if (updateError) throw updateError;
 
-      // 2. 거래 내역 추가 (transactions)
+      // 2. 거래 내역 추가 (point_transactions)
       const { error: transactionError } = await supabase
-        .from('transactions')
+        .from('point_transactions')
         .insert({
           juwoo_id: 1,
           rule_id: null,
-          point_amount: -cost,
-          balance_after: newBalance,
-          description: `[수기입력] ${customItemName.trim()}`,
+          amount: -cost,
+          note: `[수기입력] ${customItemName.trim()}`,
           is_cancelled: false,
         });
 

@@ -4,13 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { ArrowLeft, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Plus, Minus, Coins, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Coins } from "lucide-react";
 
 interface PointRule {
   id: number;
@@ -191,8 +190,6 @@ export default function PointsManage() {
     );
   }
 
-
-
   const categories = [
     "all",
     "생활습관",
@@ -215,35 +212,51 @@ export default function PointsManage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
-      <div className="container py-8">
+      <div className="container max-w-7xl py-6 md:py-10">
+        {/* 헤더 */}
         <div className="mb-6">
           <Link href="/">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+            <Button variant="ghost" size="sm" className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
               홈으로
             </Button>
           </Link>
         </div>
 
-        <div className="mb-8 animate-slide-up">
-          <div className="flex items-start justify-between">
+        {/* 타이틀 & 현재 포인트 */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold mb-2">포인트 관리 ⚙️</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2">
+                포인트 관리
+                <Sparkles className="h-8 w-8 text-yellow-500" />
+              </h1>
               <p className="text-muted-foreground">주우의 행동에 따라 포인트를 적립하거나 차감하세요.</p>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg shadow-lg">
-                <Coins className="h-5 w-5" />
-                <div className="text-right">
-                  <div className="text-xs opacity-90">현재 포인트</div>
-                  <div className="text-2xl font-bold">{currentPoints.toLocaleString()}</div>
+            
+            {/* 현재 포인트 카드 */}
+            <div className="flex flex-col gap-3">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 p-[2px] shadow-xl">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 md:p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
+                      <Coins className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground font-medium">현재 포인트</div>
+                      <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        {currentPoints.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              {/* 수기 조정 버튼 */}
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md"
                   onClick={() => openManualDialog("add")}
                 >
                   <Plus className="h-4 w-4 mr-1" />
@@ -251,8 +264,7 @@ export default function PointsManage() {
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-md"
                   onClick={() => openManualDialog("subtract")}
                 >
                   <Minus className="h-4 w-4 mr-1" />
@@ -263,6 +275,7 @@ export default function PointsManage() {
           </div>
         </div>
 
+        {/* 카테고리 필터 */}
         <div className="mb-6 flex flex-wrap gap-2">
           {categories.map((cat) => (
             <Button
@@ -270,50 +283,56 @@ export default function PointsManage() {
               variant={selectedCategory === cat ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory(cat)}
+              className={selectedCategory === cat ? "shadow-md" : ""}
             >
               {cat === "all" ? "전체" : cat}
             </Button>
           ))}
         </div>
 
+        {/* 규칙 목록 */}
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">규칙을 불러오는 중...</p>
+          <div className="text-center py-20">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground text-lg">규칙을 불러오는 중...</p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
+            {/* 포인트 적립 */}
             {positiveRules.length > 0 && (
-              <Card className="animate-slide-up">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-600">
-                    <Plus className="h-6 w-6" />
-                    포인트 적립 (긍정적 행동)
+              <Card className="border-2 border-green-200 dark:border-green-900 shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+                  <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                    <div className="p-2 bg-green-500 rounded-lg">
+                      <Plus className="h-5 w-5 text-white" />
+                    </div>
+                    포인트 적립
                   </CardTitle>
                   <CardDescription>좋은 행동을 했을 때 포인트를 적립하세요.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <CardContent className="pt-6">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {positiveRules.map((rule) => (
                       <div
                         key={rule.id}
-                        className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                        className="group relative p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-green-400 dark:hover:border-green-600 hover:shadow-lg transition-all duration-200"
                       >
-                        <div className="mb-3">
-                          <h3 className="font-semibold mb-1">{rule.name}</h3>
+                        <div className="mb-4">
+                          <h3 className="font-semibold text-base mb-1 line-clamp-1">{rule.name}</h3>
                           {rule.description && (
-                            <p className="text-sm text-muted-foreground">{rule.description}</p>
+                            <p className="text-sm text-muted-foreground line-clamp-2">{rule.description}</p>
                           )}
-                          <span className="category-badge bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 mt-2">
+                          <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md">
                             {rule.category}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-2xl font-bold text-green-600">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-2xl font-bold text-green-600 dark:text-green-500">
                             +{rule.point_amount.toLocaleString()}
                           </span>
                           <Button
                             size="sm"
+                            className="bg-green-600 hover:bg-green-700 text-white shadow-md"
                             onClick={() => handleApplyRule(rule.id, rule.name, rule.point_amount)}
                             disabled={applying}
                           >
@@ -327,38 +346,41 @@ export default function PointsManage() {
               </Card>
             )}
 
+            {/* 포인트 차감 */}
             {negativeRules.length > 0 && (
-              <Card className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-red-600">
-                    <Minus className="h-6 w-6" />
-                    포인트 차감 (부정적 행동)
+              <Card className="border-2 border-red-200 dark:border-red-900 shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950">
+                  <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                    <div className="p-2 bg-red-500 rounded-lg">
+                      <Minus className="h-5 w-5 text-white" />
+                    </div>
+                    포인트 차감
                   </CardTitle>
                   <CardDescription>나쁜 행동을 했을 때 포인트를 차감하세요.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <CardContent className="pt-6">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {negativeRules.map((rule) => (
                       <div
                         key={rule.id}
-                        className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
+                        className="group relative p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-red-400 dark:hover:border-red-600 hover:shadow-lg transition-all duration-200"
                       >
-                        <div className="mb-3">
-                          <h3 className="font-semibold mb-1">{rule.name}</h3>
+                        <div className="mb-4">
+                          <h3 className="font-semibold text-base mb-1 line-clamp-1">{rule.name}</h3>
                           {rule.description && (
-                            <p className="text-sm text-muted-foreground">{rule.description}</p>
+                            <p className="text-sm text-muted-foreground line-clamp-2">{rule.description}</p>
                           )}
-                          <span className="category-badge bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 mt-2">
+                          <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md">
                             {rule.category}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-2xl font-bold text-red-600">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-2xl font-bold text-red-600 dark:text-red-500">
                             {rule.point_amount.toLocaleString()}
                           </span>
                           <Button
                             size="sm"
-                            variant="destructive"
+                            className="bg-red-600 hover:bg-red-700 text-white shadow-md"
                             onClick={() => handleApplyRule(rule.id, rule.name, rule.point_amount)}
                             disabled={applying}
                           >
@@ -377,10 +399,24 @@ export default function PointsManage() {
 
       {/* 수기 조정 Dialog */}
       <Dialog open={showManualDialog} onOpenChange={setShowManualDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {manualType === "add" ? "포인트 수기 적립" : "포인트 수기 차감"}
+            <DialogTitle className="flex items-center gap-2">
+              {manualType === "add" ? (
+                <>
+                  <div className="p-2 bg-green-500 rounded-lg">
+                    <Plus className="h-5 w-5 text-white" />
+                  </div>
+                  포인트 수기 적립
+                </>
+              ) : (
+                <>
+                  <div className="p-2 bg-red-500 rounded-lg">
+                    <Minus className="h-5 w-5 text-white" />
+                  </div>
+                  포인트 수기 차감
+                </>
+              )}
             </DialogTitle>
             <DialogDescription>
               {manualType === "add"
@@ -390,34 +426,36 @@ export default function PointsManage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="amount">금액</Label>
+              <Label htmlFor="amount" className="text-base font-semibold">금액</Label>
               <Input
                 id="amount"
                 type="number"
                 placeholder="1000"
                 value={manualAmount}
                 onChange={(e) => setManualAmount(e.target.value)}
+                className="mt-2 text-lg"
               />
             </div>
             <div>
-              <Label htmlFor="note">내용</Label>
+              <Label htmlFor="note" className="text-base font-semibold">내용</Label>
               <Input
                 id="note"
                 placeholder="예: 특별 보너스"
                 value={manualNote}
                 onChange={(e) => setManualNote(e.target.value)}
+                className="mt-2"
               />
             </div>
-            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-              <Coins className="h-5 w-5 text-muted-foreground" />
+            <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 rounded-xl border-2 border-purple-200 dark:border-purple-800">
+              <Coins className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               <div className="flex-1">
-                <div className="text-sm text-muted-foreground">현재 포인트</div>
-                <div className="font-semibold">{currentPoints.toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground font-medium">현재 포인트</div>
+                <div className="text-xl font-bold">{currentPoints.toLocaleString()}</div>
               </div>
               <div className="text-right">
-                <div className="text-sm text-muted-foreground">변경 후</div>
-                <div className={`font-bold ${
-                  manualType === "add" ? "text-green-600" : "text-red-600"
+                <div className="text-sm text-muted-foreground font-medium">변경 후</div>
+                <div className={`text-xl font-bold ${
+                  manualType === "add" ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"
                 }`}>
                   {manualAmount && !isNaN(parseInt(manualAmount))
                     ? (currentPoints + (manualType === "add" ? parseInt(manualAmount) : -parseInt(manualAmount))).toLocaleString()
@@ -433,7 +471,9 @@ export default function PointsManage() {
             <Button
               onClick={handleManualAdjustment}
               disabled={applying}
-              className={manualType === "add" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+              className={manualType === "add" 
+                ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white" 
+                : "bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white"}
             >
               {applying ? "처리 중..." : (manualType === "add" ? "적립" : "차감")}
             </Button>

@@ -368,3 +368,11 @@
 - [x] 포인트 상점 페이지 정상 작동 확인
 - [x] AppLayout 중첩 a 태그 문제 수정
 - [x] Signup 페이지 생성 및 라우트 추가
+
+
+## Netlify 배포 버전 불일치 문제 해결
+- [ ] Netlify 배포 상태 확인
+- [ ] GitHub에 최신 코드 푸시
+- [ ] Netlify 자동 배포 확인
+- [ ] 배포된 사이트 테스트 (juwoopoint.netlify.app)
+- [ ] 홈 페이지 디자인 일치 확인

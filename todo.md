@@ -207,3 +207,14 @@
 - [x] 코드 커밋 및 푸시
 - [x] Netlify 배포 설정 파일 작성 (netlify.toml)
 - [ ] Netlify와 GitHub 저장소 연결 (수동 설정 필요)
+
+
+## Netlify Functions로 서버 API 변환
+- [x] Netlify Functions 디렉토리 생성 (netlify/functions/trpc.ts)
+- [x] tRPC 서버를 Netlify Function으로 변환
+- [x] server/supabaseServer.ts 생성 (Supabase 서버 클라이언트)
+- [x] server/_core/context.ts - Supabase Auth로 완전히 변환
+- [x] client/src/main.tsx - tRPC 요청에 Supabase Auth 토큰 추가
+- [x] netlify.toml 설정 수정
+- [ ] GitHub 푸시 및 Netlify 재배포
+- [ ] 배포된 사이트에서 API 작동 확인

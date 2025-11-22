@@ -7,8 +7,8 @@
   PNPM_VERSION = "9"
 
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  from = "/api/trpc/*"
+  to = "/.netlify/functions/trpc/:splat"
   status = 200
 
 [[redirects]]
@@ -17,5 +17,6 @@
   status = 200
 
 [functions]
-  directory = ".netlify/functions"
+  directory = "netlify/functions"
   node_bundler = "esbuild"
+  external_node_modules = ["@supabase/supabase-js", "pg"]

@@ -33,10 +33,30 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         console.log('[Auth] Setting user:', session.user.email);
         setUser(session.user);
         
-        // 사용자 역할 설정 (기본값: user)
-        // TODO: Supabase Auth의 user_metadata 또는 별도 테이블에서 역할 조회
-        setUserRole('user');
-        console.log('[Auth] User role set to default: user');
+        // users 테이블에서 역할 조회
+        const fetchUserRole = async () => {
+          try {
+            const { data, error } = await supabase
+              .from('users')
+              .select('role')
+              .eq('email', session.user.email)
+              .single();
+            
+            if (error) {
+              console.error('[Auth] Error fetching user role:', error);
+              setUserRole('user');
+            } else {
+              const role = data?.role || 'user';
+              console.log('[Auth] User role fetched:', role);
+              setUserRole(role as 'admin' | 'user');
+            }
+          } catch (err) {
+            console.error('[Auth] Failed to fetch user role:', err);
+            setUserRole('user');
+          }
+        };
+        
+        fetchUserRole();
       } else {
         console.log('[Auth] No session, clearing user');
         setUser(null);

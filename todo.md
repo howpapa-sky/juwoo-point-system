@@ -38,6 +38,13 @@
 - [x] Transactions 페이지에 취소 버튼 추가
 - [x] 취소 시 포인트 자동 복원 로직 구현
 - [x] Supabase에 is_cancelled 컴럼 추가
+- [x] GitHub 푸시 (1f27462)
+- [ ] Netlify 배포 확인 (진행 중)
+- [ ] 기능 테스트
+
+## 관리자 메뉴 표시 문제 수정
+- [x] SupabaseAuthContext에서 users 테이블 role 조회 추가
+- [x] userRole 상태 업데이트
 - [ ] GitHub 푸시
 - [ ] Netlify 배포 확인
-- [ ] 기능 테스트
+- [ ] 관리자 메뉴 표시 확인

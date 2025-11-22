@@ -7,6 +7,10 @@ import { Link } from "wouter";
 import { ArrowLeft, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Coins } from "lucide-react";
 
 interface PointRule {
   id: number;
@@ -25,11 +29,16 @@ export default function PointsManage() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [currentPoints, setCurrentPoints] = useState<number>(0);
+  const [showManualDialog, setShowManualDialog] = useState(false);
+  const [manualAmount, setManualAmount] = useState<string>("");
+  const [manualNote, setManualNote] = useState<string>("");
+  const [manualType, setManualType] = useState<"add" | "subtract">("add");
 
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const fetchRules = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
         const { data, error } = await supabase
@@ -41,15 +50,25 @@ export default function PointsManage() {
 
         if (error) throw error;
         setRules(data || []);
+
+        // Fetch current points
+        const { data: profileData, error: profileError } = await supabase
+          .from('juwoo_profile')
+          .select('current_points')
+          .eq('id', 1)
+          .single();
+
+        if (profileError) throw profileError;
+        setCurrentPoints(profileData?.current_points || 0);
       } catch (error: any) {
-        console.error('Error fetching rules:', error);
-        toast.error('규칙을 불러오는데 실패했습니다.');
+        console.error('Error fetching data:', error);
+        toast.error('데이터를 불러오는데 실패했습니다.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRules();
+    fetchData();
   }, [isAuthenticated]);
 
   const handleApplyRule = async (ruleId: number, ruleName: string, amount: number) => {
@@ -88,6 +107,7 @@ export default function PointsManage() {
 
       if (updateError) throw updateError;
 
+      setCurrentPoints(newBalance);
       toast.success("포인트가 적용되었습니다!");
     } catch (error: any) {
       console.error('Error applying rule:', error);
@@ -95,6 +115,62 @@ export default function PointsManage() {
     } finally {
       setApplying(false);
     }
+  };
+
+  const handleManualAdjustment = async () => {
+    const amount = parseInt(manualAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('유효한 금액을 입력해주세요.');
+      return;
+    }
+
+    if (!manualNote.trim()) {
+      toast.error('내용을 입력해주세요.');
+      return;
+    }
+
+    setApplying(true);
+    try {
+      const finalAmount = manualType === "add" ? amount : -amount;
+      const newBalance = currentPoints + finalAmount;
+
+      // 1. Insert transaction
+      const { error: txError } = await supabase
+        .from('point_transactions')
+        .insert({
+          juwoo_id: 1,
+          rule_id: null,
+          amount: finalAmount,
+          note: `[수기${manualType === "add" ? "적립" : "차감"}] ${manualNote.trim()}`,
+          created_by: null,
+        });
+
+      if (txError) throw txError;
+
+      // 2. Update balance
+      const { error: updateError } = await supabase
+        .from('juwoo_profile')
+        .update({ current_points: newBalance })
+        .eq('id', 1);
+
+      if (updateError) throw updateError;
+
+      setCurrentPoints(newBalance);
+      toast.success(`포인트가 ${manualType === "add" ? "적립" : "차감"}되었습니다!`);
+      setShowManualDialog(false);
+      setManualAmount("");
+      setManualNote("");
+    } catch (error: any) {
+      console.error('Error manual adjustment:', error);
+      toast.error('포인트 조정에 실패했습니다.');
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const openManualDialog = (type: "add" | "subtract") => {
+    setManualType(type);
+    setShowManualDialog(true);
   };
 
   if (authLoading || !isAuthenticated) {
@@ -150,8 +226,41 @@ export default function PointsManage() {
         </div>
 
         <div className="mb-8 animate-slide-up">
-          <h1 className="text-4xl font-bold mb-2">포인트 관리 ⚙️</h1>
-          <p className="text-muted-foreground">주우의 행동에 따라 포인트를 적립하거나 차감하세요.</p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">포인트 관리 ⚙️</h1>
+              <p className="text-muted-foreground">주우의 행동에 따라 포인트를 적립하거나 차감하세요.</p>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg shadow-lg">
+                <Coins className="h-5 w-5" />
+                <div className="text-right">
+                  <div className="text-xs opacity-90">현재 포인트</div>
+                  <div className="text-2xl font-bold">{currentPoints.toLocaleString()}</div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                  onClick={() => openManualDialog("add")}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  수기 적립
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
+                  onClick={() => openManualDialog("subtract")}
+                >
+                  <Minus className="h-4 w-4 mr-1" />
+                  수기 차감
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mb-6 flex flex-wrap gap-2">
@@ -265,6 +374,72 @@ export default function PointsManage() {
           </div>
         )}
       </div>
+
+      {/* 수기 조정 Dialog */}
+      <Dialog open={showManualDialog} onOpenChange={setShowManualDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {manualType === "add" ? "포인트 수기 적립" : "포인트 수기 차감"}
+            </DialogTitle>
+            <DialogDescription>
+              {manualType === "add"
+                ? "포인트를 수동으로 적립합니다."
+                : "포인트를 수동으로 차감합니다."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="amount">금액</Label>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="1000"
+                value={manualAmount}
+                onChange={(e) => setManualAmount(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="note">내용</Label>
+              <Input
+                id="note"
+                placeholder="예: 특별 보너스"
+                value={manualNote}
+                onChange={(e) => setManualNote(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+              <Coins className="h-5 w-5 text-muted-foreground" />
+              <div className="flex-1">
+                <div className="text-sm text-muted-foreground">현재 포인트</div>
+                <div className="font-semibold">{currentPoints.toLocaleString()}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-muted-foreground">변경 후</div>
+                <div className={`font-bold ${
+                  manualType === "add" ? "text-green-600" : "text-red-600"
+                }`}>
+                  {manualAmount && !isNaN(parseInt(manualAmount))
+                    ? (currentPoints + (manualType === "add" ? parseInt(manualAmount) : -parseInt(manualAmount))).toLocaleString()
+                    : currentPoints.toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowManualDialog(false)}>
+              취소
+            </Button>
+            <Button
+              onClick={handleManualAdjustment}
+              disabled={applying}
+              className={manualType === "add" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+            >
+              {applying ? "처리 중..." : (manualType === "add" ? "적립" : "차감")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

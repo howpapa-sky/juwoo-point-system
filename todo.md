@@ -185,5 +185,22 @@
 
 ## Netlify 배포 404 오류 수정
 - [x] 홈페이지 영어 학습 링크 /english → /english-learning 수정
+- [x] 체크포인트 저장 (289e082c)
+- [ ] Netlify 배포 확인 (진행 중)
+
+
+## GitHub 푸시 상태 확인 및 오류 체크
+- [x] Git 로그 확인 (최신 커밋: 289e082)
+- [x] Git 원격 저장소 상태 확인
+- [x] 수동 GitHub 푸시 실행 (c3133a7..289e082)
+- [x] Netlify 배포 상태 확인 (성공 - /english-learning 정상 작동)
+
+
+## EnglishLearning 페이지 수정
+- [x] EnglishLearning.tsx를 플래시카드/퀴즈 연결 페이지로 재작성
+- [x] Supabase 의존성 제거
+- [x] 플래시카드 학습 버튼 추가 (/flashcard)
+- [x] 퀴즈 풀기 버튼 추가 (/english-quiz)
+- [x] 학습 팁 섹션 추가
 - [ ] 체크포인트 저장
 - [ ] 배포 확인

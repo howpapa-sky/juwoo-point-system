@@ -216,5 +216,6 @@
 - [x] server/_core/context.ts - Supabase Auth로 완전히 변환
 - [x] client/src/main.tsx - tRPC 요청에 Supabase Auth 토큰 추가
 - [x] netlify.toml 설정 수정
-- [ ] GitHub 푸시 및 Netlify 재배포
+- [x] GitHub 푸시 및 Netlify 재배포
+- [ ] Netlify 환경 변수 설정 (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)
 - [ ] 배포된 사이트에서 API 작동 확인

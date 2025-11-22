@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import AdminSettings from "./pages/AdminSettings";
 import Dashboard from "./pages/Dashboard";
 import PointsManage from "./pages/PointsManage";
@@ -26,6 +27,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/login"} component={Login} />
+      <Route path={"/signup"} component={Signup} />
       <Route path={"/dashboard"}>
         {() => (
           <AppLayout>

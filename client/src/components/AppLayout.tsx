@@ -99,18 +99,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 const isActive = location === item.path;
                 return (
                   <li key={item.path}>
-                    <Link href={item.path}>
-                      <a
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                          isActive
-                            ? "bg-purple-100 text-purple-700 font-semibold"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span>{item.label}</span>
-                      </a>
+                    <Link
+                      href={item.path}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-purple-100 text-purple-700 font-semibold"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span>{item.label}</span>
                     </Link>
                   </li>
                 );
@@ -131,18 +130,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     const isActive = location === item.path;
                     return (
                       <li key={item.path}>
-                        <Link href={item.path}>
-                          <a
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                              isActive
-                                ? "bg-red-100 text-red-700 font-semibold"
-                                : "text-gray-700 hover:bg-gray-100"
-                            }`}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <Icon className="w-5 h-5" />
-                            <span>{item.label}</span>
-                          </a>
+                        <Link
+                          href={item.path}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                            isActive
+                              ? "bg-red-100 text-red-700 font-semibold"
+                              : "text-gray-700 hover:bg-gray-100"
+                          }`}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <Icon className="w-5 h-5" />
+                          <span>{item.label}</span>
                         </Link>
                       </li>
                     );

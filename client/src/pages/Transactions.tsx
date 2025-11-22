@@ -1,43 +1,76 @@
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { trpc } from "@/lib/trpc";
+import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { ArrowLeft, Receipt, X } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { ArrowLeft, Receipt } from "lucide-react";
+import { useState, useEffect } from "react";
+
+interface Transaction {
+  id: number;
+  amount: number;
+  note: string | null;
+  created_at: string;
+  balance_after: number;
+  rule_name: string | null;
+  rule_category: string | null;
+}
 
 export default function Transactions() {
   const { user, loading: authLoading } = useSupabaseAuth();
   const isAuthenticated = !!user;
+  
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(50);
-  const utils = trpc.useUtils();
-  const cancelMutation = trpc.transactions.cancel.useMutation({
-    onSuccess: () => {
-      utils.points.balance.invalidate();
-      utils.points.transactions.invalidate();
-      utils.points.stats.invalidate();
-      toast.success("포인트가 취소되었습니다!");
-    },
-    onError: (error) => {
-      toast.error(error.message || "취소에 실패했습니다.");
-    },
-  });
 
-  const handleCancel = (transactionId: number) => {
-    if (confirm("정말로 이 거래를 취소하시겠습니까?")) {
-      cancelMutation.mutate({ transactionId });
-    }
-  };
-  const { data: transactions, isLoading } = trpc.points.transactions.useQuery(
-    { limit },
-    { enabled: isAuthenticated }
-  );
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchTransactions = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('point_transactions')
+          .select(`
+            id,
+            amount,
+            note,
+            created_at,
+            balance_after,
+            point_rules (name, category)
+          `)
+          .eq('juwoo_id', 1)
+          .order('created_at', { ascending: false })
+          .limit(limit);
+
+        if (error) throw error;
+
+        const formattedTransactions = (data || []).map((tx: any) => ({
+          id: tx.id,
+          amount: tx.amount,
+          note: tx.note,
+          created_at: tx.created_at,
+          balance_after: tx.balance_after,
+          rule_name: tx.point_rules?.name || null,
+          rule_category: tx.point_rules?.category || null,
+        }));
+
+        setTransactions(formattedTransactions);
+      } catch (error: any) {
+        console.error('Error fetching transactions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [isAuthenticated, limit]);
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle>로그인이 필요합니다</CardTitle>
@@ -54,7 +87,7 @@ export default function Transactions() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
       <div className="container py-8">
         <div className="mb-6">
           <Link href="/">
@@ -70,7 +103,7 @@ export default function Transactions() {
           <p className="text-muted-foreground">모든 포인트 변동 내역을 확인하세요.</p>
         </div>
 
-        {isLoading ? (
+        {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-muted-foreground">거래 내역을 불러오는 중...</p>
@@ -83,11 +116,11 @@ export default function Transactions() {
                 전체 거래 내역
               </CardTitle>
               <CardDescription>
-                최근 {transactions?.length || 0}개의 거래 내역
+                최근 {transactions.length}개의 거래 내역
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {transactions && transactions.length > 0 ? (
+              {transactions.length > 0 ? (
                 <div className="space-y-3">
                   {transactions.map((tx) => (
                     <div
@@ -96,15 +129,15 @@ export default function Transactions() {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-semibold">{tx.note || tx.ruleName || "포인트 변동"}</p>
-                          {tx.ruleCategory && (
+                          <p className="font-semibold">{tx.note || tx.rule_name || "포인트 변동"}</p>
+                          {tx.rule_category && (
                             <span className="category-badge bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
-                              {tx.ruleCategory}
+                              {tx.rule_category}
                             </span>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(tx.createdAt).toLocaleString("ko-KR", {
+                          {new Date(tx.created_at).toLocaleString("ko-KR", {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
@@ -113,31 +146,18 @@ export default function Transactions() {
                           })}
                         </p>
                       </div>
-                      <div className="flex items-center gap-3 ml-4">
-                        <div className="text-right">
-                          <div
-                            className={`text-2xl font-bold ${
-                              tx.amount > 0 ? "text-green-600" : "text-red-600"
-                            }`}
-                          >
-                            {tx.amount > 0 ? "+" : ""}
-                            {tx.amount != null ? tx.amount.toLocaleString() : 0}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            잔액: {tx.balanceAfter != null ? tx.balanceAfter.toLocaleString() : 0}
-                          </div>
+                      <div className="text-right ml-4">
+                        <div
+                          className={`text-2xl font-bold ${
+                            tx.amount > 0 ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          {tx.amount > 0 ? "+" : ""}
+                          {tx.amount.toLocaleString()}
                         </div>
-                        {user?.role === "admin" && !tx.note?.startsWith("취소:") && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => handleCancel(tx.id)}
-                            disabled={cancelMutation.isPending}
-                          >
-                            <X className="h-5 w-5" />
-                          </Button>
-                        )}
+                        <div className="text-sm text-muted-foreground">
+                          잔액: {tx.balance_after.toLocaleString()}
+                        </div>
                       </div>
                     </div>
                   ))}

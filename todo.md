@@ -283,3 +283,24 @@
 - [ ] GitHub 푸시
 - [ ] Netlify 배포 및 테스트
 - [ ] 전체 기능 검증
+
+## 전체 Supabase 전환 및 Netlify Functions 제거 (진행 중)
+- [x] Dashboard.tsx Supabase 전환
+- [x] Shop.tsx Supabase 전환
+- [x] PointsManage.tsx Supabase 전환
+- [x] Transactions.tsx Supabase 전환
+- [x] EnglishLearning.tsx 간단한 버전으로 전환
+- [x] Goals.tsx 간단한 버전으로 전환
+- [x] Badges.tsx 간단한 버전으로 전환
+- [x] Statistics.tsx 간단한 버전으로 전환
+- [x] AdminPanel.tsx 간단한 버전으로 전환
+- [x] AdminSettings.tsx 간단한 버전으로 전환
+- [x] MyPage.tsx 간단한 버전으로 전환
+- [x] tRPC 관련 코드 제거
+- [x] Netlify Functions 폴더 제거
+- [x] netlify.toml 간소화
+- [x] package.json 정리
+- [x] 빌드 테스트 성공
+- [ ] GitHub 푸시
+- [ ] Netlify 배포
+- [ ] 전체 기능 테스트

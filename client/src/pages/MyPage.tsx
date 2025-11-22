@@ -1,118 +1,58 @@
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Mail, Calendar, Shield, LogOut } from "lucide-react";
-import { useEffect } from "react";
-import { useLocation } from "wouter";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getLoginUrl } from "@/const";
+import { Link } from "wouter";
+import { ArrowLeft, User } from "lucide-react";
 
 export default function MyPage() {
-  const { user, loading, signOut } = useSupabaseAuth();
-  const [, setLocation] = useLocation();
+  const { user, loading } = useSupabaseAuth();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      setLocation("/login");
-    }
-  }, [user, loading, setLocation]);
-
-  if (loading) {
+  if (loading || !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">로딩 중...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle>로그인이 필요합니다</CardTitle>
+            <CardDescription>마이페이지을(를) 보려면 로그인해주세요.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <a href={getLoginUrl()}>
+              <Button className="w-full">로그인하기</Button>
+            </a>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
-  const handleLogout = async () => {
-    await signOut();
-    setLocation("/");
-  };
-
   return (
-    <div className="container max-w-4xl mx-auto py-8">
-      <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-        마이페이지
-      </h1>
-
-      <div className="grid gap-6">
-        {/* 프로필 정보 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              프로필 정보
-            </CardTitle>
-            <CardDescription>내 계정 정보를 확인할 수 있습니다</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
-                <User className="w-10 h-10 text-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold">
-                  {user.user_metadata?.name || user.email?.split("@")[0] || "사용자"}
-                </h3>
-                <p className="text-muted-foreground">주우의 포인트 시스템 회원</p>
-              </div>
-            </div>
-
-            <div className="grid gap-3 pt-4">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <Mail className="w-5 h-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">이메일</p>
-                  <p className="font-medium">{user.email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <Calendar className="w-5 h-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">가입일</p>
-                  <p className="font-medium">
-                    {new Date(user.created_at).toLocaleDateString("ko-KR", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <Shield className="w-5 h-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">계정 상태</p>
-                  <p className="font-medium text-green-600">활성</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 계정 관리 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>계정 관리</CardTitle>
-            <CardDescription>계정 설정 및 로그아웃</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button
-              variant="outline"
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              로그아웃
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
+      <div className="container py-8">
+        <div className="mb-6">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              홈으로
             </Button>
+          </Link>
+        </div>
+
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2 flex items-center gap-2">
+            <User className="h-10 w-10" />
+            마이페이지
+          </h1>
+          <p className="text-muted-foreground">내 정보를 확인하세요!</p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>마이페이지 기능</CardTitle>
+            <CardDescription>준비 중입니다.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">이 기능은 곧 제공될 예정입니다.</p>
           </CardContent>
         </Card>
       </div>

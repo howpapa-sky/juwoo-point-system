@@ -10,11 +10,11 @@ export default function MyPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle>로그인이 필요합니다</CardTitle>
-            <CardDescription>마이페이지을(를) 보려면 로그인해주세요.</CardDescription>
+            <CardDescription>마이페이지를 보려면 로그인해주세요.</CardDescription>
           </CardHeader>
           <CardContent>
             <a href={getLoginUrl()}>
@@ -27,7 +27,7 @@ export default function MyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
       <div className="container py-8">
         <div className="mb-6">
           <Link href="/">
@@ -41,7 +41,7 @@ export default function MyPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 flex items-center gap-2">
             <User className="h-10 w-10" />
-            마이페이지
+            마이페이지 👤
           </h1>
           <p className="text-muted-foreground">내 정보를 확인하세요!</p>
         </div>

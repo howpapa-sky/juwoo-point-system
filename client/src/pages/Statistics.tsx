@@ -10,11 +10,11 @@ export default function Statistics() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-teal-50 to-cyan-50">
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle>로그인이 필요합니다</CardTitle>
-            <CardDescription>통계을(를) 보려면 로그인해주세요.</CardDescription>
+            <CardDescription>통계를 확인하려면 로그인해주세요.</CardDescription>
           </CardHeader>
           <CardContent>
             <a href={getLoginUrl()}>
@@ -27,7 +27,7 @@ export default function Statistics() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-teal-50 to-cyan-50">
       <div className="container py-8">
         <div className="mb-6">
           <Link href="/">
@@ -41,7 +41,7 @@ export default function Statistics() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 flex items-center gap-2">
             <BarChart3 className="h-10 w-10" />
-            통계
+            통계 📊
           </h1>
           <p className="text-muted-foreground">포인트 통계를 확인하세요!</p>
         </div>

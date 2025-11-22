@@ -18,7 +18,7 @@ interface PointRule {
 }
 
 export default function PointsManage() {
-  const { user, userRole, loading: authLoading } = useSupabaseAuth();
+  const { user, loading: authLoading } = useSupabaseAuth();
   const isAuthenticated = !!user;
   
   const [rules, setRules] = useState<PointRule[]>([]);
@@ -115,23 +115,7 @@ export default function PointsManage() {
     );
   }
 
-  if (userRole !== "admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
-        <Card className="max-w-md w-full">
-          <CardHeader>
-            <CardTitle>접근 권한 없음</CardTitle>
-            <CardDescription>관리자만 포인트를 관리할 수 있습니다.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/">
-              <Button className="w-full">홈으로 돌아가기</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+
 
   const categories = [
     "all",

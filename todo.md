@@ -235,9 +235,10 @@
 - [ ] 배포 후 실제 사이트 동작 검증
 
 ## DATABASE_URL 없이 Supabase Client로 서버 연결 전환
-- [ ] Netlify Functions에서 Drizzle 대신 Supabase Client 사용하도록 변경
-- [ ] server/db.ts를 Supabase Client 기반으로 재작성
-- [ ] tRPC 라우터를 Supabase Client API로 변경
-- [ ] 모든 데이터베이스 쿼리를 Supabase Client로 마이그레이션
-- [ ] 코드 푸시 및 Netlify 재배포
+- [x] Netlify Functions에서 Drizzle 대신 Supabase Client 사용하도록 변경
+- [x] server/db.ts를 Supabase Client 기반으로 재작성
+- [x] tRPC 라우터를 Supabase Client API로 변경
+- [x] 모든 데이터베이스 쿼리를 Supabase Client로 마이그레이션
+- [x] SupabaseAuthContext 무한 로딩 문제 해결 (타임아웃 및 에러 처리 추가)
+- [x] 코드 푸시 및 Netlify 재배포
 - [ ] 502 오류 해결 확인

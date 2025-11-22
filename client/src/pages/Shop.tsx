@@ -168,18 +168,33 @@ export default function Shop() {
 
     setPurchasing(true);
     try {
-      // 수기 입력 구매 내역 추가 (item_id는 null)
-      const { error: insertError } = await supabase
+      // 1. 임시 shop_item 생성 (수기 입력용)
+      const { data: tempItem, error: itemError } = await supabase
+        .from('shop_items')
+        .insert({
+          name: `[수기입력] ${customItemName.trim()}`,
+          description: '수기 입력으로 추가된 항목',
+          point_cost: cost,
+          category: '기타',
+          is_available: false, // 수기 입력 항목은 상점에 표시 안함
+        })
+        .select()
+        .single();
+
+      if (itemError) throw itemError;
+
+      // 2. 임시 item_id로 구매 내역 추가
+      const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
           juwoo_id: 1,
-          item_id: null,
+          item_id: tempItem.id,
           point_cost: cost,
           status: 'pending',
           note: `수기 입력: ${customItemName.trim()}`,
         });
 
-      if (insertError) throw insertError;
+      if (purchaseError) throw purchaseError;
 
       toast.success('구매 요청이 완료되었습니다!');
       setShowCustomPurchase(false);

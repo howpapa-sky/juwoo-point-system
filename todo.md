@@ -62,6 +62,22 @@
 - [ ] 새 아이템 3개 추가 (포켓몬고, 테블릿, 가오레) - 스키마 문제로 보류
 - [x] Shop.tsx에 수기 입력 기능 추가 (항목명, 금액)
 - [x] 카테고리 필터 간소화 (전체, 게임)
-- [ ] GitHub 푸시
-- [ ] Netlify 배포 확인
+- [x] GitHub 푸시 (459cbe4)
+- [ ] Netlify 배포 확인 (진행 중)
 - [ ] 기능 테스트
+
+## shop_items 3개 아이템 추가
+- [ ] Supabase에 포켓몬고 10분 (3000P) 추가
+- [ ] Supabase에 테블릿 10분 (3000P) 추가
+- [ ] Supabase에 포켓몬 가오레 1판 (1500P) 추가
+
+## shop_items 추가 완료
+- [x] Supabase에 포켓몬고 10분 (3000P) 추가
+- [x] Supabase에 테블릿 10분 (3000P) 추가
+- [x] Supabase에 포켓몬 가오레 1판 (1500P) 추가
+
+
+## 수기 입력 구매 오류 수정
+- [ ] purchases 테이블 item_id 컬럼 nullable 확인
+- [ ] item_id null 허용하도록 수정
+- [ ] 수기 입력 구매 테스트

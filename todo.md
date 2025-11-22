@@ -81,3 +81,25 @@
 - [ ] purchases 테이블 item_id 컬럼 nullable 확인
 - [ ] item_id null 허용하도록 수정
 - [ ] 수기 입력 구매 테스트
+
+## 수기 입력 오류 수정 완료
+- [x] item_id NOT NULL 제약 조건 문제 확인
+- [x] 임시 shop_item 생성 방식으로 변경
+- [x] GitHub 푸시 (1054cd4)
+- [ ] Netlify 배포 확인
+- [ ] 수기 입력 구매 테스트
+
+
+## 포인트 규칙 3개 삭제
+- [ ] Supabase에서 "수영 30분" 삭제
+- [ ] Supabase에서 "운동 경기 참여" 삭제
+- [ ] Supabase에서 "동생 돌보기" 삭제
+
+
+## 포인트 상점 자동 승인 기능
+- [ ] Shop.tsx에서 구매 시 바로 포인트 차감 로직 추가
+- [ ] transactions 테이블에 거래 내역 자동 추가
+- [ ] juwoo_profile current_points 업데이트
+- [ ] GitHub 푸시
+- [ ] Netlify 배포 확인
+- [ ] 구매 테스트

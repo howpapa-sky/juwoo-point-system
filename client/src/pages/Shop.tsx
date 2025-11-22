@@ -123,20 +123,45 @@ export default function Shop() {
         return;
       }
 
-      // Insert purchase record
-      const { error: insertError } = await supabase
+      const newBalance = balance - selectedItem.point_cost;
+
+      // 1. 포인트 차감 (juwoo_profile 업데이트)
+      const { error: updateError } = await supabase
+        .from('juwoo_profile')
+        .update({ current_points: newBalance })
+        .eq('id', 1);
+
+      if (updateError) throw updateError;
+
+      // 2. 거래 내역 추가 (transactions)
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          juwoo_id: 1,
+          rule_id: null,
+          point_amount: -selectedItem.point_cost,
+          balance_after: newBalance,
+          description: `[상점] ${selectedItem.name}`,
+          is_cancelled: false,
+        });
+
+      if (transactionError) throw transactionError;
+
+      // 3. 구매 내역 추가 (purchases) - 자동 승인
+      const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
           juwoo_id: 1,
           item_id: selectedItem.id,
           point_cost: selectedItem.point_cost,
-          status: 'pending',
-          note: `${selectedItem.name} 구매 요청`,
+          status: 'approved',
+          note: `${selectedItem.name} 구매`,
+          approved_at: new Date().toISOString(),
         });
 
-      if (insertError) throw insertError;
+      if (purchaseError) throw purchaseError;
 
-      toast.success('구매 요청이 완료되었습니다! 관리자의 승인을 기다려주세요.');
+      toast.success(`구매 완료! ${selectedItem.point_cost.toLocaleString()}포인트가 차감되었습니다.`);
       setSelectedItem(null);
       
       // Refresh purchases
@@ -168,7 +193,31 @@ export default function Shop() {
 
     setPurchasing(true);
     try {
-      // 1. 임시 shop_item 생성 (수기 입력용)
+      const newBalance = balance - cost;
+
+      // 1. 포인트 차감 (juwoo_profile 업데이트)
+      const { error: updateError } = await supabase
+        .from('juwoo_profile')
+        .update({ current_points: newBalance })
+        .eq('id', 1);
+
+      if (updateError) throw updateError;
+
+      // 2. 거래 내역 추가 (transactions)
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          juwoo_id: 1,
+          rule_id: null,
+          point_amount: -cost,
+          balance_after: newBalance,
+          description: `[수기입력] ${customItemName.trim()}`,
+          is_cancelled: false,
+        });
+
+      if (transactionError) throw transactionError;
+
+      // 3. 임시 shop_item 생성 (수기 입력용)
       const { data: tempItem, error: itemError } = await supabase
         .from('shop_items')
         .insert({
@@ -176,27 +225,28 @@ export default function Shop() {
           description: '수기 입력으로 추가된 항목',
           point_cost: cost,
           category: '기타',
-          is_available: false, // 수기 입력 항목은 상점에 표시 안함
+          is_available: false,
         })
         .select()
         .single();
 
       if (itemError) throw itemError;
 
-      // 2. 임시 item_id로 구매 내역 추가
+      // 4. 구매 내역 추가 (purchases) - 자동 승인
       const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
           juwoo_id: 1,
           item_id: tempItem.id,
           point_cost: cost,
-          status: 'pending',
+          status: 'approved',
           note: `수기 입력: ${customItemName.trim()}`,
+          approved_at: new Date().toISOString(),
         });
 
       if (purchaseError) throw purchaseError;
 
-      toast.success('구매 요청이 완료되었습니다!');
+      toast.success(`구매 완료! ${cost.toLocaleString()}포인트가 차감되었습니다.`);
       setShowCustomPurchase(false);
       setCustomItemName('');
       setCustomItemCost('');

@@ -224,4 +224,38 @@
 - [x] App.tsx에 라우트 추가 (/word-learning)
 - [x] EnglishLearning.tsx에 메뉴 추가 (3칸럼 그리드)
 - [x] 테스트 및 포인트 적립 확인 (+300P 정상 적립)
+- [x] 체크포인트 저장 (버전: 273cef38)
+
+
+## 영어 학습 시스템 확장
+
+### Phase 1: 영어 단어 데이터 확장
+- [x] english_words 테이블에 difficulty 컴럼 추가 (easy/medium/hard)
+- [x] 기존 50개 단어에 난이도 설정
+- [x] 새로운 단어 50개 추가 (총 100개)
+- [x] 카테고리별 난이도 분포 (easy: 25개, medium: 15개, hard: 10개)
+
+### Phase 2: 학습 기록 통계 대시보드
+- [x] LearningStats.tsx 페이지 생성
+- [x] 일별/주별 학습 시간 차트 (Recharts)
+- [x] 카테고리별 정답률 차트
+- [x] 연속 학습 일수 표시
+- [x] 학습 목표 달성률 표시
+- [x] App.tsx에 라우트 추가 (/learning-stats)
+- [x] EnglishLearning.tsx에 통계 버튼 추가
+
+### Phase 3: 음성 인식 학습 모드
+- [x] VoiceLearning.tsx 페이지 생성
+- [x] Web Speech API (SpeechRecognition) 통합
+- [x] 발음 정확도 체크 로직
+- [x] 음성 녹음 및 TTS 발음 듣기 기능
+- [x] 발음 피드백 UI (정답/오답 표시)
+- [x] App.tsx에 라우트 추가 (/voice-learning)
+- [x] EnglishLearning.tsx에 메뉴 추가 (4칸럼 그리드)
+- [x] 80% 이상 정답 시 +500P 적립
+
+### Phase 4: 통합 테스트
+- [x] 단어 데이터 확인 (100개 단어, 난이도 분류 완료)
+- [x] 통계 대시보드 테스트 (4개 카드, 4개 차트 표시 확인)
+- [x] 음성 인식 기능 테스트 (UI 표시, 발음 듣기, 녹음 버튼 확인)
 - [ ] 체크포인트 저장

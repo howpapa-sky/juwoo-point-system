@@ -19,6 +19,8 @@ import EnglishLearning from "./pages/EnglishLearning";
 import FlashCard from "./pages/FlashCard";
 import EnglishQuiz from "./pages/EnglishQuiz";
 import WordLearning from "./pages/WordLearning";
+import LearningStats from "./pages/LearningStats";
+import VoiceLearning from "./pages/VoiceLearning";
 import Goals from "./pages/Goals";
 import Badges from "./pages/Badges";
 import MyPage from "./pages/MyPage";
@@ -105,6 +107,20 @@ function Router() {
         {() => (
           <AppLayout>
             <WordLearning />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/learning-stats"}>
+        {() => (
+          <AppLayout>
+            <LearningStats />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/voice-learning"}>
+        {() => (
+          <AppLayout>
+            <VoiceLearning />
           </AppLayout>
         )}
       </Route>

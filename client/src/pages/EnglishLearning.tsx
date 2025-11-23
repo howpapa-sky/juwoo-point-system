@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { ArrowLeft, BookOpen, Brain, Trophy, Sparkles, Star } from "lucide-react";
+import { ArrowLeft, BookOpen, Brain, Trophy, Sparkles, Star, Mic } from "lucide-react";
 
 export default function EnglishLearning() {
   const { user, loading: authLoading } = useSupabaseAuth();
@@ -62,7 +62,7 @@ export default function EnglishLearning() {
         </div>
 
         {/* 학습 메뉴 카드 */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* 플래시카드 학습 */}
           <Card className="hover:shadow-2xl transition-all duration-300 border-2 hover:border-blue-500 group">
             <CardHeader className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-t-lg">
@@ -173,6 +173,53 @@ export default function EnglishLearning() {
               </Link>
             </CardContent>
           </Card>
+
+          {/* 음성 인식 학습 */}
+          <Card className="hover:shadow-2xl transition-all duration-300 border-2 hover:border-red-500 group">
+            <CardHeader className="bg-gradient-to-br from-red-500 to-pink-500 text-white rounded-t-lg">
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-4 bg-white/20 rounded-full">
+                  <Mic className="h-12 w-12" />
+                </div>
+              </div>
+              <CardTitle className="text-center text-2xl">음성 인식 학습</CardTitle>
+              <CardDescription className="text-center text-white/90">
+                발음하면서 단어를 외워보세요
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-yellow-500" />
+                  <span>음성 인식 기술 활용</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-yellow-500" />
+                  <span>발음 정확도 체크</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-yellow-500" />
+                  <span>80% 이상 정답 시 +500P</span>
+                </div>
+              </div>
+              <Link href="/voice-learning">
+                <Button className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white text-lg py-6 group-hover:scale-105 transition-transform">
+                  학습 시작하기
+                  <Mic className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 학습 통계 버튼 */}
+        <div className="mt-8 text-center">
+          <Link href="/learning-stats">
+            <Button className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white text-lg py-6 px-8">
+              <Trophy className="mr-2 h-5 w-5" />
+              학습 통계 보기
+            </Button>
+          </Link>
         </div>
 
         {/* 학습 팁 */}

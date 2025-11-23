@@ -214,5 +214,14 @@
 - [x] 플래시카드 라우트 수정 (/flashcard → /english-flashcard)
 - [x] point_transactions 및 juwoo_profile 테이블 RLS 정책 설정
 - [x] 포인트 적립 로직 테스트 (플래시카드 +500P, 퀴즈 50점 포인트 없음 확인)
-- [ ] 체크포인트 저장
+- [x] 체크포인트 저장 (버전: a5fe0cda)
 - [ ] 배포 확인
+
+## 텍스트 입력 방식 영어 학습 모드 구현
+
+- [x] 카테고리별 단어 학습 페이지 구현 (WordLearning.tsx)
+- [x] 입력 검증 및 포인트 적립 로직 추가 (+300P)
+- [x] App.tsx에 라우트 추가 (/word-learning)
+- [x] EnglishLearning.tsx에 메뉴 추가 (3칸럼 그리드)
+- [x] 테스트 및 포인트 적립 확인 (+300P 정상 적립)
+- [ ] 체크포인트 저장

@@ -62,7 +62,7 @@ export default function EnglishLearning() {
         </div>
 
         {/* 학습 메뉴 카드 */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           {/* 플래시카드 학습 */}
           <Card className="hover:shadow-2xl transition-all duration-300 border-2 hover:border-blue-500 group">
             <CardHeader className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white rounded-t-lg">
@@ -132,6 +132,43 @@ export default function EnglishLearning() {
                 <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-lg py-6 group-hover:scale-105 transition-transform">
                   퀴즈 풀기
                   <Trophy className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* 단어 학습 (텍스트 입력) */}
+          <Card className="hover:shadow-2xl transition-all duration-300 border-2 hover:border-green-500 group">
+            <CardHeader className="bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-t-lg">
+              <div className="flex items-center justify-center mb-4">
+                <div className="p-4 bg-white/20 rounded-full">
+                  <BookOpen className="h-12 w-12" />
+                </div>
+              </div>
+              <CardTitle className="text-center text-2xl">단어 학습</CardTitle>
+              <CardDescription className="text-center text-white/90">
+                텍스트 입력으로 단어를 외워보세요
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-yellow-500" />
+                  <span>카테고리별 학습</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-yellow-500" />
+                  <span>직접 입력하여 암기</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="h-4 w-4 text-yellow-500" />
+                  <span>카테고리 완료 시 +300P</span>
+                </div>
+              </div>
+              <Link href="/word-learning">
+                <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white text-lg py-6 group-hover:scale-105 transition-transform">
+                  학습 시작하기
+                  <BookOpen className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
             </CardContent>

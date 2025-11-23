@@ -18,6 +18,7 @@ import Statistics from "./pages/Statistics";
 import EnglishLearning from "./pages/EnglishLearning";
 import FlashCard from "./pages/FlashCard";
 import EnglishQuiz from "./pages/EnglishQuiz";
+import WordLearning from "./pages/WordLearning";
 import Goals from "./pages/Goals";
 import Badges from "./pages/Badges";
 import MyPage from "./pages/MyPage";
@@ -97,6 +98,13 @@ function Router() {
         {() => (
           <AppLayout>
             <EnglishQuiz />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/word-learning"}>
+        {() => (
+          <AppLayout>
+            <WordLearning />
           </AppLayout>
         )}
       </Route>

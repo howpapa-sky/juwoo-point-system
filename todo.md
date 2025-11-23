@@ -266,5 +266,7 @@
 - [x] 빌드 오류 확인 (MODULE_NOT_FOUND)
 - [x] 로컬 빌드 테스트 (성공)
 - [x] package.json에 engines 필드 추가 (Node.js >=22.0.0)
-- [ ] 체크포인트 저장
-- [ ] 배포 재시도
+- [x] 체크포인트 저장 (버전: e87f742d)
+- [x] 배포 재시도 1차 - 동일 오류
+- [x] package.json에 main 필드 추가 (dist/index.js)
+- [ ] 체크포인트 저장 및 배포 재시도

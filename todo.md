@@ -275,18 +275,7 @@
 
 ## GitHub 연동 및 자동 푸시
 
-- [x] GitHub 리포지토리 상태 확인 (https://github.com/howpapa-sky/juwoo-point-system.git)
-- [x] GitHub 리포지토리 연결 (이미 연결됨)
-- [x] 코드 푸시 (commit: e3b24d9)
-- [x] 푸시 확인 (289e082..e3b24d9)
-
-
-## 영어 단어 난이도 상향 및 1000개 확장
-
-- [x] 기존 100개 단어 유지
-- [x] 새로운 단어 900개 추가 (총 1000개)
-- [x] 카테고리 확장 (15개 카테고리: Education, Career, Emotions, Health, Sports, Technology, Nature, Travel, Hobbies, Music, Art, Science + 기존 10개)
-- [x] 난이도 분포 (easy 300개, medium 400개, hard 300개)
-- [x] Supabase에 900개 단어 추가 완료
-- [ ] 체크포인트 저장
-- [ ] GitHub 푸시
+- [ ] GitHub 리포지토리 상태 확인
+- [ ] GitHub 리포지토리 연결
+- [ ] 코드 푸시
+- [ ] 푸시 확인

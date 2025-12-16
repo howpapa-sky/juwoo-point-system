@@ -140,20 +140,20 @@ export default function Shop() {
           juwoo_id: 1,
           rule_id: null,
           amount: -selectedItem.point_cost,
+          balance_after: newBalance,
           note: `[상점] ${selectedItem.name}`,
-          is_cancelled: false,
         });
 
       if (transactionError) throw transactionError;
 
-      // 3. 구매 내역 추가 (purchases) - 자동 승인
+      // 3. 구매 내역 추가 (purchases) - 즉시 완료
       const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
           juwoo_id: 1,
           item_id: selectedItem.id,
           point_cost: selectedItem.point_cost,
-          status: 'approved',
+          status: 'completed',
           note: `${selectedItem.name} 구매`,
           approved_at: new Date().toISOString(),
         });
@@ -209,8 +209,8 @@ export default function Shop() {
           juwoo_id: 1,
           rule_id: null,
           amount: -cost,
+          balance_after: newBalance,
           note: `[수기입력] ${customItemName.trim()}`,
-          is_cancelled: false,
         });
 
       if (transactionError) throw transactionError;
@@ -230,14 +230,14 @@ export default function Shop() {
 
       if (itemError) throw itemError;
 
-      // 4. 구매 내역 추가 (purchases) - 자동 승인
+      // 4. 구매 내역 추가 (purchases) - 즉시 완료
       const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
           juwoo_id: 1,
           item_id: tempItem.id,
           point_cost: cost,
-          status: 'approved',
+          status: 'completed',
           note: `수기 입력: ${customItemName.trim()}`,
           approved_at: new Date().toISOString(),
         });
@@ -501,7 +501,7 @@ export default function Shop() {
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4">
-                  ⚠️ 구매 후 관리자의 승인이 필요합니다.
+                  ✅ 구매 즉시 포인트가 차감됩니다.
                 </p>
               </div>
             )}

@@ -91,17 +91,17 @@ export default function Transactions() {
       // 2. 포인트 복원 (반대 금액 적용)
       const { data: juwooData, error: juwooError } = await supabase
         .from('juwoo_profile')
-        .select('total_points')
+        .select('current_points')
         .eq('id', 1)
         .single();
 
       if (juwooError) throw juwooError;
 
-      const newBalance = (juwooData?.total_points || 0) - amount;
+      const newBalance = (juwooData?.current_points || 0) - amount;
 
       const { error: updateBalanceError } = await supabase
         .from('juwoo_profile')
-        .update({ total_points: newBalance })
+        .update({ current_points: newBalance })
         .eq('id', 1);
 
       if (updateBalanceError) throw updateBalanceError;

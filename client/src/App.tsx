@@ -19,6 +19,8 @@ import EnglishLearning from "./pages/EnglishLearning";
 import FlashCard from "./pages/FlashCard";
 import EnglishQuiz from "./pages/EnglishQuiz";
 import PokemonQuiz from "./pages/PokemonQuiz";
+import EbookLibrary from "./pages/EbookLibrary";
+import EbookReader from "./pages/EbookReader";
 import WordLearning from "./pages/WordLearning";
 import LearningStats from "./pages/LearningStats";
 import VoiceLearning from "./pages/VoiceLearning";
@@ -129,6 +131,20 @@ function Router() {
         {() => (
           <AppLayout>
             <PokemonQuiz />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/ebook-library"}>
+        {() => (
+          <AppLayout>
+            <EbookLibrary />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/ebook-reader/:bookId"}>
+        {() => (
+          <AppLayout>
+            <EbookReader />
           </AppLayout>
         )}
       </Route>

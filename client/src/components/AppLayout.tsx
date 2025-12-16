@@ -15,6 +15,7 @@ import {
   X,
   Shield,
   Settings,
+  Gamepad2,
 } from "lucide-react";
 import { useState } from "react";
 import { APP_TITLE } from "@/const";
@@ -32,6 +33,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { path: "/dashboard", label: "대시보드", icon: LayoutDashboard },
     { path: "/points-manage", label: "포인트 관리", icon: Coins },
     { path: "/shop", label: "포인트 상점", icon: ShoppingBag },
+    { path: "/pokemon-quiz", label: "포켓몬 퀴즈", icon: Gamepad2 },
     { path: "/english-learning", label: "영어 학습", icon: BookOpen },
     { path: "/goals", label: "목표 설정", icon: Target },
     { path: "/badges", label: "배지", icon: Award },

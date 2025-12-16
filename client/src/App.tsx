@@ -18,6 +18,7 @@ import Statistics from "./pages/Statistics";
 import EnglishLearning from "./pages/EnglishLearning";
 import FlashCard from "./pages/FlashCard";
 import EnglishQuiz from "./pages/EnglishQuiz";
+import PokemonQuiz from "./pages/PokemonQuiz";
 import WordLearning from "./pages/WordLearning";
 import LearningStats from "./pages/LearningStats";
 import VoiceLearning from "./pages/VoiceLearning";
@@ -121,6 +122,13 @@ function Router() {
         {() => (
           <AppLayout>
             <VoiceLearning />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/pokemon-quiz"}>
+        {() => (
+          <AppLayout>
+            <PokemonQuiz />
           </AppLayout>
         )}
       </Route>

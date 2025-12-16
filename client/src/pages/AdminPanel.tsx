@@ -76,7 +76,7 @@ export default function AdminPanel() {
 
         const { data: profileData, error: profileError } = await supabase
           .from('juwoo_profile')
-          .select('total_points')
+          .select('current_points')
           .eq('id', 1)
           .single();
 
@@ -85,7 +85,7 @@ export default function AdminPanel() {
         setPointStats({
           total_earned: earned,
           total_spent: spent,
-          current_balance: profileData?.total_points || 0,
+          current_balance: profileData?.current_points || 0,
           transaction_count: transactionsData?.length || 0,
         });
 

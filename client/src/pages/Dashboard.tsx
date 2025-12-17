@@ -163,7 +163,6 @@ export default function Dashboard() {
           amount: -txData.amount,
           balance_after: newBalance,
           note: `취소: 거래 #${transactionId}`,
-          created_by: null,
         });
 
       if (insertError) throw insertError;

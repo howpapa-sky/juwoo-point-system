@@ -92,8 +92,8 @@ export default function PointsManage() {
           juwoo_id: 1,
           rule_id: ruleId,
           amount: amount,
+          balance_after: newBalance,
           note: ruleName,
-          created_by: null,
         });
 
       if (txError) throw txError;
@@ -140,8 +140,8 @@ export default function PointsManage() {
           juwoo_id: 1,
           rule_id: null,
           amount: finalAmount,
+          balance_after: newBalance,
           note: `[수기${manualType === "add" ? "적립" : "차감"}] ${manualNote.trim()}`,
-          created_by: null,
         });
 
       if (txError) throw txError;

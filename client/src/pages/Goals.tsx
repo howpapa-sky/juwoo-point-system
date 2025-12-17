@@ -16,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface Goal {
   id: number;
-  juwoo_id: number;
   title: string;
   description: string | null;
   target_points: number;

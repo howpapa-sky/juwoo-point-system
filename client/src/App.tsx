@@ -50,6 +50,13 @@ function Router() {
           </AppLayout>
         )}
       </Route>
+      <Route path={"/points"}>
+        {() => (
+          <AppLayout>
+            <PointsManage />
+          </AppLayout>
+        )}
+      </Route>
       <Route path={"/transactions"}>
         {() => (
           <AppLayout>

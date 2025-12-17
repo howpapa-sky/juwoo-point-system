@@ -180,7 +180,6 @@ export default function WordLearning() {
       await supabase
         .from('point_transactions')
         .insert({
-          juwoo_id: 1,
           amount: points,
           note: `${selectedCategory} 카테고리 학습 완료 (${correctCount}/${words.length} 정답)`,
         });

@@ -104,7 +104,6 @@ export default function EbookReader() {
       const newBalance = currentBalance + points;
 
       await supabase.from("point_transactions").insert({
-        juwoo_id: 1,
         amount: points,
         note: `📚 "${book?.title}" 완독!`,
       });

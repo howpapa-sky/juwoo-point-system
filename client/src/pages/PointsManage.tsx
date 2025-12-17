@@ -89,8 +89,6 @@ export default function PointsManage() {
       const { error: txError } = await supabase
         .from('point_transactions')
         .insert({
-          juwoo_id: 1,
-          rule_id: ruleId,
           amount: amount,
           note: ruleName,
         });
@@ -136,8 +134,6 @@ export default function PointsManage() {
       const { error: txError } = await supabase
         .from('point_transactions')
         .insert({
-          juwoo_id: 1,
-          rule_id: null,
           amount: finalAmount,
           note: `[수기${manualType === "add" ? "적립" : "차감"}] ${manualNote.trim()}`,
         });

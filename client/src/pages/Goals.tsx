@@ -47,7 +47,6 @@ export default function Goals() {
     const { data, error } = await supabase
       .from('goals')
       .select('*')
-      .eq('juwoo_id', 1)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -75,7 +74,6 @@ export default function Goals() {
     const { error } = await supabase
       .from('goals')
       .insert({
-        juwoo_id: 1,
         title: newGoal.title,
         description: newGoal.description || null,
         target_points: newGoal.target_points,

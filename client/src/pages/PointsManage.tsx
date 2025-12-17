@@ -71,7 +71,16 @@ export default function PointsManage() {
   }, [isAuthenticated]);
 
   const handleApplyRule = async (ruleId: number, ruleName: string, amount: number) => {
+    // 로그인 확인
+    if (!user?.id) {
+      console.error('user.id is missing:', user);
+      toast.error('로그인 정보가 없습니다. 다시 로그인해주세요.');
+      return;
+    }
+
+    console.log('handleApplyRule called with user:', user.id);
     setApplying(true);
+
     try {
       // 1. Get current balance
       const { data: profileData, error: profileError } = await supabase
@@ -80,20 +89,27 @@ export default function PointsManage() {
         .eq('id', 1)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+        throw profileError;
+      }
 
       const currentBalance = profileData?.current_points || 0;
       const newBalance = currentBalance + amount;
 
       // 2. Insert transaction
+      console.log('Inserting transaction:', { amount, user_id: user.id });
       const { error: txError } = await supabase
         .from('point_transactions')
         .insert({
           amount: amount,
-          user_id: user?.id,
+          user_id: user.id,
         });
 
-      if (txError) throw txError;
+      if (txError) {
+        console.error('Transaction insert error:', txError);
+        throw txError;
+      }
 
       // 3. Update balance
       const { error: updateError } = await supabase
@@ -101,13 +117,16 @@ export default function PointsManage() {
         .update({ current_points: newBalance })
         .eq('id', 1);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Balance update error:', updateError);
+        throw updateError;
+      }
 
       setCurrentPoints(newBalance);
       toast.success("포인트가 적용되었습니다!");
     } catch (error: any) {
       console.error('Error applying rule:', error);
-      toast.error('포인트 적용에 실패했습니다.');
+      toast.error(`포인트 적용 실패: ${error.message || '알 수 없는 오류'}`);
     } finally {
       setApplying(false);
     }
@@ -125,20 +144,33 @@ export default function PointsManage() {
       return;
     }
 
+    // 로그인 확인
+    if (!user?.id) {
+      console.error('user.id is missing:', user);
+      toast.error('로그인 정보가 없습니다. 다시 로그인해주세요.');
+      return;
+    }
+
+    console.log('handleManualAdjustment called with user:', user.id);
     setApplying(true);
+
     try {
       const finalAmount = manualType === "add" ? amount : -amount;
       const newBalance = currentPoints + finalAmount;
 
       // 1. Insert transaction
+      console.log('Inserting manual transaction:', { amount: finalAmount, user_id: user.id });
       const { error: txError } = await supabase
         .from('point_transactions')
         .insert({
           amount: finalAmount,
-          user_id: user?.id,
+          user_id: user.id,
         });
 
-      if (txError) throw txError;
+      if (txError) {
+        console.error('Manual transaction insert error:', txError);
+        throw txError;
+      }
 
       // 2. Update balance
       const { error: updateError } = await supabase
@@ -146,7 +178,10 @@ export default function PointsManage() {
         .update({ current_points: newBalance })
         .eq('id', 1);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Manual balance update error:', updateError);
+        throw updateError;
+      }
 
       setCurrentPoints(newBalance);
       toast.success(`포인트가 ${manualType === "add" ? "적립" : "차감"}되었습니다!`);
@@ -155,7 +190,7 @@ export default function PointsManage() {
       setManualNote("");
     } catch (error: any) {
       console.error('Error manual adjustment:', error);
-      toast.error('포인트 조정에 실패했습니다.');
+      toast.error(`포인트 조정 실패: ${error.message || '알 수 없는 오류'}`);
     } finally {
       setApplying(false);
     }

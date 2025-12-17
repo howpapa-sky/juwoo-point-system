@@ -47,8 +47,7 @@ export default function Badges() {
     // 사용자가 획득한 배지 가져오기
     const { data: userBadges, error: userBadgesError } = await supabase
       .from('user_badges')
-      .select('badge_id, unlocked_at')
-      .eq('juwoo_id', 1);
+      .select('badge_id, unlocked_at');
 
     if (userBadgesError) {
       console.error('Error fetching user badges:', userBadgesError);

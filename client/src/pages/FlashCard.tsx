@@ -127,7 +127,6 @@ export default function FlashCard() {
       await supabase
         .from('point_transactions')
         .insert({
-          juwoo_id: 1,
           amount: points,
           note: '플래시카드 10개 학습 완료',
         });

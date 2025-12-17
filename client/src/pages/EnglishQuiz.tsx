@@ -440,7 +440,6 @@ export default function EnglishQuiz() {
         const newBalance = currentBalance + points;
 
         await supabase.from("point_transactions").insert({
-          juwoo_id: 1,
           amount: points,
           note,
         });

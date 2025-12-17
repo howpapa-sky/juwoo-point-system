@@ -13,16 +13,14 @@ interface Transaction {
   amount: number;
   note: string | null;
   created_at: string;
-  balance_after: number;
   rule_name: string | null;
   rule_category: string | null;
-  is_cancelled: boolean;
 }
 
 export default function Transactions() {
   const { user, loading: authLoading } = useSupabaseAuth();
   const isAuthenticated = !!user;
-  
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(50);
@@ -40,12 +38,8 @@ export default function Transactions() {
             id,
             amount,
             note,
-            created_at,
-            balance_after,
-            is_cancelled,
-            point_rules (name, category)
+            created_at
           `)
-          .eq('juwoo_id', 1)
           .order('created_at', { ascending: false })
           .limit(limit);
 
@@ -56,10 +50,8 @@ export default function Transactions() {
           amount: tx.amount,
           note: tx.note,
           created_at: tx.created_at,
-          balance_after: tx.balance_after,
-          is_cancelled: tx.is_cancelled || false,
-          rule_name: tx.point_rules?.name || null,
-          rule_category: tx.point_rules?.category || null,
+          rule_name: null,
+          rule_category: null,
         }));
 
         setTransactions(formattedTransactions);
@@ -80,15 +72,7 @@ export default function Transactions() {
 
     setCancellingId(transactionId);
     try {
-      // 1. 거래 취소 상태로 변경
-      const { error: updateError } = await supabase
-        .from('point_transactions')
-        .update({ is_cancelled: true })
-        .eq('id', transactionId);
-
-      if (updateError) throw updateError;
-
-      // 2. 포인트 복원 (반대 금액 적용)
+      // 1. 포인트 복원 (반대 금액 적용)
       const { data: juwooData, error: juwooError } = await supabase
         .from('juwoo_profile')
         .select('current_points')
@@ -106,11 +90,10 @@ export default function Transactions() {
 
       if (updateBalanceError) throw updateBalanceError;
 
-      // 3. 취소 거래 내역 추가
+      // 2. 취소 거래 내역 추가
       const { error: insertError } = await supabase
         .from('point_transactions')
         .insert({
-          juwoo_id: 1,
           amount: -amount,
           note: '거래 취소',
         });
@@ -122,35 +105,7 @@ export default function Transactions() {
       });
 
       // 목록 새로고침
-      setLimit(50);
-      const { data, error } = await supabase
-        .from('point_transactions')
-        .select(`
-          id,
-          amount,
-          note,
-          created_at,
-          balance_after,
-          is_cancelled,
-          point_rules (name, category)
-        `)
-        .eq('juwoo_id', 1)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (!error && data) {
-        const formattedTransactions = data.map((tx: any) => ({
-          id: tx.id,
-          amount: tx.amount,
-          note: tx.note,
-          created_at: tx.created_at,
-          balance_after: tx.balance_after,
-          is_cancelled: tx.is_cancelled || false,
-          rule_name: tx.point_rules?.name || null,
-          rule_category: tx.point_rules?.category || null,
-        }));
-        setTransactions(formattedTransactions);
-      }
+      window.location.reload();
     } catch (error: any) {
       console.error('Error cancelling transaction:', error);
       toast.error('거래 취소 실패', {
@@ -218,17 +173,12 @@ export default function Transactions() {
                   {transactions.map((tx) => (
                     <div
                       key={tx.id}
-                      className={`flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-shadow ${
-                        tx.is_cancelled ? 'opacity-50 bg-gray-50' : ''
-                      }`}
+                      className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-semibold">
                             {tx.note || tx.rule_name || "포인트 변동"}
-                            {tx.is_cancelled && (
-                              <span className="ml-2 text-xs text-red-600">(취소됨)</span>
-                            )}
                           </p>
                           {tx.rule_category && (
                             <span className="category-badge bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
@@ -256,11 +206,8 @@ export default function Transactions() {
                             {tx.amount > 0 ? "+" : ""}
                             {tx.amount.toLocaleString()}
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            잔액: {tx.balance_after.toLocaleString()}
-                          </div>
                         </div>
-                        {!tx.is_cancelled && (
+                        {!tx.note?.includes('취소') && (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -278,7 +225,7 @@ export default function Transactions() {
                       </div>
                     </div>
                   ))}
-                  
+
                   {transactions.length >= limit && (
                     <Button
                       variant="outline"

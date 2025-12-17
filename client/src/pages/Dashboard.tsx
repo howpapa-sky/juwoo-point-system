@@ -33,7 +33,6 @@ interface Transaction {
   created_at: string;
   rule_name: string | null;
   rule_category: string | null;
-  balance_after: number;
 }
 
 interface Stats {
@@ -73,7 +72,6 @@ export default function Dashboard() {
         const { data: statsData, error: statsError } = await supabase
           .from("point_transactions")
           .select("amount")
-          .eq("juwoo_id", 1)
           .gte("created_at", sevenDaysAgo.toISOString());
 
         if (statsError) throw statsError;
@@ -98,35 +96,22 @@ export default function Dashboard() {
             id,
             amount,
             note,
-            created_at,
-            balance_after,
-            point_rules (
-              name,
-              category
-            )
+            created_at
           `
           )
-          .eq("juwoo_id", 1)
           .order("created_at", { ascending: false })
           .limit(5);
 
         if (txError) throw txError;
 
-        // Calculate balance_after for each transaction
-        let runningBalance = profileData?.current_points || 0;
-        const txWithBalance = (txData || []).map((tx: any) => {
-          const balanceAfter = tx.balance_after || runningBalance;
-          runningBalance = balanceAfter - tx.amount;
-          return {
-            id: tx.id,
-            amount: tx.amount,
-            note: tx.note,
-            created_at: tx.created_at,
-            rule_name: tx.point_rules?.name || null,
-            rule_category: tx.point_rules?.category || null,
-            balance_after: balanceAfter,
-          };
-        });
+        const txWithBalance = (txData || []).map((tx: any) => ({
+          id: tx.id,
+          amount: tx.amount,
+          note: tx.note,
+          created_at: tx.created_at,
+          rule_name: null,
+          rule_category: null,
+        }));
 
         setTransactions(txWithBalance);
       } catch (error: any) {
@@ -159,7 +144,6 @@ export default function Dashboard() {
       const { error: insertError } = await supabase
         .from("point_transactions")
         .insert({
-          juwoo_id: 1,
           amount: -txData.amount,
           note: `취소: 거래 #${transactionId}`,
         });
@@ -436,7 +420,7 @@ export default function Dashboard() {
                               {tx.amount.toLocaleString()}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              잔액: {tx.balance_after?.toLocaleString() || "-"}
+                              {new Date(tx.created_at).toLocaleDateString("ko-KR")}
                             </div>
                           </div>
                           {userRole === "admin" && !tx.note?.startsWith("취소:") && (

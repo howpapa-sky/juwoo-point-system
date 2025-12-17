@@ -65,9 +65,7 @@ export default function AdminPanel() {
         // 2. 포인트 통계 조회
         const { data: transactionsData, error: transactionsError } = await supabase
           .from('point_transactions')
-          .select('amount, is_cancelled')
-          .eq('juwoo_id', 1)
-          .eq('is_cancelled', false);
+          .select('amount');
 
         if (transactionsError) throw transactionsError;
 
@@ -94,28 +92,24 @@ export default function AdminPanel() {
           .from('point_transactions')
           .select(`
             amount,
-            point_rules (name, category)
+            note
           `)
-          .eq('juwoo_id', 1)
-          .eq('is_cancelled', false)
-          .gt('amount', 0)
-          .not('rule_id', 'is', null);
+          .gt('amount', 0);
 
         if (earnRulesError) throw earnRulesError;
 
         const earnRulesMap = new Map<string, TopRule>();
         earnRulesData?.forEach((tx: any) => {
-          const ruleName = tx.point_rules?.name;
-          if (!ruleName) return;
-          
-          const existing = earnRulesMap.get(ruleName);
+          const noteName = tx.note || '기타';
+
+          const existing = earnRulesMap.get(noteName);
           if (existing) {
             existing.count += 1;
             existing.total_amount += tx.amount;
           } else {
-            earnRulesMap.set(ruleName, {
-              rule_name: ruleName,
-              category: tx.point_rules?.category || '',
+            earnRulesMap.set(noteName, {
+              rule_name: noteName,
+              category: '',
               count: 1,
               total_amount: tx.amount,
             });
@@ -132,28 +126,24 @@ export default function AdminPanel() {
           .from('point_transactions')
           .select(`
             amount,
-            point_rules (name, category)
+            note
           `)
-          .eq('juwoo_id', 1)
-          .eq('is_cancelled', false)
-          .lt('amount', 0)
-          .not('rule_id', 'is', null);
+          .lt('amount', 0);
 
         if (spendRulesError) throw spendRulesError;
 
         const spendRulesMap = new Map<string, TopRule>();
         spendRulesData?.forEach((tx: any) => {
-          const ruleName = tx.point_rules?.name;
-          if (!ruleName) return;
-          
-          const existing = spendRulesMap.get(ruleName);
+          const noteName = tx.note || '기타';
+
+          const existing = spendRulesMap.get(noteName);
           if (existing) {
             existing.count += 1;
             existing.total_amount += Math.abs(tx.amount);
           } else {
-            spendRulesMap.set(ruleName, {
-              rule_name: ruleName,
-              category: tx.point_rules?.category || '',
+            spendRulesMap.set(noteName, {
+              rule_name: noteName,
+              category: '',
               count: 1,
               total_amount: Math.abs(tx.amount),
             });
@@ -172,11 +162,8 @@ export default function AdminPanel() {
             id,
             amount,
             note,
-            created_at,
-            point_rules (name)
+            created_at
           `)
-          .eq('juwoo_id', 1)
-          .eq('is_cancelled', false)
           .order('created_at', { ascending: false })
           .limit(10);
 
@@ -187,7 +174,7 @@ export default function AdminPanel() {
           amount: tx.amount,
           note: tx.note,
           created_at: tx.created_at,
-          rule_name: tx.point_rules?.name || null,
+          rule_name: null,
         }));
         setRecentTransactions(formattedRecent);
 

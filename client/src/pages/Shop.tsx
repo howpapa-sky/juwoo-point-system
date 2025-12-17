@@ -137,8 +137,6 @@ export default function Shop() {
       const { error: transactionError } = await supabase
         .from('point_transactions')
         .insert({
-          juwoo_id: 1,
-          rule_id: null,
           amount: -selectedItem.point_cost,
           note: `[상점] ${selectedItem.name}`,
         });
@@ -205,8 +203,6 @@ export default function Shop() {
       const { error: transactionError } = await supabase
         .from('point_transactions')
         .insert({
-          juwoo_id: 1,
-          rule_id: null,
           amount: -cost,
           note: `[수기입력] ${customItemName.trim()}`,
         });

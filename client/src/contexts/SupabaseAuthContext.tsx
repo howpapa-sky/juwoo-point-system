@@ -32,31 +32,13 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         console.log('[Auth] Setting user:', session.user.email);
         setUser(session.user);
-        
-        // users 테이블에서 역할 조회
-        const fetchUserRole = async () => {
-          try {
-            const { data, error } = await supabase
-              .from('users')
-              .select('role')
-              .eq('email', session.user.email)
-              .single();
-            
-            if (error) {
-              console.error('[Auth] Error fetching user role:', error);
-              setUserRole('user');
-            } else {
-              const role = data?.role || 'user';
-              console.log('[Auth] User role fetched:', role);
-              setUserRole(role as 'admin' | 'user');
-            }
-          } catch (err) {
-            console.error('[Auth] Failed to fetch user role:', err);
-            setUserRole('user');
-          }
-        };
-        
-        fetchUserRole();
+
+        // 관리자 이메일로 역할 결정 (DB 조회 없이)
+        const adminEmails = ['appearyong@gmail.com', 'admin@juwoo.com'];
+        const userEmail = session.user.email || '';
+        const role = adminEmails.includes(userEmail) ? 'admin' : 'user';
+        console.log('[Auth] User role determined:', role);
+        setUserRole(role);
       } else {
         console.log('[Auth] No session, clearing user');
         setUser(null);

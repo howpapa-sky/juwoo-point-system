@@ -149,6 +149,7 @@ export default function VoiceLearning() {
 
           await supabase.from('point_transactions').insert({
             amount: 500,
+            user_id: user?.id,
           });
 
           await supabase

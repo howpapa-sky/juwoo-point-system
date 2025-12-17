@@ -441,6 +441,7 @@ export default function EnglishQuiz() {
 
         await supabase.from("point_transactions").insert({
           amount: points,
+          user_id: user?.id,
         });
 
         await supabase

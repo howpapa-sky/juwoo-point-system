@@ -128,6 +128,7 @@ export default function FlashCard() {
         .from('point_transactions')
         .insert({
           amount: points,
+          user_id: user?.id,
         });
 
       // 잔액 업데이트

@@ -90,6 +90,7 @@ export default function PointsManage() {
         .from('point_transactions')
         .insert({
           amount: amount,
+          user_id: user?.id,
         });
 
       if (txError) throw txError;
@@ -134,6 +135,7 @@ export default function PointsManage() {
         .from('point_transactions')
         .insert({
           amount: finalAmount,
+          user_id: user?.id,
         });
 
       if (txError) throw txError;

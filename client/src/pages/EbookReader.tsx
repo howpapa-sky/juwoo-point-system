@@ -105,6 +105,7 @@ export default function EbookReader() {
 
       await supabase.from("point_transactions").insert({
         amount: points,
+        user_id: user?.id,
       });
 
       await supabase.from("juwoo_profile").update({ current_points: newBalance }).eq("id", 1);

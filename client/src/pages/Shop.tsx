@@ -137,6 +137,7 @@ export default function Shop() {
         .from('point_transactions')
         .insert({
           amount: -selectedItem.point_cost,
+          user_id: user?.id,
         });
 
       if (transactionError) throw transactionError;
@@ -201,6 +202,7 @@ export default function Shop() {
         .from('point_transactions')
         .insert({
           amount: -cost,
+          user_id: user?.id,
         });
 
       if (transactionError) throw transactionError;

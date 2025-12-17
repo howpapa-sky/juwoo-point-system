@@ -181,6 +181,7 @@ export default function WordLearning() {
         .from('point_transactions')
         .insert({
           amount: points,
+          user_id: user?.id,
         });
 
       await supabase

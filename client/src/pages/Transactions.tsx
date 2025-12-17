@@ -90,6 +90,7 @@ export default function Transactions() {
         .from('point_transactions')
         .insert({
           amount: -amount,
+          user_id: user?.id,
         });
 
       if (insertError) throw insertError;

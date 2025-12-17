@@ -138,6 +138,7 @@ export default function Dashboard() {
         .from("point_transactions")
         .insert({
           amount: -txData.amount,
+          user_id: user?.id,
         });
 
       if (insertError) throw insertError;

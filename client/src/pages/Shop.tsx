@@ -85,7 +85,6 @@ export default function Shop() {
             note,
             shop_items (name)
           `)
-          .eq('juwoo_id', 1)
           .order('created_at', { ascending: false });
 
         if (purchasesError) throw purchasesError;
@@ -147,7 +146,6 @@ export default function Shop() {
       const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
-          juwoo_id: 1,
           item_id: selectedItem.id,
           point_cost: selectedItem.point_cost,
           status: 'completed',
@@ -228,7 +226,6 @@ export default function Shop() {
       const { error: purchaseError } = await supabase
         .from('purchases')
         .insert({
-          juwoo_id: 1,
           item_id: tempItem.id,
           point_cost: cost,
           status: 'completed',

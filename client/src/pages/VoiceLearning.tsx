@@ -3,22 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Mic, MicOff, Volume2, CheckCircle, XCircle, Trophy, ArrowLeft } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
 import { Link } from "wouter";
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { toast } from "sonner";
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
+import { supabase } from "@/lib/supabaseClient";
 
 interface Word {
   id: number;
   word: string;
   korean: string;
   category: string;
-  difficulty: string;
 }
 
 export default function VoiceLearning() {
@@ -45,7 +39,7 @@ export default function VoiceLearning() {
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognitionInstance = new SpeechRecognition();
-    
+
     recognitionInstance.lang = 'en-US';
     recognitionInstance.continuous = false;
     recognitionInstance.interimResults = false;
@@ -78,8 +72,7 @@ export default function VoiceLearning() {
     try {
       const { data, error } = await supabase
         .from('english_words')
-        .select('*')
-        .order('difficulty', { ascending: true })
+        .select('id, word, korean, category')
         .limit(10);
 
       if (error) throw error;
@@ -120,9 +113,6 @@ export default function VoiceLearning() {
       userSaid
     }]);
 
-    // 학습 진행률 저장
-    saveProgress(currentWord.id, correct);
-
     if (correct) {
       toast.success(`정답입니다! "${currentWord.word}"`);
     } else {
@@ -140,19 +130,6 @@ export default function VoiceLearning() {
     }, 2000);
   }
 
-  async function saveProgress(wordId: number, isCorrect: boolean) {
-    try {
-      await supabase.from('english_learning_progress').insert({
-        user_id: user?.id,
-        word_id: wordId,
-        is_correct: isCorrect,
-        learning_type: 'voice'
-      });
-    } catch (error) {
-      console.error('Failed to save progress:', error);
-    }
-  }
-
   async function completeLesson() {
     setIsCompleted(true);
     const correctCount = results.filter(r => r.correct).length;
@@ -161,27 +138,24 @@ export default function VoiceLearning() {
     // 포인트 적립 (80% 이상 정답 시 +500P)
     if (accuracy >= 80) {
       try {
-        // 포인트 적립 로직
         const { data: profile } = await supabase
           .from('juwoo_profile')
           .select('current_points')
-          .eq('user_id', user?.id)
+          .eq('id', 1)
           .single();
 
         if (profile) {
           const newPoints = profile.current_points + 500;
+
+          await supabase.from('point_transactions').insert({
+            amount: 500,
+            note: `음성 인식 학습 완료 (${accuracy}% 정답률)`,
+          });
+
           await supabase
             .from('juwoo_profile')
             .update({ current_points: newPoints })
-            .eq('user_id', user?.id);
-
-          await supabase.from('point_transactions').insert({
-            user_id: user?.id,
-            points: 500,
-            type: 'earn',
-            description: `음성 인식 학습 완료 (${accuracy}% 정답률)`,
-            balance: newPoints
-          });
+            .eq('id', 1);
 
           toast.success(`🎉 학습 완료! +500 포인트 적립!`);
         }

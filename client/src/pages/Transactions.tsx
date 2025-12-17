@@ -112,9 +112,7 @@ export default function Transactions() {
         .insert({
           juwoo_id: 1,
           amount: -amount,
-          balance_after: newBalance,
           note: '거래 취소',
-          is_cancelled: false,
         });
 
       if (insertError) throw insertError;

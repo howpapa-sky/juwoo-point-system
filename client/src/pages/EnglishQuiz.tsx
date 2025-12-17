@@ -441,7 +441,6 @@ export default function EnglishQuiz() {
 
         await supabase.from("point_transactions").insert({
           amount: points,
-          note,
         });
 
         await supabase

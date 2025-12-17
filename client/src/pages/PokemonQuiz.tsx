@@ -610,7 +610,6 @@ export default function PokemonQuiz() {
 
         await supabase.from("point_transactions").insert({
           amount: points,
-          note,
         });
 
         await supabase

@@ -149,7 +149,6 @@ export default function VoiceLearning() {
 
           await supabase.from('point_transactions').insert({
             amount: 500,
-            note: `음성 인식 학습 완료 (${accuracy}% 정답률)`,
           });
 
           await supabase

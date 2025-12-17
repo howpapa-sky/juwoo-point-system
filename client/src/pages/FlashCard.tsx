@@ -128,7 +128,6 @@ export default function FlashCard() {
         .from('point_transactions')
         .insert({
           amount: points,
-          note: '플래시카드 10개 학습 완료',
         });
 
       // 잔액 업데이트

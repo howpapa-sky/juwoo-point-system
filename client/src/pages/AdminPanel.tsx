@@ -158,12 +158,7 @@ export default function AdminPanel() {
         // 5. 최근 거래 내역
         const { data: recentData, error: recentError } = await supabase
           .from('point_transactions')
-          .select(`
-            id,
-            amount,
-            note,
-            created_at
-          `)
+          .select('id, amount, created_at')
           .order('created_at', { ascending: false })
           .limit(10);
 
@@ -172,7 +167,7 @@ export default function AdminPanel() {
         const formattedRecent = (recentData || []).map((tx: any) => ({
           id: tx.id,
           amount: tx.amount,
-          note: tx.note,
+          note: null,
           created_at: tx.created_at,
           rule_name: null,
         }));

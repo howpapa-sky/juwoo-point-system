@@ -137,7 +137,6 @@ export default function Shop() {
         .from('point_transactions')
         .insert({
           amount: -selectedItem.point_cost,
-          note: `[상점] ${selectedItem.name}`,
         });
 
       if (transactionError) throw transactionError;
@@ -202,7 +201,6 @@ export default function Shop() {
         .from('point_transactions')
         .insert({
           amount: -cost,
-          note: `[수기입력] ${customItemName.trim()}`,
         });
 
       if (transactionError) throw transactionError;

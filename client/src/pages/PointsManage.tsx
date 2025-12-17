@@ -90,7 +90,6 @@ export default function PointsManage() {
         .from('point_transactions')
         .insert({
           amount: amount,
-          note: ruleName,
         });
 
       if (txError) throw txError;
@@ -135,7 +134,6 @@ export default function PointsManage() {
         .from('point_transactions')
         .insert({
           amount: finalAmount,
-          note: `[수기${manualType === "add" ? "적립" : "차감"}] ${manualNote.trim()}`,
         });
 
       if (txError) throw txError;

@@ -34,12 +34,7 @@ export default function Transactions() {
       try {
         const { data, error } = await supabase
           .from('point_transactions')
-          .select(`
-            id,
-            amount,
-            note,
-            created_at
-          `)
+          .select('id, amount, created_at')
           .order('created_at', { ascending: false })
           .limit(limit);
 
@@ -48,7 +43,7 @@ export default function Transactions() {
         const formattedTransactions = (data || []).map((tx: any) => ({
           id: tx.id,
           amount: tx.amount,
-          note: tx.note,
+          note: null,
           created_at: tx.created_at,
           rule_name: null,
           rule_category: null,
@@ -95,7 +90,6 @@ export default function Transactions() {
         .from('point_transactions')
         .insert({
           amount: -amount,
-          note: '거래 취소',
         });
 
       if (insertError) throw insertError;

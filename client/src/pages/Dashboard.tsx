@@ -88,17 +88,10 @@ export default function Dashboard() {
 
         setStats({ totalEarned, totalSpent });
 
-        // 3. Fetch recent 5 transactions with rule info
+        // 3. Fetch recent 5 transactions
         const { data: txData, error: txError } = await supabase
           .from("point_transactions")
-          .select(
-            `
-            id,
-            amount,
-            note,
-            created_at
-          `
-          )
+          .select("id, amount, created_at")
           .order("created_at", { ascending: false })
           .limit(5);
 
@@ -107,7 +100,7 @@ export default function Dashboard() {
         const txWithBalance = (txData || []).map((tx: any) => ({
           id: tx.id,
           amount: tx.amount,
-          note: tx.note,
+          note: null,
           created_at: tx.created_at,
           rule_name: null,
           rule_category: null,
@@ -145,7 +138,6 @@ export default function Dashboard() {
         .from("point_transactions")
         .insert({
           amount: -txData.amount,
-          note: `취소: 거래 #${transactionId}`,
         });
 
       if (insertError) throw insertError;

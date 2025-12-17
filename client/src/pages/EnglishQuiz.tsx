@@ -442,7 +442,6 @@ export default function EnglishQuiz() {
         await supabase.from("point_transactions").insert({
           juwoo_id: 1,
           amount: points,
-          balance_after: newBalance,
           note,
         });
 

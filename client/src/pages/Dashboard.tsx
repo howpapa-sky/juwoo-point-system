@@ -161,7 +161,6 @@ export default function Dashboard() {
         .insert({
           juwoo_id: 1,
           amount: -txData.amount,
-          balance_after: newBalance,
           note: `취소: 거래 #${transactionId}`,
         });
 

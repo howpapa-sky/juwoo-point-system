@@ -140,7 +140,6 @@ export default function Shop() {
           juwoo_id: 1,
           rule_id: null,
           amount: -selectedItem.point_cost,
-          balance_after: newBalance,
           note: `[상점] ${selectedItem.name}`,
         });
 
@@ -209,7 +208,6 @@ export default function Shop() {
           juwoo_id: 1,
           rule_id: null,
           amount: -cost,
-          balance_after: newBalance,
           note: `[수기입력] ${customItemName.trim()}`,
         });
 

@@ -136,7 +136,12 @@ export default function Shop() {
       const { error: transactionError } = await supabase
         .from('point_transactions')
         .insert({
+          juwoo_id: 1,
+          rule_id: null,
           amount: -selectedItem.point_cost,
+          balance_after: newBalance,
+          note: `상점 구매: ${selectedItem.name}`,
+          created_by: 1, // 시스템/관리자
         });
 
       if (transactionError) throw transactionError;
@@ -200,7 +205,12 @@ export default function Shop() {
       const { error: transactionError } = await supabase
         .from('point_transactions')
         .insert({
+          juwoo_id: 1,
+          rule_id: null,
           amount: -cost,
+          balance_after: newBalance,
+          note: `수기 구매: ${customItemName.trim()}`,
+          created_by: 1, // 시스템/관리자
         });
 
       if (transactionError) throw transactionError;
@@ -212,7 +222,7 @@ export default function Shop() {
           name: `[수기입력] ${customItemName.trim()}`,
           description: '수기 입력으로 추가된 항목',
           point_cost: cost,
-          category: '기타',
+          category: '특권', // 유효한 enum 값 사용
           is_available: false,
         })
         .select()

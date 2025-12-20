@@ -137,7 +137,12 @@ export default function Dashboard() {
       const { error: insertError } = await supabase
         .from("point_transactions")
         .insert({
+          juwoo_id: 1,
+          rule_id: null,
           amount: -txData.amount,
+          balance_after: newBalance,
+          note: `거래 취소 (ID: ${transactionId})`,
+          created_by: 1, // 시스템/관리자
         });
 
       if (insertError) throw insertError;

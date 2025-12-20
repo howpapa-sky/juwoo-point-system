@@ -104,7 +104,12 @@ export default function EbookReader() {
       const newBalance = currentBalance + points;
 
       await supabase.from("point_transactions").insert({
+        juwoo_id: 1,
+        rule_id: null,
         amount: points,
+        balance_after: newBalance,
+        note: `e북 읽기 완료: ${book?.title || '알 수 없는 책'}`,
+        created_by: 1, // 시스템/관리자
       });
 
       await supabase.from("juwoo_profile").update({ current_points: newBalance }).eq("id", 1);

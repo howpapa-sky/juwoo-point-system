@@ -609,7 +609,12 @@ export default function PokemonQuiz() {
         const newBalance = currentBalance + points;
 
         await supabase.from("point_transactions").insert({
+          juwoo_id: 1,
+          rule_id: null,
           amount: points,
+          balance_after: newBalance,
+          note: note,
+          created_by: 1, // 시스템/관리자
         });
 
         await supabase

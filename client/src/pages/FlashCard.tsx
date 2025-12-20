@@ -127,7 +127,12 @@ export default function FlashCard() {
       await supabase
         .from('point_transactions')
         .insert({
+          juwoo_id: 1,
+          rule_id: null,
           amount: points,
+          balance_after: newBalance,
+          note: '플래시카드 학습 완료',
+          created_by: 1, // 시스템/관리자
         });
 
       // 잔액 업데이트

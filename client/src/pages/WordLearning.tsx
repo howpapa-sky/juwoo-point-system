@@ -52,27 +52,45 @@ export default function WordLearning() {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      
-      // 모든 카테고리와 단어 수 조회
+
+      // 모든 카테고리와 단어 조회 (id 포함)
       const { data: wordsData, error } = await supabase
         .from('english_words')
-        .select('category');
+        .select('id, category');
 
       if (error) throw error;
 
-      // 카테고리별 단어 수 계산
-      const categoryMap = new Map<string, number>();
+      // 카테고리별 단어 수 및 단어 ID 매핑
+      const categoryMap = new Map<string, { total: number; wordIds: number[] }>();
       wordsData?.forEach((word) => {
-        const count = categoryMap.get(word.category) || 0;
-        categoryMap.set(word.category, count + 1);
+        const existing = categoryMap.get(word.category) || { total: 0, wordIds: [] };
+        categoryMap.set(word.category, {
+          total: existing.total + 1,
+          wordIds: [...existing.wordIds, word.id],
+        });
       });
 
+      // 학습 진행률 조회 (정답을 맞힌 단어들)
+      const { data: progressData } = await supabase
+        .from('english_learning_progress')
+        .select('word_id')
+        .eq('is_correct', true);
+
+      // 정답을 맞힌 고유 단어 ID Set
+      const learnedWordIds = new Set(progressData?.map((p) => p.word_id) || []);
+
+      // 카테고리별 학습 진도 계산
       const categoryList: CategoryProgress[] = Array.from(categoryMap.entries()).map(
-        ([category, total]) => ({
-          category,
-          total,
-          learned: 0, // TODO: 실제 학습 진행률 연동
-        })
+        ([category, data]) => {
+          // 해당 카테고리에서 정답을 맞힌 단어 수 (최대 5개까지만)
+          const learnedInCategory = data.wordIds.filter((id) => learnedWordIds.has(id)).length;
+          const maxWords = Math.min(data.total, 5);
+          return {
+            category,
+            total: data.total,
+            learned: Math.min(learnedInCategory, maxWords),
+          };
+        }
       );
 
       setCategories(categoryList);
@@ -183,7 +201,6 @@ export default function WordLearning() {
           juwoo_id: 1,
           rule_id: null,
           amount: points,
-          balance_after: newBalance,
           note: '영어 단어 카테고리 완료',
           created_by: 1, // 시스템/관리자
         });

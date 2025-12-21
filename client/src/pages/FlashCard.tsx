@@ -130,7 +130,6 @@ export default function FlashCard() {
           juwoo_id: 1,
           rule_id: null,
           amount: points,
-          balance_after: newBalance,
           note: '플래시카드 학습 완료',
           created_by: 1, // 시스템/관리자
         });

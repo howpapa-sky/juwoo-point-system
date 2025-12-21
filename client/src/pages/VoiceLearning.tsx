@@ -150,7 +150,6 @@ export default function VoiceLearning() {
             juwoo_id: 1,
             rule_id: null,
             amount: 500,
-            balance_after: newPoints,
             note: '음성 학습 완료',
             created_by: 1, // 시스템/관리자
           });

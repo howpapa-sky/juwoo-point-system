@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import {
-  ArrowLeft,
   Star,
   Trophy,
   RotateCcw,
@@ -23,6 +22,9 @@ import {
   Award,
   Timer,
   HelpCircle,
+  ChevronRight,
+  ChevronLeft,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
@@ -40,11 +42,11 @@ interface QuizQuestion {
   question: string;
   image?: string;
   correctAnswer: string;
-  acceptableAnswers?: string[]; // 주관식에서 허용되는 답변들
-  options?: string[]; // 객관식 선택지
+  acceptableAnswers?: string[];
+  options?: string[];
   hint: string;
-  explanation: string; // 정답 해설
-  points: number; // 문제당 점수
+  explanation: string;
+  points: number;
 }
 
 // e북 공략집 기반 퀴즈 데이터
@@ -94,7 +96,7 @@ const allQuizData: QuizQuestion[] = [
     question: "포켓몬을 잡으면 사탕을 2배로 주는 열매는?",
     correctAnswer: "파인열매",
     options: ["파인열매", "라즈열매", "나나열매", "금색열매"],
-    hint: "🍍 모양의 열매예요!",
+    hint: "모양의 열매예요!",
     explanation: "파인열매를 주고 포켓몬을 잡으면 사탕을 2배로 받을 수 있어요. 진화시킬 때 아주 좋아요!",
     points: 5,
   },
@@ -338,7 +340,7 @@ const allQuizData: QuizQuestion[] = [
     question: "포켓몬이 몬스터볼에서 도망가지 않게 도와주는 빨간색 열매의 이름은?",
     correctAnswer: "라즈열매",
     acceptableAnswers: ["라즈열매", "라즈 열매", "라즈베리", "빨간열매"],
-    hint: "🍓 모양의 열매예요!",
+    hint: "모양의 열매예요!",
     explanation: "라즈열매를 주면 포켓몬이 몬스터볼에서 도망갈 확률이 줄어들어요!",
     points: 12,
   },
@@ -410,7 +412,7 @@ const allQuizData: QuizQuestion[] = [
   },
 ];
 
-// 정답 검증 함수 (유사 답변 허용)
+// 정답 검증 함수
 const checkAnswer = (userAnswer: string, question: QuizQuestion): boolean => {
   const normalizedUser = userAnswer.trim().toLowerCase().replace(/\s+/g, "");
   const normalizedCorrect = question.correctAnswer.toLowerCase().replace(/\s+/g, "");
@@ -434,7 +436,6 @@ const selectQuestions = (difficulty: Difficulty | "all", count: number): QuizQue
     filtered = filtered.filter(q => q.difficulty === difficulty);
   }
 
-  // 섞기
   const shuffled = filtered.sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 };
@@ -463,7 +464,6 @@ export default function PokemonQuiz() {
   const progress = ((currentIndex + (isAnswered ? 1 : 0)) / totalQuestions) * 100;
   const maxScore = questions.reduce((sum, q) => sum + q.points, 0);
 
-  // 타이머
   useEffect(() => {
     if (!useTimer || gameState !== "playing" || isAnswered) return;
 
@@ -476,14 +476,12 @@ export default function PokemonQuiz() {
     return () => clearTimeout(timer);
   }, [timeLeft, useTimer, gameState, isAnswered]);
 
-  // 시간 초과 처리
   const handleTimeout = () => {
     setIsAnswered(true);
     setIsCorrect(false);
-    toast.error("시간 초과! ⏰");
+    toast.error("시간 초과!");
   };
 
-  // 게임 시작
   const startGame = () => {
     const selected = selectQuestions(difficulty, totalQuestions);
     setQuestions(selected);
@@ -499,20 +497,17 @@ export default function PokemonQuiz() {
     setGameState("playing");
   };
 
-  // 답변 제출 (객관식)
   const handleSelectAnswer = (answer: string) => {
     if (isAnswered) return;
     setUserAnswer(answer);
     submitAnswer(answer);
   };
 
-  // 답변 제출 (주관식)
   const handleSubmitAnswer = () => {
     if (isAnswered || !userAnswer.trim()) return;
     submitAnswer(userAnswer);
   };
 
-  // 답변 처리
   const submitAnswer = (answer: string) => {
     setIsAnswered(true);
     const correct = checkAnswer(answer, currentQuestion);
@@ -521,7 +516,7 @@ export default function PokemonQuiz() {
     if (correct) {
       setTotalScore(prev => prev + currentQuestion.points);
       setCorrectCount(prev => prev + 1);
-      toast.success(`정답이에요! +${currentQuestion.points}점 🎉`);
+      toast.success(`정답! +${currentQuestion.points}점`);
       confetti({
         particleCount: 60,
         spread: 60,
@@ -529,11 +524,10 @@ export default function PokemonQuiz() {
         colors: ["#FFD700", "#FF6B6B", "#4ECDC4"],
       });
     } else {
-      toast.error(`아쉬워요! 정답은 "${currentQuestion.correctAnswer}"예요.`);
+      toast.error(`오답! 정답: ${currentQuestion.correctAnswer}`);
     }
   };
 
-  // 다음 문제
   const handleNext = async () => {
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex(prev => prev + 1);
@@ -543,7 +537,6 @@ export default function PokemonQuiz() {
       setShowHint(false);
       setTimeLeft(30);
 
-      // 주관식이면 자동 포커스
       setTimeout(() => {
         if (questions[currentIndex + 1]?.type === "short-answer" ||
             questions[currentIndex + 1]?.type === "fill-blank") {
@@ -551,7 +544,6 @@ export default function PokemonQuiz() {
         }
       }, 100);
     } else {
-      // 게임 종료
       setGameState("result");
       await awardPointsAndTicket();
 
@@ -566,7 +558,6 @@ export default function PokemonQuiz() {
     }
   };
 
-  // 포인트 및 게임 이용권 지급
   const awardPointsAndTicket = async () => {
     try {
       const { data: profile } = await supabase
@@ -584,23 +575,23 @@ export default function PokemonQuiz() {
       if (scorePercent >= 90) {
         points = 2500;
         ticketMinutes = 60;
-        note = "🏆 포켓몬 퀴즈 마스터!";
+        note = "포켓몬 퀴즈 마스터!";
       } else if (scorePercent >= 75) {
         points = 2000;
         ticketMinutes = 45;
-        note = "⭐ 포켓몬 퀴즈 고수!";
+        note = "포켓몬 퀴즈 고수!";
       } else if (scorePercent >= 60) {
         points = 1500;
         ticketMinutes = 30;
-        note = "👍 포켓몬 퀴즈 도전자!";
+        note = "포켓몬 퀴즈 도전자!";
       } else if (scorePercent >= 40) {
         points = 1000;
         ticketMinutes = 20;
-        note = "📚 포켓몬 퀴즈 학습중!";
+        note = "포켓몬 퀴즈 학습중!";
       } else if (scorePercent >= 20) {
         points = 500;
         ticketMinutes = 10;
-        note = "🌱 포켓몬 퀴즈 입문!";
+        note = "포켓몬 퀴즈 입문!";
       }
 
       setGameTicket(ticketMinutes);
@@ -613,7 +604,7 @@ export default function PokemonQuiz() {
           rule_id: null,
           amount: points,
           note: note,
-          created_by: 1, // 시스템/관리자
+          created_by: 1,
         });
 
         await supabase
@@ -621,41 +612,37 @@ export default function PokemonQuiz() {
           .update({ current_points: newBalance })
           .eq("id", 1);
 
-        toast.success(`🎉 ${points} 포인트 획득!`);
+        toast.success(`${points} 포인트 획득!`);
       }
     } catch (error) {
       console.error("포인트 적립 오류:", error);
     }
   };
 
-  // 난이도 색상
-  const getDifficultyColor = (diff: Difficulty) => {
+  const getDifficultyConfig = (diff: Difficulty | "all") => {
     switch (diff) {
-      case "easy": return "bg-green-100 text-green-700 border-green-300";
-      case "medium": return "bg-yellow-100 text-yellow-700 border-yellow-300";
-      case "hard": return "bg-red-100 text-red-700 border-red-300";
-    }
-  };
-
-  const getDifficultyLabel = (diff: Difficulty) => {
-    switch (diff) {
-      case "easy": return "쉬움";
-      case "medium": return "보통";
-      case "hard": return "어려움";
+      case "easy": return { color: "from-emerald-500 to-green-500", shadow: "shadow-emerald-500/25", label: "쉬움", emoji: "" };
+      case "medium": return { color: "from-amber-500 to-yellow-500", shadow: "shadow-amber-500/25", label: "보통", emoji: "" };
+      case "hard": return { color: "from-rose-500 to-red-500", shadow: "shadow-rose-500/25", label: "어려움", emoji: "" };
+      default: return { color: "from-violet-500 to-purple-500", shadow: "shadow-violet-500/25", label: "전체", emoji: "" };
     }
   };
 
   // 로그인 체크
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-100 via-red-100 to-blue-100">
-        <Card className="max-w-md w-full border-4 border-yellow-400">
-          <CardContent className="p-6 text-center">
-            <div className="text-6xl mb-4">🎮</div>
-            <h2 className="text-2xl font-bold mb-4">로그인이 필요합니다</h2>
-            <p className="text-muted-foreground mb-4">퀴즈를 풀려면 로그인해주세요!</p>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-sm w-full border-0 shadow-2xl bg-white/80 backdrop-blur-xl rounded-3xl">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto p-4 bg-gradient-to-br from-amber-500 to-orange-500 rounded-3xl w-fit mb-4 shadow-lg shadow-amber-500/30">
+              <Gamepad2 className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-black">로그인이 필요해요</CardTitle>
+            <CardDescription className="text-base">퀴즈를 풀려면 로그인해주세요</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-2">
             <a href={getLoginUrl()}>
-              <Button className="w-full bg-gradient-to-r from-yellow-500 to-red-500 hover:from-yellow-600 hover:to-red-600 text-white font-bold">
+              <Button className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold text-lg rounded-2xl shadow-lg shadow-amber-500/25 active:scale-[0.98] transition-all">
                 로그인하기
               </Button>
             </a>
@@ -668,108 +655,113 @@ export default function PokemonQuiz() {
   // 메뉴 화면
   if (gameState === "menu") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-red-100 to-blue-100">
-        <div className="container max-w-4xl py-10 px-4">
-          <div className="mb-6">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                대시보드
-              </Button>
-            </Link>
+      <div className="min-h-screen pb-24 md:pb-8">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+          <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-amber-400/30 to-orange-400/30 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 -left-16 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-400/20 rounded-full blur-3xl" />
+        </div>
+
+        <div className="px-4 pt-4 space-y-5 max-w-lg mx-auto">
+          {/* 헤더 */}
+          <div className="pt-2 text-center">
+            <div className="inline-block p-4 bg-gradient-to-br from-amber-500 to-orange-500 rounded-3xl mb-4 shadow-lg shadow-amber-500/30">
+              <Brain className="h-12 w-12 text-white" />
+            </div>
+            <h1 className="text-3xl font-black text-slate-800 mb-1">포켓몬GO 퀴즈</h1>
+            <p className="text-slate-500">e북 공략집을 읽고 도전해보세요!</p>
           </div>
 
-          <Card className="border-4 border-yellow-400 shadow-2xl">
-            <CardContent className="p-8">
-              <div className="text-center mb-8">
-                <div className="inline-block p-4 bg-gradient-to-br from-yellow-400 to-red-500 rounded-full mb-4 animate-bounce">
-                  <Brain className="h-16 w-16 text-white" />
-                </div>
-                <h1 className="text-4xl font-bold mb-2">포켓몬GO 퀴즈 마스터</h1>
-                <p className="text-lg text-muted-foreground">
-                  e북 공략집을 읽고 퀴즈에 도전해보세요!
-                </p>
-              </div>
-
-              {/* 난이도 선택 */}
-              <div className="mb-8">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  난이도 선택
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { value: "all", label: "전체", color: "bg-purple-100 text-purple-700 border-purple-300", emoji: "🌈" },
-                    { value: "easy", label: "쉬움", color: "bg-green-100 text-green-700 border-green-300", emoji: "🌱" },
-                    { value: "medium", label: "보통", color: "bg-yellow-100 text-yellow-700 border-yellow-300", emoji: "⭐" },
-                    { value: "hard", label: "어려움", color: "bg-red-100 text-red-700 border-red-300", emoji: "🔥" },
-                  ].map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setDifficulty(opt.value as Difficulty | "all")}
-                      className={`p-4 rounded-xl border-2 transition-all ${
-                        difficulty === opt.value
-                          ? `${opt.color} border-4 scale-105`
-                          : "border-gray-200 hover:border-gray-400"
-                      }`}
-                    >
-                      <span className="text-3xl mb-2 block">{opt.emoji}</span>
-                      <span className="font-bold">{opt.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 옵션 */}
-              <div className="mb-8 p-4 bg-gray-50 rounded-xl">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={useTimer}
-                    onChange={e => setUseTimer(e.target.checked)}
-                    className="w-5 h-5 rounded"
-                  />
-                  <Timer className="h-5 w-5 text-orange-500" />
-                  <span className="font-medium">시간 제한 모드 (문제당 30초)</span>
-                </label>
-              </div>
-
-              {/* 안내 */}
-              <div className="mb-8 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
-                <h3 className="font-bold mb-2 flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-blue-600" />
-                  퀴즈 안내
-                </h3>
-                <ul className="text-sm space-y-1 text-gray-700">
-                  <li>• 총 10문제가 출제됩니다</li>
-                  <li>• <strong>객관식</strong>, <strong>주관식</strong>, <strong>O/X</strong>, <strong>빈칸 채우기</strong> 문제가 있어요!</li>
-                  <li>• 어려운 문제일수록 높은 점수를 얻어요</li>
-                  <li>• 힌트를 사용하면 점수가 줄어들지 않아요</li>
-                  <li>• 점수에 따라 게임 이용권을 받아요! 🎮</li>
-                </ul>
-              </div>
-
-              {/* 시작 버튼 */}
-              <Button
-                size="lg"
-                onClick={startGame}
-                className="w-full bg-gradient-to-r from-yellow-500 to-red-500 hover:from-yellow-600 hover:to-red-600 text-white font-bold text-xl py-6"
-              >
-                <Zap className="h-6 w-6 mr-2" />
-                퀴즈 시작하기!
-              </Button>
-
-              {/* e북 링크 */}
-              <div className="mt-6 text-center">
-                <Link href="/ebook-library">
-                  <Button variant="outline" className="gap-2">
-                    <BookOpen className="h-4 w-4" />
-                    e북 공략집 읽으러 가기
-                  </Button>
-                </Link>
+          {/* 난이도 선택 */}
+          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl">
+            <CardContent className="p-4">
+              <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                난이도 선택
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: "all", label: "전체", color: "from-violet-500 to-purple-500" },
+                  { value: "easy", label: "쉬움", color: "from-emerald-500 to-green-500" },
+                  { value: "medium", label: "보통", color: "from-amber-500 to-yellow-500" },
+                  { value: "hard", label: "어려움", color: "from-rose-500 to-red-500" },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setDifficulty(opt.value as Difficulty | "all")}
+                    className={`p-3 rounded-xl transition-all ${
+                      difficulty === opt.value
+                        ? `bg-gradient-to-r ${opt.color} text-white shadow-lg scale-[1.02]`
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    <span className="font-bold">{opt.label}</span>
+                  </button>
+                ))}
               </div>
             </CardContent>
           </Card>
+
+          {/* 타이머 옵션 */}
+          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl">
+            <CardContent className="p-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useTimer}
+                  onChange={e => setUseTimer(e.target.checked)}
+                  className="w-5 h-5 rounded accent-amber-500"
+                />
+                <Timer className="h-5 w-5 text-amber-500" />
+                <span className="font-medium text-slate-700">시간 제한 모드 (30초)</span>
+              </label>
+            </CardContent>
+          </Card>
+
+          {/* 퀴즈 안내 */}
+          <Card className="border-0 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg rounded-2xl">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 rounded-xl flex-shrink-0">
+                  <BookOpen className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-blue-800 mb-2">퀴즈 안내</h4>
+                  <ul className="space-y-1 text-sm text-blue-700">
+                    <li>• 총 10문제 (객관식, 주관식, O/X)</li>
+                    <li>• 어려운 문제일수록 높은 점수</li>
+                    <li>• 점수에 따라 게임 이용권 획득!</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 시작 버튼 */}
+          <Button
+            size="lg"
+            onClick={startGame}
+            className="w-full h-16 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xl rounded-2xl shadow-lg shadow-amber-500/25 active:scale-[0.98] transition-all"
+          >
+            <Zap className="h-6 w-6 mr-2" />
+            퀴즈 시작!
+          </Button>
+
+          {/* e북 링크 */}
+          <Link href="/ebook-library">
+            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl active:scale-[0.98] transition-all">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-100 rounded-xl">
+                      <BookOpen className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <span className="font-medium text-slate-700">e북 공략집 읽기</span>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-slate-400" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     );
@@ -781,295 +773,277 @@ export default function PokemonQuiz() {
     const stars = scorePercent >= 90 ? 3 : scorePercent >= 60 ? 2 : scorePercent >= 30 ? 1 : 0;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-red-100 to-blue-100">
-        <div className="container max-w-4xl py-10 px-4">
-          <Card className="border-4 border-yellow-400 shadow-2xl">
-            <CardContent className="p-8 text-center">
-              <div className="mb-6">
-                <div className="inline-block p-4 bg-gradient-to-br from-yellow-400 to-red-500 rounded-full mb-4 animate-pulse">
-                  <Trophy className="h-16 w-16 text-white" />
-                </div>
-                <h1 className="text-4xl font-bold mb-2">퀴즈 완료! 🎉</h1>
-              </div>
+      <div className="min-h-screen pb-24 md:pb-8">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+          <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-amber-400/30 to-orange-400/30 rounded-full blur-3xl" />
+        </div>
 
-              {/* 별점 */}
-              <div className="flex justify-center gap-2 mb-6">
-                {[1, 2, 3].map(i => (
-                  <Star
-                    key={i}
-                    className={`h-14 w-14 transition-all ${
-                      i <= stars
-                        ? "fill-yellow-400 text-yellow-400 animate-pulse"
-                        : "fill-gray-200 text-gray-200"
-                    }`}
-                  />
-                ))}
-              </div>
+        <div className="px-4 pt-4 space-y-5 max-w-lg mx-auto">
+          {/* 결과 헤더 */}
+          <div className="pt-2 text-center">
+            <div className="inline-block p-4 bg-gradient-to-br from-amber-500 to-orange-500 rounded-3xl mb-4 shadow-lg shadow-amber-500/30">
+              <Trophy className="h-12 w-12 text-white" />
+            </div>
+            <h1 className="text-3xl font-black text-slate-800 mb-2">퀴즈 완료!</h1>
+          </div>
 
-              {/* 점수 */}
-              <div className="mb-8">
-                <div className="text-7xl font-bold bg-gradient-to-r from-yellow-500 via-red-500 to-blue-500 bg-clip-text text-transparent mb-2">
-                  {totalScore}점
-                </div>
-                <p className="text-muted-foreground text-lg">
+          {/* 별점 */}
+          <div className="flex justify-center gap-2">
+            {[1, 2, 3].map(i => (
+              <Star
+                key={i}
+                className={`h-12 w-12 transition-all ${
+                  i <= stars
+                    ? "fill-amber-400 text-amber-400"
+                    : "fill-slate-200 text-slate-200"
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* 점수 카드 */}
+          <Card className="border-0 bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white shadow-2xl shadow-orange-500/30 rounded-3xl">
+            <CardContent className="p-6 text-center relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4" />
+              <div className="relative">
+                <p className="text-white/70 text-sm mb-1">총 점수</p>
+                <p className="text-6xl font-black mb-2">{totalScore}</p>
+                <p className="text-white/80">
                   최대 {maxScore}점 중 ({scorePercent}%)
                 </p>
-                <p className="text-muted-foreground">
+                <p className="text-white/70 text-sm mt-2">
                   {correctCount} / {totalQuestions} 문제 정답
                 </p>
               </div>
-
-              {/* 게임 이용권 */}
-              {gameTicket > 0 && (
-                <div className="mb-8 p-6 bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl border-4 border-green-400 animate-bounce">
-                  <Gamepad2 className="h-12 w-12 mx-auto mb-3 text-green-600" />
-                  <h2 className="text-2xl font-bold text-green-700 mb-2">
-                    🎮 게임 이용권 획득!
-                  </h2>
-                  <p className="text-4xl font-bold text-green-600">{gameTicket}분</p>
-                  <p className="text-sm text-green-600 mt-2">
-                    포켓몬GO를 {gameTicket}분 동안 할 수 있어요!
-                  </p>
-                </div>
-              )}
-
-              {/* 메시지 */}
-              <div className="mb-8 p-6 bg-gradient-to-r from-yellow-50 to-red-50 rounded-xl border-2 border-yellow-300">
-                <Sparkles className="h-8 w-8 mx-auto mb-2 text-yellow-600" />
-                <p className="text-lg font-medium">
-                  {scorePercent >= 90 && "와! 포켓몬 퀴즈 마스터야! 🏆"}
-                  {scorePercent >= 75 && scorePercent < 90 && "대단해요! 진짜 포켓몬 고수네요! ⭐"}
-                  {scorePercent >= 60 && scorePercent < 75 && "잘했어요! 조금만 더 공부하면 최고! 💪"}
-                  {scorePercent >= 40 && scorePercent < 60 && "좋아요! e북을 더 읽으면 잘할 수 있어요! 📖"}
-                  {scorePercent < 40 && "괜찮아요! 다시 도전해봐요! 🌟"}
-                </p>
-              </div>
-
-              {/* 버튼 */}
-              <div className="flex gap-4 justify-center flex-wrap">
-                <Button
-                  size="lg"
-                  onClick={() => {
-                    setGameState("menu");
-                  }}
-                  className="bg-gradient-to-r from-yellow-500 to-red-500 hover:from-yellow-600 hover:to-red-600 text-white font-bold"
-                >
-                  <RotateCcw className="h-5 w-5 mr-2" />
-                  다시 풀기
-                </Button>
-                <Link href="/ebook-library">
-                  <Button size="lg" variant="outline" className="font-bold">
-                    <BookOpen className="h-5 w-5 mr-2" />
-                    공략집 읽기
-                  </Button>
-                </Link>
-                <Link href="/dashboard">
-                  <Button size="lg" variant="outline" className="font-bold">
-                    대시보드로
-                  </Button>
-                </Link>
-              </div>
             </CardContent>
           </Card>
+
+          {/* 게임 이용권 */}
+          {gameTicket > 0 && (
+            <Card className="border-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 rounded-2xl">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-2xl">
+                    <Gamepad2 className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-lg">게임 이용권 획득!</p>
+                    <p className="text-white/90 text-3xl font-black">{gameTicket}분</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* 메시지 */}
+          <Card className="border-0 bg-gradient-to-br from-amber-50 to-orange-50 shadow-lg rounded-2xl">
+            <CardContent className="p-4 text-center">
+              <Sparkles className="h-8 w-8 mx-auto mb-2 text-amber-600" />
+              <p className="font-medium text-amber-800">
+                {scorePercent >= 90 && "와! 포켓몬 퀴즈 마스터야!"}
+                {scorePercent >= 75 && scorePercent < 90 && "대단해요! 진짜 고수네요!"}
+                {scorePercent >= 60 && scorePercent < 75 && "잘했어요! 조금만 더 연습!"}
+                {scorePercent >= 40 && scorePercent < 60 && "좋아요! e북을 더 읽어봐요!"}
+                {scorePercent < 40 && "괜찮아요! 다시 도전해봐요!"}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* 버튼들 */}
+          <div className="space-y-3">
+            <Button
+              size="lg"
+              onClick={() => setGameState("menu")}
+              className="w-full h-14 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-2xl shadow-lg"
+            >
+              <RotateCcw className="h-5 w-5 mr-2" />
+              다시 풀기
+            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Link href="/ebook-library">
+                <Button variant="outline" className="w-full h-12 rounded-xl font-bold">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  공략집
+                </Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="outline" className="w-full h-12 rounded-xl font-bold">
+                  홈으로
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   // 퀴즈 진행 화면
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-red-100 to-blue-100">
-      <div className="container max-w-4xl py-6 px-4">
-        {/* 헤더 */}
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setGameState("menu")}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            나가기
-          </Button>
+  const diffConfig = getDifficultyConfig(currentQuestion.difficulty);
 
-          <div className="flex items-center gap-3">
-            <span className={`px-3 py-1 rounded-full text-sm font-bold border-2 ${getDifficultyColor(currentQuestion.difficulty)}`}>
-              {getDifficultyLabel(currentQuestion.difficulty)}
+  return (
+    <div className="min-h-screen pb-24 md:pb-8">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-full blur-3xl" />
+      </div>
+
+      <div className="px-4 pt-4 space-y-4 max-w-lg mx-auto">
+        {/* 상단 바 */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setGameState("menu")}
+            className="p-2 rounded-xl bg-white/80 shadow-md active:scale-95 transition-all"
+          >
+            <ChevronLeft className="h-5 w-5 text-slate-600" />
+          </button>
+          <div className="flex items-center gap-2">
+            <span className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${diffConfig.color}`}>
+              {diffConfig.label}
             </span>
             {useTimer && (
-              <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                timeLeft <= 10 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                timeLeft <= 10 ? "bg-rose-100 text-rose-700" : "bg-blue-100 text-blue-700"
               }`}>
-                ⏱️ {timeLeft}초
+                {timeLeft}초
               </span>
             )}
           </div>
         </div>
 
         {/* 진행률 */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">진행률</span>
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">
-                {currentIndex + 1} / {totalQuestions}
-              </span>
-              <span className="text-sm font-bold text-yellow-600">
-                ⭐ {totalScore}점
-              </span>
-            </div>
+        <div>
+          <div className="flex items-center justify-between mb-2 text-sm">
+            <span className="font-medium text-slate-600">{currentIndex + 1} / {totalQuestions}</span>
+            <span className="font-bold text-amber-600">{totalScore}점</span>
           </div>
-          <Progress value={progress} className="h-3 bg-yellow-200" />
-        </div>
-
-        {/* 카테고리 & 점수 */}
-        <div className="flex items-center justify-between mb-4">
-          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-            📁 {currentQuestion.category}
-          </span>
-          <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-bold">
-            이 문제: {currentQuestion.points}점
-          </span>
+          <Progress value={progress} className="h-2 bg-slate-200" />
         </div>
 
         {/* 문제 카드 */}
-        <Card className="mb-6 border-4 border-yellow-400 shadow-xl">
-          <CardContent className="p-6 md:p-8">
-            {/* 이미지 (있을 경우) */}
+        <Card className="border-0 bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden">
+          <CardContent className="p-5">
+            {/* 이미지 */}
             {currentQuestion.image && (
-              <div className="text-center mb-6">
-                <div className="inline-block p-4 bg-gradient-to-br from-yellow-200 to-red-200 rounded-full">
+              <div className="text-center mb-4">
+                <div className="inline-block p-3 bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl">
                   <img
                     src={currentQuestion.image}
                     alt="문제 이미지"
-                    className="h-32 w-32 md:h-40 md:w-40 object-contain"
+                    className="h-28 w-28 object-contain"
                   />
                 </div>
               </div>
             )}
 
-            {/* 문제 유형 아이콘 */}
-            <div className="text-center mb-4">
-              {currentQuestion.type === "multiple-choice" && (
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                  <CheckCircle className="h-4 w-4" /> 객관식
-                </span>
-              )}
-              {currentQuestion.type === "short-answer" && (
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-                  ✏️ 주관식
-                </span>
-              )}
-              {currentQuestion.type === "fill-blank" && (
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">
-                  📝 빈칸 채우기
-                </span>
-              )}
-              {currentQuestion.type === "true-false" && (
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
-                  ⭕ O/X 퀴즈
-                </span>
-              )}
+            {/* 문제 유형 */}
+            <div className="text-center mb-3">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                currentQuestion.type === "multiple-choice" ? "bg-blue-100 text-blue-700" :
+                currentQuestion.type === "true-false" ? "bg-purple-100 text-purple-700" :
+                "bg-emerald-100 text-emerald-700"
+              }`}>
+                {currentQuestion.type === "multiple-choice" && <><CheckCircle className="h-3 w-3" /> 객관식</>}
+                {currentQuestion.type === "short-answer" && "주관식"}
+                {currentQuestion.type === "fill-blank" && "빈칸 채우기"}
+                {currentQuestion.type === "true-false" && "O/X 퀴즈"}
+                <span className="ml-1 opacity-70">+{currentQuestion.points}점</span>
+              </span>
             </div>
 
             {/* 질문 */}
-            <div className="text-center mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800">
-                {currentQuestion.question}
-              </h2>
-            </div>
+            <h2 className="text-lg font-bold text-slate-800 text-center mb-4 leading-relaxed">
+              {currentQuestion.question}
+            </h2>
 
-            {/* 힌트 버튼 */}
+            {/* 힌트 */}
             {!isAnswered && (
               <div className="text-center mb-4">
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
                   onClick={() => setShowHint(!showHint)}
-                  className="text-yellow-600 border-yellow-400"
+                  className="text-sm text-amber-600 font-medium flex items-center gap-1 mx-auto"
                 >
-                  <Lightbulb className="h-4 w-4 mr-1" />
+                  <Lightbulb className="h-4 w-4" />
                   힌트 {showHint ? "숨기기" : "보기"}
-                </Button>
+                </button>
                 {showHint && (
-                  <p className="mt-2 text-yellow-700 bg-yellow-100 p-3 rounded-lg">
-                    💡 {currentQuestion.hint}
+                  <p className="mt-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-xl">
+                    {currentQuestion.hint}
                   </p>
                 )}
               </div>
             )}
 
-            {/* 답변 입력 영역 */}
+            {/* 객관식/O/X */}
             {(currentQuestion.type === "multiple-choice" || currentQuestion.type === "true-false") && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className={`grid gap-2 ${currentQuestion.type === "true-false" ? "grid-cols-2" : "grid-cols-1"}`}>
                 {currentQuestion.options?.map((option, index) => {
                   const isSelected = userAnswer === option;
                   const isCorrectOption = option === currentQuestion.correctAnswer;
                   const showResult = isAnswered;
 
-                  let btnClass = "h-16 md:h-20 text-lg md:text-xl font-bold transition-all rounded-xl";
+                  let btnClass = "p-4 rounded-xl font-bold transition-all text-left flex items-center justify-between";
 
                   if (showResult) {
                     if (isCorrectOption) {
-                      btnClass += " bg-green-500 hover:bg-green-600 text-white border-4 border-green-600";
+                      btnClass += " bg-emerald-500 text-white";
                     } else if (isSelected && !isCorrectOption) {
-                      btnClass += " bg-red-500 hover:bg-red-600 text-white border-4 border-red-600";
+                      btnClass += " bg-rose-500 text-white";
                     } else {
-                      btnClass += " opacity-50 border-2";
+                      btnClass += " bg-slate-100 text-slate-400";
                     }
                   } else {
-                    btnClass += " hover:bg-yellow-100 border-2 border-yellow-300 hover:border-yellow-500";
+                    btnClass += " bg-slate-50 hover:bg-slate-100 text-slate-700 active:scale-[0.98]";
                   }
 
                   return (
-                    <Button
+                    <button
                       key={index}
-                      variant="outline"
                       className={btnClass}
                       onClick={() => handleSelectAnswer(option)}
                       disabled={isAnswered}
                     >
-                      {showResult && isCorrectOption && <CheckCircle className="h-5 w-5 mr-2" />}
-                      {showResult && isSelected && !isCorrectOption && <XCircle className="h-5 w-5 mr-2" />}
-                      {option}
-                    </Button>
+                      <span>{option}</span>
+                      {showResult && isCorrectOption && <CheckCircle className="h-5 w-5" />}
+                      {showResult && isSelected && !isCorrectOption && <XCircle className="h-5 w-5" />}
+                    </button>
                   );
                 })}
               </div>
             )}
 
+            {/* 주관식 */}
             {(currentQuestion.type === "short-answer" || currentQuestion.type === "fill-blank") && (
-              <div className="space-y-4">
-                <div className="flex gap-3">
+              <div className="space-y-3">
+                <div className="flex gap-2">
                   <Input
                     ref={inputRef}
                     type="text"
-                    placeholder="정답을 입력하세요..."
+                    placeholder="정답 입력..."
                     value={userAnswer}
                     onChange={e => setUserAnswer(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && handleSubmitAnswer()}
                     disabled={isAnswered}
-                    className="text-xl text-center h-14 border-2 border-yellow-300 focus:border-yellow-500"
+                    className="h-12 text-center text-lg font-medium rounded-xl border-2 border-slate-200 focus:border-amber-400"
                   />
                   <Button
                     onClick={handleSubmitAnswer}
                     disabled={isAnswered || !userAnswer.trim()}
-                    className="h-14 px-8 bg-gradient-to-r from-yellow-500 to-red-500 hover:from-yellow-600 hover:to-red-600 text-white font-bold"
+                    className="h-12 px-6 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl font-bold"
                   >
                     확인
                   </Button>
                 </div>
 
                 {isAnswered && (
-                  <div className={`p-4 rounded-xl ${isCorrect ? "bg-green-100" : "bg-red-100"}`}>
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className={`p-3 rounded-xl ${isCorrect ? "bg-emerald-50" : "bg-rose-50"}`}>
+                    <div className="flex items-center gap-2">
                       {isCorrect ? (
-                        <CheckCircle className="h-6 w-6 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-emerald-600" />
                       ) : (
-                        <XCircle className="h-6 w-6 text-red-600" />
+                        <XCircle className="h-5 w-5 text-rose-600" />
                       )}
-                      <span className={`font-bold ${isCorrect ? "text-green-700" : "text-red-700"}`}>
-                        {isCorrect ? "정답이에요!" : `오답! 정답: ${currentQuestion.correctAnswer}`}
+                      <span className={`font-bold ${isCorrect ? "text-emerald-700" : "text-rose-700"}`}>
+                        {isCorrect ? "정답!" : `오답! 정답: ${currentQuestion.correctAnswer}`}
                       </span>
                     </div>
                   </div>
@@ -1079,13 +1053,10 @@ export default function PokemonQuiz() {
 
             {/* 해설 */}
             {isAnswered && (
-              <div className="mt-6 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+              <div className="mt-4 p-3 bg-blue-50 rounded-xl">
                 <div className="flex items-start gap-2">
-                  <HelpCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                  <div>
-                    <span className="font-bold text-blue-700">해설: </span>
-                    <span className="text-gray-700">{currentQuestion.explanation}</span>
-                  </div>
+                  <HelpCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-blue-700">{currentQuestion.explanation}</p>
                 </div>
               </div>
             )}
@@ -1094,26 +1065,25 @@ export default function PokemonQuiz() {
 
         {/* 다음 버튼 */}
         {isAnswered && (
-          <div className="text-center">
-            <Button
-              size="lg"
-              onClick={handleNext}
-              className="bg-gradient-to-r from-yellow-500 to-red-500 hover:from-yellow-600 hover:to-red-600 text-white font-bold text-xl px-12 py-6"
-            >
-              {currentIndex < totalQuestions - 1 ? "다음 문제 ➡️" : "결과 보기 🎉"}
-            </Button>
-          </div>
+          <Button
+            size="lg"
+            onClick={handleNext}
+            className="w-full h-14 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-lg rounded-2xl shadow-lg"
+          >
+            {currentIndex < totalQuestions - 1 ? "다음 문제" : "결과 보기"}
+            <ChevronRight className="h-5 w-5 ml-2" />
+          </Button>
         )}
 
         {/* 현재 상태 */}
-        <div className="mt-6 flex justify-center gap-4">
-          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md">
-            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-            <span className="font-bold">맞은 문제: {correctCount}개</span>
+        <div className="flex justify-center gap-3">
+          <div className="inline-flex items-center gap-2 bg-white/80 px-4 py-2 rounded-full shadow-md text-sm">
+            <CheckCircle className="h-4 w-4 text-emerald-500" />
+            <span className="font-bold">{correctCount}개 정답</span>
           </div>
-          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md">
-            <Award className="h-5 w-5 text-amber-500" />
-            <span className="font-bold">총 점수: {totalScore}점</span>
+          <div className="inline-flex items-center gap-2 bg-white/80 px-4 py-2 rounded-full shadow-md text-sm">
+            <Award className="h-4 w-4 text-amber-500" />
+            <span className="font-bold">{totalScore}점</span>
           </div>
         </div>
       </div>

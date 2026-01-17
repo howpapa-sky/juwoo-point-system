@@ -5,3 +5,4 @@ export { default as AdminShopItems } from "./AdminShopItems";
 export { default as AdminEbooks } from "./AdminEbooks";
 export { default as AdminQuizzes } from "./AdminQuizzes";
 export { default as AdminWords } from "./AdminWords";
+export { default as AdminBadges } from "./AdminBadges";

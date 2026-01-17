@@ -31,7 +31,7 @@ import MyPage from "./pages/MyPage";
 import AppLayout from "./components/AppLayout";
 // Admin CMS imports
 import AdminLayout from "./components/admin/AdminLayout";
-import { AdminDashboard, AdminPointRules, AdminShopItems, AdminEbooks, AdminQuizzes, AdminWords } from "./pages/admin";
+import { AdminDashboard, AdminPointRules, AdminShopItems, AdminEbooks, AdminQuizzes, AdminWords, AdminBadges } from "./pages/admin";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -227,6 +227,13 @@ function Router() {
         {() => (
           <AdminLayout>
             <AdminWords />
+          </AdminLayout>
+        )}
+      </Route>
+      <Route path="/admin/badges">
+        {() => (
+          <AdminLayout>
+            <AdminBadges />
           </AdminLayout>
         )}
       </Route>

@@ -38,4 +38,12 @@ export const getQuizCountsByTier = (bookId: string): Record<QuizTier, number> =>
   };
 };
 
+// 모든 퀴즈 가져오기
+export const getAllQuizzes = (): QuizQuestion[] => {
+  return allQuizData;
+};
+
+// 책별 퀴즈 가져오기 (alias)
+export const getQuizzesByBook = getQuizzesByBookId;
+
 export default allQuizData;

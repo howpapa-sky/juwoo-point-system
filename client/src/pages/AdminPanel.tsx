@@ -4,16 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { ArrowLeft, Settings, Users, TrendingUp, Activity, Shield } from "lucide-react";
+import { ArrowLeft, Settings, TrendingUp, Activity } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-
-interface User {
-  id: number;
-  email: string;
-  role: 'admin' | 'user';
-  created_at: string;
-}
 
 interface PointStat {
   total_earned: number;
@@ -39,13 +32,11 @@ interface RecentTransaction {
 
 export default function AdminPanel() {
   const { user, userRole, loading: authLoading } = useSupabaseAuth();
-  const [users, setUsers] = useState<User[]>([]);
   const [pointStats, setPointStats] = useState<PointStat | null>(null);
   const [topEarnRules, setTopEarnRules] = useState<TopRule[]>([]);
   const [topSpendRules, setTopSpendRules] = useState<TopRule[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [updatingUserId, setUpdatingUserId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user || userRole !== 'admin') return;
@@ -53,16 +44,7 @@ export default function AdminPanel() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // 1. 사용자 목록 조회
-        const { data: usersData, error: usersError } = await supabase
-          .from('users')
-          .select('id, email, role, created_at')
-          .order('created_at', { ascending: false });
-
-        if (usersError) throw usersError;
-        setUsers(usersData || []);
-
-        // 2. 포인트 통계 조회
+        // 1. 포인트 통계 조회
         const { data: transactionsData, error: transactionsError } = await supabase
           .from('point_transactions')
           .select('amount');
@@ -185,34 +167,6 @@ export default function AdminPanel() {
 
     fetchData();
   }, [user, userRole]);
-
-  const handleRoleChange = async (userId: number, newRole: 'admin' | 'user') => {
-    if (!confirm(`이 사용자의 역할을 ${newRole === 'admin' ? '관리자' : '일반 사용자'}로 변경하시겠습니까?`)) {
-      return;
-    }
-
-    setUpdatingUserId(userId);
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({ role: newRole })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
-      toast.success('역할 변경 완료', {
-        description: `사용자 역할이 ${newRole === 'admin' ? '관리자' : '일반 사용자'}로 변경되었습니다.`,
-      });
-    } catch (error: any) {
-      console.error('Error updating user role:', error);
-      toast.error('역할 변경 실패', {
-        description: error.message || '다시 시도해주세요.',
-      });
-    } finally {
-      setUpdatingUserId(null);
-    }
-  };
 
   if (authLoading || !user) {
     return (
@@ -360,63 +314,6 @@ export default function AdminPanel() {
                       )}
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 사용자 관리 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  사용자 관리
-                </CardTitle>
-                <CardDescription>전체 사용자 목록 및 역할 관리</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {users.map((u) => (
-                    <div
-                      key={u.id}
-                      className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-semibold">{u.email}</p>
-                          {u.role === 'admin' && (
-                            <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded">
-                              <Shield className="h-3 w-3 inline mr-1" />
-                              관리자
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          가입일: {new Date(u.created_at).toLocaleDateString('ko-KR')}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        {u.role === 'user' ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRoleChange(u.id, 'admin')}
-                            disabled={updatingUserId === u.id}
-                          >
-                            {updatingUserId === u.id ? '처리 중...' : '관리자로 변경'}
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRoleChange(u.id, 'user')}
-                            disabled={updatingUserId === u.id}
-                          >
-                            {updatingUserId === u.id ? '처리 중...' : '일반 사용자로 변경'}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </CardContent>
             </Card>

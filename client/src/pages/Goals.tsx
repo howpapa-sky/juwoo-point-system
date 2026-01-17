@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { ArrowLeft, Target, Plus, Check, Trophy, Calendar } from "lucide-react";
+import { ArrowLeft, Target, Plus, Check, Trophy } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -12,16 +12,13 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 
 interface Goal {
   id: number;
   title: string;
-  description: string | null;
   target_points: number;
-  current_progress: number;
-  deadline: string | null;
-  is_completed: boolean;
+  current_points: number;
+  status: 'active' | 'completed' | 'cancelled';
   completed_at: string | null;
   created_at: string;
 }
@@ -35,9 +32,7 @@ export default function Goals() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newGoal, setNewGoal] = useState({
     title: "",
-    description: "",
     target_points: 0,
-    deadline: "",
   });
 
   // 목표 목록 가져오기
@@ -73,12 +68,11 @@ export default function Goals() {
     const { error } = await supabase
       .from('goals')
       .insert({
+        juwoo_id: 1,
         title: newGoal.title,
-        description: newGoal.description || null,
         target_points: newGoal.target_points,
-        current_progress: 0,
-        deadline: newGoal.deadline || null,
-        is_completed: false,
+        current_points: 0,
+        status: 'active',
       });
 
     if (error) {
@@ -87,7 +81,7 @@ export default function Goals() {
     } else {
       toast.success("새 목표가 추가되었습니다!");
       setDialogOpen(false);
-      setNewGoal({ title: "", description: "", target_points: 0, deadline: "" });
+      setNewGoal({ title: "", target_points: 0 });
       fetchGoals();
     }
   };
@@ -97,7 +91,7 @@ export default function Goals() {
     const { error } = await supabase
       .from('goals')
       .update({
-        is_completed: true,
+        status: 'completed',
         completed_at: new Date().toISOString(),
       })
       .eq('id', goalId);
@@ -115,7 +109,7 @@ export default function Goals() {
   const handleUpdateProgress = async (goalId: number, progress: number) => {
     const { error } = await supabase
       .from('goals')
-      .update({ current_progress: progress })
+      .update({ current_points: progress })
       .eq('id', goalId);
 
     if (error) {
@@ -145,8 +139,8 @@ export default function Goals() {
     );
   }
 
-  const activeGoals = goals.filter(g => !g.is_completed);
-  const completedGoals = goals.filter(g => g.is_completed);
+  const activeGoals = goals.filter(g => g.status === 'active');
+  const completedGoals = goals.filter(g => g.status === 'completed');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -187,18 +181,9 @@ export default function Goals() {
                   <Label htmlFor="title">목표 제목</Label>
                   <Input
                     id="title"
-                    placeholder="예: 100 포인트 모으기"
+                    placeholder="예: 닌텐도 구매하기"
                     value={newGoal.title}
                     onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">설명 (선택)</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="목표에 대한 설명을 입력하세요"
-                    value={newGoal.description}
-                    onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
                   />
                 </div>
                 <div>
@@ -209,15 +194,6 @@ export default function Goals() {
                     placeholder="1000"
                     value={newGoal.target_points || ""}
                     onChange={(e) => setNewGoal({ ...newGoal, target_points: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="deadline">마감일 (선택)</Label>
-                  <Input
-                    id="deadline"
-                    type="date"
-                    value={newGoal.deadline}
-                    onChange={(e) => setNewGoal({ ...newGoal, deadline: e.target.value })}
                   />
                 </div>
               </div>
@@ -257,32 +233,19 @@ export default function Goals() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {activeGoals.map((goal) => {
-                    const progressPercent = (goal.current_progress / goal.target_points) * 100;
-                    const isOverdue = goal.deadline && new Date(goal.deadline) < new Date();
+                    const progressPercent = (goal.current_points / goal.target_points) * 100;
 
                     return (
                       <Card key={goal.id} className="hover:shadow-lg transition-shadow">
                         <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <CardTitle className="text-xl">{goal.title}</CardTitle>
-                              {goal.description && (
-                                <CardDescription className="mt-2">
-                                  {goal.description}
-                                </CardDescription>
-                              )}
-                            </div>
-                            {isOverdue && (
-                              <Badge variant="destructive">마감</Badge>
-                            )}
-                          </div>
+                          <CardTitle className="text-xl">{goal.title}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
                               <span>진행률</span>
                               <span className="font-medium">
-                                {goal.current_progress} / {goal.target_points} 포인트
+                                {goal.current_points.toLocaleString()} / {goal.target_points.toLocaleString()} 포인트
                               </span>
                             </div>
                             <Progress value={Math.min(progressPercent, 100)} className="h-2" />
@@ -290,12 +253,6 @@ export default function Goals() {
                               {progressPercent.toFixed(1)}%
                             </p>
                           </div>
-                          {goal.deadline && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Calendar className="h-4 w-4" />
-                              마감일: {new Date(goal.deadline).toLocaleDateString('ko-KR')}
-                            </div>
-                          )}
                           <div className="flex gap-2">
                             <Button
                               variant="outline"
@@ -303,8 +260,8 @@ export default function Goals() {
                               className="flex-1"
                               onClick={() => {
                                 const newProgress = prompt(
-                                  `현재 진행률: ${goal.current_progress}\n새로운 진행률을 입력하세요:`,
-                                  goal.current_progress.toString()
+                                  `현재 진행률: ${goal.current_points}\n새로운 진행률을 입력하세요:`,
+                                  goal.current_points.toString()
                                 );
                                 if (newProgress !== null) {
                                   handleUpdateProgress(goal.id, parseInt(newProgress) || 0);
@@ -344,17 +301,10 @@ export default function Goals() {
                     <Card key={goal.id} className="bg-gradient-to-br from-yellow-50 to-amber-50">
                       <CardHeader>
                         <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <CardTitle className="text-xl flex items-center gap-2">
-                              <Trophy className="h-5 w-5 text-yellow-500" />
-                              {goal.title}
-                            </CardTitle>
-                            {goal.description && (
-                              <CardDescription className="mt-2">
-                                {goal.description}
-                              </CardDescription>
-                            )}
-                          </div>
+                          <CardTitle className="text-xl flex items-center gap-2">
+                            <Trophy className="h-5 w-5 text-yellow-500" />
+                            {goal.title}
+                          </CardTitle>
                           <Badge className="bg-yellow-500">완료</Badge>
                         </div>
                       </CardHeader>
@@ -362,7 +312,7 @@ export default function Goals() {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
                             <span>목표 포인트</span>
-                            <span className="font-medium">{goal.target_points} 포인트</span>
+                            <span className="font-medium">{goal.target_points.toLocaleString()} 포인트</span>
                           </div>
                           {goal.completed_at && (
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">

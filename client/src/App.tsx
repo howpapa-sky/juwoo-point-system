@@ -29,6 +29,9 @@ import Goals from "./pages/Goals";
 import Badges from "./pages/Badges";
 import MyPage from "./pages/MyPage";
 import AppLayout from "./components/AppLayout";
+// Admin CMS imports
+import AdminLayout from "./components/admin/AdminLayout";
+import { AdminDashboard, AdminPointRules, AdminShopItems, AdminEbooks, AdminQuizzes, AdminWords, AdminBadges } from "./pages/admin";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -182,6 +185,56 @@ function Router() {
           <AppLayout>
             <MyPage />
           </AppLayout>
+        )}
+      </Route>
+      {/* Admin CMS Routes */}
+      <Route path="/admin">
+        {() => (
+          <AdminLayout>
+            <AdminDashboard />
+          </AdminLayout>
+        )}
+      </Route>
+      <Route path="/admin/points/rules">
+        {() => (
+          <AdminLayout>
+            <AdminPointRules />
+          </AdminLayout>
+        )}
+      </Route>
+      <Route path="/admin/shop/items">
+        {() => (
+          <AdminLayout>
+            <AdminShopItems />
+          </AdminLayout>
+        )}
+      </Route>
+      <Route path="/admin/content/ebooks">
+        {() => (
+          <AdminLayout>
+            <AdminEbooks />
+          </AdminLayout>
+        )}
+      </Route>
+      <Route path="/admin/content/quizzes">
+        {() => (
+          <AdminLayout>
+            <AdminQuizzes />
+          </AdminLayout>
+        )}
+      </Route>
+      <Route path="/admin/content/words">
+        {() => (
+          <AdminLayout>
+            <AdminWords />
+          </AdminLayout>
+        )}
+      </Route>
+      <Route path="/admin/badges">
+        {() => (
+          <AdminLayout>
+            <AdminBadges />
+          </AdminLayout>
         )}
       </Route>
       <Route path={"/404"} component={NotFound} />

@@ -57,18 +57,19 @@ drizzle/
 
 ## 포인트 거래 INSERT 패턴
 ```typescript
-// balance_after 컬럼 사용 금지 (DB에 없음)
+// balance_after 컬럼 필수! (NOT NULL)
 await supabase.from('point_transactions').insert({
   juwoo_id: 1,
   rule_id: null,
   amount: points,        // 양수: 적립, 음수: 차감
+  balance_after: newBalance, // 거래 후 잔액 (필수!)
   note: '설명',
   created_by: 1,
 });
 ```
 
 ## 주요 규칙
-1. **balance_after 사용 금지** - 실제 DB 스키마에 해당 컬럼 없음
+1. **balance_after 필수** - point_transactions INSERT 시 반드시 포함
 2. **포인트 업데이트** - point_transactions INSERT 후 juwoo_profile UPDATE 필요
 3. **인증** - SupabaseAuthContext 사용
 4. **라우팅** - wouter 사용

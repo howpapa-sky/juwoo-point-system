@@ -92,6 +92,7 @@ export default function PointsManage() {
           juwoo_id: 1,
           rule_id: ruleId,
           amount: amount,
+          balance_after: newBalance,
           note: ruleName,
           created_by: 1, // 시스템/관리자
         });
@@ -140,6 +141,7 @@ export default function PointsManage() {
           juwoo_id: 1,
           rule_id: null, // 수기 조정
           amount: finalAmount,
+          balance_after: newBalance,
           note: manualNote.trim(),
           created_by: 1, // 시스템/관리자
         });

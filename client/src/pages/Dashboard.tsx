@@ -139,6 +139,7 @@ export default function Dashboard() {
           juwoo_id: 1,
           rule_id: null,
           amount: -txData.amount,
+          balance_after: newBalance,
           note: `거래 취소 (ID: ${transactionId})`,
           created_by: 1,
         });

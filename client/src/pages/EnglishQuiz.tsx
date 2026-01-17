@@ -443,6 +443,7 @@ export default function EnglishQuiz() {
           juwoo_id: 1,
           rule_id: null,
           amount: points,
+          balance_after: newBalance,
           note: note,
           created_by: 1, // 시스템/관리자
         });

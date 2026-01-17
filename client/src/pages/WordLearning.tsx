@@ -201,6 +201,7 @@ export default function WordLearning() {
           juwoo_id: 1,
           rule_id: null,
           amount: points,
+          balance_after: newBalance,
           note: '영어 단어 카테고리 완료',
           created_by: 1, // 시스템/관리자
         });

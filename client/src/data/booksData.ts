@@ -9,6 +9,14 @@ export interface Book {
   difficulty: "쉬움" | "보통" | "어려움";
   readTime: string;
   category: string;
+
+  // 퀴즈 연동 필드
+  hasQuiz?: boolean;              // 전용 퀴즈 존재 여부
+  quizRewardPoints?: {            // 퀴즈 완료 시 보상 포인트
+    basic: number;                // 기초 퀴즈 완료 보상
+    intermediate: number;         // 실력 퀴즈 완료 보상
+    master: number;               // 마스터 퀴즈 완료 보상
+  };
 }
 
 export const booksData: Book[] = [
@@ -22,6 +30,8 @@ export const booksData: Book[] = [
     difficulty: "보통",
     readTime: "20분",
     category: "공략집",
+    hasQuiz: true,
+    quizRewardPoints: { basic: 50, intermediate: 100, master: 200 },
     pages: [
       "🚀 주우를 위한 포켓몬고 레벨업 대모험! 🚀\n\n🌟 70레벨 마스터를 향한 첫걸음! 🌟\n\n안녕, 주우! 포켓몬 마스터를 꿈꾸는 멋진 트레이너구나!\n\n지금부터 포켓몬고 레벨 31에서 70까지, 아주 신나고 재미있는 모험을 함께 떠나볼 거야.\n\n이 책은 주우만을 위한 특별한 공략집이니까, 차근차근 따라오면 어느새 멋진 고수가 되어 있을 거야!\n\n준비됐지? 출발!",
       "🌈 1장: 포켓몬고 세상과 친해지기\n\n🗺️ 포켓몬고는 어떤 게임일까?\n\n포켓몬고는 우리가 사는 진짜 세상에서 포켓몬을 잡고, 키우고, 친구들과 배틀하는 정말 신기한 게임이야!\n\n주우가 밖으로 나가서 걸어 다니면, 스마트폰 화면에 귀여운 포켓몬들이 뿅! 하고 나타날 거야.\n\n그럼 몬스터볼을 던져서 잡으면 돼. 정말 쉽지?",
@@ -46,6 +56,8 @@ export const booksData: Book[] = [
     difficulty: "보통",
     readTime: "25분",
     category: "공략집",
+    hasQuiz: true,
+    quizRewardPoints: { basic: 50, intermediate: 100, master: 200 },
     pages: [
       "⚡ 타입 상성 완전 정복! ⚡\n\n포켓몬 배틀에서 이기려면 타입 상성을 알아야 해!\n\n가위바위보처럼 포켓몬도 서로 강하고 약한 관계가 있어.\n\n이 책을 다 읽으면 주우는 타입 마스터가 될 거야!",
       "🔥 불 타입 (Fire)\n\n대표 포켓몬: 리자몽, 부스터, 윈디\n\n✅ 강한 상대:\n• 풀 타입 (이상해꽃)\n• 벌레 타입 (버터플)\n• 얼음 타입 (라프라스)\n• 강철 타입 (메타그로스)\n\n❌ 약한 상대:\n• 물 타입 (거북왕)\n• 바위 타입 (딱구리)\n• 땅 타입 (딩루)",

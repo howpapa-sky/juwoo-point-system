@@ -1,18 +1,75 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { ArrowLeft, BookOpen, Star, Clock, Sparkles, Trophy, Flame } from "lucide-react";
+import { ArrowLeft, BookOpen, Star, Clock, Sparkles, Trophy, Flame, Gamepad2, CheckCircle2, Lock } from "lucide-react";
 import { booksData, Book } from "@/data/booksData";
+import { supabase } from "@/lib/supabaseClient";
+import { hasQuizForBook } from "@/data/quizData";
 
 export { booksData, type Book };
+
+interface BookProgress {
+  book_id: string;
+  current_page: number;
+  total_pages: number;
+  is_completed: boolean;
+}
+
+interface QuizProgress {
+  book_id: string;
+  quiz_tier: string;
+  is_completed: boolean;
+  best_score: number;
+}
 
 export default function EbookLibrary() {
   const { user, loading: authLoading } = useSupabaseAuth();
   const isAuthenticated = !!user;
   const [selectedCategory, setSelectedCategory] = useState<string>("전체");
+  const [bookProgress, setBookProgress] = useState<Record<string, BookProgress>>({});
+  const [quizProgress, setQuizProgress] = useState<Record<string, QuizProgress[]>>({});
+
+  // 진행률 데이터 로드
+  useEffect(() => {
+    const loadProgress = async () => {
+      // e북 진행률
+      const { data: ebookData } = await supabase
+        .from('ebook_progress')
+        .select('book_id, current_page, total_pages, is_completed')
+        .eq('juwoo_id', 1);
+
+      if (ebookData) {
+        const progressMap: Record<string, BookProgress> = {};
+        ebookData.forEach(p => {
+          progressMap[p.book_id] = p;
+        });
+        setBookProgress(progressMap);
+      }
+
+      // 퀴즈 진행률
+      const { data: quizData } = await supabase
+        .from('ebook_quiz_progress')
+        .select('book_id, quiz_tier, is_completed, best_score')
+        .eq('juwoo_id', 1);
+
+      if (quizData) {
+        const quizMap: Record<string, QuizProgress[]> = {};
+        quizData.forEach(q => {
+          if (!quizMap[q.book_id]) quizMap[q.book_id] = [];
+          quizMap[q.book_id].push(q);
+        });
+        setQuizProgress(quizMap);
+      }
+    };
+
+    if (isAuthenticated) {
+      loadProgress();
+    }
+  }, [isAuthenticated]);
 
   const categories = ["전체", ...Array.from(new Set(booksData.map((book) => book.category)))];
 
@@ -38,6 +95,27 @@ export default function EbookLibrary() {
       default: return "bg-gray-100 text-gray-700";
     }
   };
+
+  // 책 읽기 진행률 계산
+  const getBookReadProgress = (bookId: string, totalPages: number) => {
+    const progress = bookProgress[bookId];
+    if (!progress) return 0;
+    return Math.round(((progress.current_page + 1) / totalPages) * 100);
+  };
+
+  // 책 완독 여부
+  const isBookCompleted = (bookId: string) => {
+    return bookProgress[bookId]?.is_completed || false;
+  };
+
+  // 퀴즈 완료 개수
+  const getQuizCompletedCount = (bookId: string) => {
+    const quizzes = quizProgress[bookId] || [];
+    return quizzes.filter(q => q.is_completed).length;
+  };
+
+  // 완독한 책 개수
+  const completedBooksCount = Object.values(bookProgress).filter(p => p.is_completed).length;
 
   if (authLoading || !isAuthenticated) {
     return (
@@ -91,23 +169,23 @@ export default function EbookLibrary() {
             <div className="text-2xl font-bold text-amber-600">{booksData.length}</div>
             <div className="text-sm text-muted-foreground">전체 도서</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-lg border-2 border-blue-200">
-            <div className="text-3xl mb-1">📖</div>
-            <div className="text-2xl font-bold text-blue-600">
-              {booksData.filter(b => b.category === "공략집").length}
-            </div>
-            <div className="text-sm text-muted-foreground">공략집</div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-lg border-2 border-pink-200">
-            <div className="text-3xl mb-1">🧚</div>
-            <div className="text-2xl font-bold text-pink-600">
-              {booksData.filter(b => b.category === "동화").length}
-            </div>
-            <div className="text-sm text-muted-foreground">동화</div>
-          </div>
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-lg border-2 border-green-200">
+            <div className="text-3xl mb-1">✅</div>
+            <div className="text-2xl font-bold text-green-600">
+              {completedBooksCount} / {booksData.length}
+            </div>
+            <div className="text-sm text-muted-foreground">완독한 책</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-lg border-2 border-purple-200">
+            <div className="text-3xl mb-1">🎮</div>
+            <div className="text-2xl font-bold text-purple-600">
+              {booksData.filter(b => hasQuizForBook(b.id)).length}
+            </div>
+            <div className="text-sm text-muted-foreground">퀴즈 있는 책</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 text-center shadow-lg border-2 border-yellow-200">
             <div className="text-3xl mb-1">🎁</div>
-            <div className="text-2xl font-bold text-green-600">500</div>
+            <div className="text-2xl font-bold text-yellow-600">500</div>
             <div className="text-sm text-muted-foreground">완독 보상</div>
           </div>
         </div>
@@ -148,9 +226,16 @@ export default function EbookLibrary() {
                       <div className="p-6 bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900 dark:to-orange-900 rounded-2xl mb-3 group-hover:scale-110 transition-transform duration-300 shadow-md">
                         <span className="text-6xl">{book.coverEmoji}</span>
                       </div>
-                      {book.category === "공략집" && (
-                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full p-1.5 shadow-lg">
-                          <Trophy className="h-4 w-4 text-white" />
+                      {/* 완독 배지 */}
+                      {isBookCompleted(book.id) && (
+                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full p-1.5 shadow-lg">
+                          <CheckCircle2 className="h-4 w-4 text-white" />
+                        </div>
+                      )}
+                      {/* 퀴즈 있음 배지 */}
+                      {!isBookCompleted(book.id) && hasQuizForBook(book.id) && (
+                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full p-1.5 shadow-lg">
+                          <Gamepad2 className="h-4 w-4 text-white" />
                         </div>
                       )}
                     </div>
@@ -159,6 +244,31 @@ export default function EbookLibrary() {
                     </h2>
                     <p className="text-sm text-muted-foreground">by {book.author}</p>
                   </div>
+
+                  {/* 진행률 바 */}
+                  {bookProgress[book.id] && !isBookCompleted(book.id) && (
+                    <div className="mb-4">
+                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                        <span>읽는 중...</span>
+                        <span>{getBookReadProgress(book.id, book.pages.length)}%</span>
+                      </div>
+                      <Progress value={getBookReadProgress(book.id, book.pages.length)} className="h-2" />
+                    </div>
+                  )}
+
+                  {/* 완독 & 퀴즈 상태 */}
+                  {isBookCompleted(book.id) && (
+                    <div className="mb-4 p-2 bg-green-50 dark:bg-green-900/30 rounded-lg text-center">
+                      <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                        ✅ 완독!
+                        {hasQuizForBook(book.id) && (
+                          <span className="ml-2">
+                            🎮 퀴즈 {getQuizCompletedCount(book.id)}/3
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  )}
 
                   {/* 책 설명 */}
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 text-center line-clamp-2 min-h-[2.5rem]">

@@ -43,6 +43,9 @@ drizzle/
 | `/word-learning` | WordLearning.tsx | 단어 학습 |
 | `/english-quiz` | EnglishQuiz.tsx | 영어 퀴즈 |
 | `/pokemon-quiz` | PokemonQuiz.tsx | 포켓몬 퀴즈 |
+| `/ebook-library` | EbookLibrary.tsx | e북 도서관 |
+| `/ebook-reader/:bookId` | EbookReader.tsx | e북 리더 |
+| `/ebook-quiz/:bookId` | EbookQuiz.tsx | e북 전용 퀴즈 (NEW) |
 | `/transactions` | Transactions.tsx | 거래 내역 |
 
 ## 데이터베이스 테이블
@@ -54,6 +57,9 @@ drizzle/
 - `english_words` - 영어 단어 (100개)
 - `english_learning_progress` - 학습 진행률
 - `goals` - 목표 설정
+- `ebook_progress` - e북 읽기 진행률 (NEW)
+- `ebook_quiz_progress` - e북 퀴즈 진행률 (NEW)
+- `quiz_attempt_history` - 퀴즈 시도 기록 (NEW)
 
 ## 포인트 거래 INSERT 패턴
 ```typescript
@@ -79,6 +85,23 @@ await supabase.from('point_transactions').insert({
 VITE_SUPABASE_URL=<supabase-url>
 VITE_SUPABASE_ANON_KEY=<supabase-anon-key>
 ```
+
+## e북 퀴즈 시스템 (NEW)
+### 플로우
+1. e북 완독 → 기초 퀴즈 잠금 해제
+2. 기초 퀴즈 60% 이상 → 실력 퀴즈 해금
+3. 실력 퀴즈 60% 이상 → 마스터 퀴즈 해금
+
+### 힌트 시스템
+- 힌트 1개당 포인트 10% 감소
+- 최대 9개까지 사용 가능 (최소 1점 보장)
+- 힌트 종류: 텍스트 힌트, 책 페이지 힌트, 오답 제거
+
+### 관련 파일
+- `client/src/pages/EbookQuiz.tsx` - 퀴즈 페이지
+- `client/src/data/quizData/` - 퀴즈 데이터
+- `client/src/hooks/useEbookProgress.ts` - e북 진행률 훅
+- `client/src/hooks/useQuizProgress.ts` - 퀴즈 진행률 훅
 
 ## 커밋 컨벤션
 - `feat:` 새 기능

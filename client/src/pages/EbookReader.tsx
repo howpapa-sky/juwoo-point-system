@@ -17,11 +17,14 @@ import {
   ZoomIn,
   ZoomOut,
   Trophy,
+  Gamepad2,
 } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { booksData, Book } from "./EbookLibrary";
 import { supabase } from "@/lib/supabaseClient";
+import { useEbookProgress } from "@/hooks/useEbookProgress";
+import { useQuizProgress } from "@/hooks/useQuizProgress";
 
 export default function EbookReader() {
   const { user, loading: authLoading } = useSupabaseAuth();
@@ -35,6 +38,16 @@ export default function EbookReader() {
   const [book, setBook] = useState<Book | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
 
+  // e북 진행률 훅
+  const {
+    progress: ebookProgress,
+    saveProgress: saveEbookProgress,
+    isCompleted: wasAlreadyCompleted
+  } = useEbookProgress(bookId || '', book?.pages.length || 0);
+
+  // 퀴즈 진행률 훅
+  const { unlockTier } = useQuizProgress(bookId || '');
+
   // 책 데이터 로드
   useEffect(() => {
     const foundBook = booksData.find((b) => b.id === bookId);
@@ -43,22 +56,22 @@ export default function EbookReader() {
     }
   }, [bookId]);
 
-  // 로컬 스토리지에서 읽기 위치 복원
+  // Supabase에서 읽기 위치 복원
   useEffect(() => {
-    if (book) {
-      const savedPage = localStorage.getItem(`ebook-${book.id}-page`);
-      if (savedPage) {
-        setCurrentPage(parseInt(savedPage, 10));
+    if (book && ebookProgress) {
+      setCurrentPage(ebookProgress.current_page);
+      if (ebookProgress.is_completed) {
+        setIsCompleted(true);
       }
     }
-  }, [book]);
+  }, [book, ebookProgress]);
 
-  // 페이지 변경 시 저장
+  // 페이지 변경 시 Supabase에 저장
   useEffect(() => {
-    if (book) {
-      localStorage.setItem(`ebook-${book.id}-page`, currentPage.toString());
+    if (book && currentPage > 0) {
+      saveEbookProgress(currentPage);
     }
-  }, [currentPage, book]);
+  }, [currentPage, book, saveEbookProgress]);
 
   const totalPages = book?.pages.length || 0;
   const progress = totalPages > 0 ? ((currentPage + 1) / totalPages) * 100 : 0;
@@ -85,8 +98,16 @@ export default function EbookReader() {
       });
       toast.success("책을 다 읽었어요! 대단해요! 🎉");
 
-      // 포인트 적립
-      await awardReadingPoints();
+      // 포인트 적립 (처음 완독 시에만)
+      if (!wasAlreadyCompleted) {
+        await awardReadingPoints();
+      }
+
+      // 퀴즈가 있는 책이면 기초 퀴즈 잠금 해제
+      if (book.hasQuiz) {
+        await unlockTier('basic');
+        toast.success("🎮 퀴즈가 열렸어요! 도전해볼까?");
+      }
     }
   };
 
@@ -211,16 +232,38 @@ export default function EbookReader() {
                 <p className="text-lg font-medium">
                   주우, 정말 대단해요! 책 읽기 완료! 📚✨
                 </p>
-                <p className="text-amber-700 dark:text-amber-300 mt-2">
-                  500 포인트를 받았어요!
-                </p>
+                {!wasAlreadyCompleted && (
+                  <p className="text-amber-700 dark:text-amber-300 mt-2">
+                    500 포인트를 받았어요!
+                  </p>
+                )}
               </div>
+
+              {/* 퀴즈 도전 버튼 */}
+              {book.hasQuiz && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-2xl">
+                  <p className="text-lg font-bold mb-2">🎮 퀴즈에 도전해볼까?</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                    책 내용을 잘 읽었는지 확인해봐!
+                  </p>
+                  <Link href={`/ebook-quiz/${book.id}`}>
+                    <Button
+                      size="lg"
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold"
+                    >
+                      <Gamepad2 className="h-5 w-5 mr-2" />
+                      퀴즈 도전하기!
+                    </Button>
+                  </Link>
+                </div>
+              )}
 
               <div className="flex gap-4 justify-center flex-wrap">
                 <Button
                   size="lg"
                   onClick={handleRestart}
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold"
+                  variant="outline"
+                  className="font-bold"
                 >
                   다시 읽기
                 </Button>

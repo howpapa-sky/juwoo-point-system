@@ -321,6 +321,46 @@ export default function FlashCard() {
     }
   };
 
+  // 학습 기록 저장
+  const saveLearningProgress = async (wordId: number, isCorrect: boolean) => {
+    try {
+      // 기존 진행률 확인
+      const { data: existing } = await supabase
+        .from('english_learning_progress')
+        .select('*')
+        .eq('juwoo_id', 1)
+        .eq('word_id', wordId)
+        .single();
+
+      if (existing) {
+        // 기존 기록 업데이트
+        await supabase
+          .from('english_learning_progress')
+          .update({
+            review_count: existing.review_count + 1,
+            correct_count: existing.correct_count + (isCorrect ? 1 : 0),
+            mastery_level: isCorrect ? Math.min(5, existing.mastery_level + 1) : Math.max(0, existing.mastery_level - 1),
+            last_reviewed_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id);
+      } else {
+        // 새 기록 생성
+        await supabase
+          .from('english_learning_progress')
+          .insert({
+            juwoo_id: 1,
+            word_id: wordId,
+            review_count: 1,
+            correct_count: isCorrect ? 1 : 0,
+            mastery_level: isCorrect ? 1 : 0,
+            last_reviewed_at: new Date().toISOString(),
+          });
+      }
+    } catch (error) {
+      console.error('학습 기록 저장 실패:', error);
+    }
+  };
+
   const handleKnown = async () => {
     if (!currentWord) return;
 
@@ -337,6 +377,9 @@ export default function FlashCard() {
       xp: prev.xp + xpGain,
       stars: prev.stars + starsGain,
     }));
+
+    // 학습 기록 저장
+    saveLearningProgress(currentWord.id, true);
 
     // 플로팅 XP 표시
     setFloatingXp({ amount: xpGain, id: Date.now() });
@@ -355,7 +398,7 @@ export default function FlashCard() {
     nextCard();
   };
 
-  const handleUnknown = () => {
+  const handleUnknown = async () => {
     if (!currentWord) return;
 
     setUnknownWords(prev => [...prev, currentWord.id]);
@@ -364,6 +407,9 @@ export default function FlashCard() {
       unknownCards: prev.unknownCards + 1,
       streak: 0,
     }));
+
+    // 학습 기록 저장
+    saveLearningProgress(currentWord.id, false);
 
     toast(getRandomMessage("wrong"), { icon: "💪" });
     nextCard();

@@ -137,7 +137,7 @@ export default function AdminQuizzes() {
       question: quiz.question,
       options: quiz.options || ["", "", "", ""],
       correctAnswer: quiz.correctAnswer,
-      hints: quiz.hints?.map(h => ({ type: "text", content: h.text, pageReference: undefined })) || [],
+      hints: quiz.hints?.map(h => ({ type: "text", content: h.text || h.pageHint || "", pageReference: undefined })) || [],
       basePoints: quiz.points,
     });
     setDialogOpen(true);

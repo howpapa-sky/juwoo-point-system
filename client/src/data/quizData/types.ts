@@ -5,7 +5,7 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 export type QuizTier = 'basic' | 'intermediate' | 'master';
 
 export interface QuizHint {
-  text: string;                    // 일반 힌트 텍스트
+  text?: string;                   // 일반 힌트 텍스트
   pageHint?: string;               // 책 페이지 힌트 (예: "3페이지에서 찾아봐!")
   eliminateOption?: number;        // 제거할 오답 인덱스 (0~3, 4지선다용)
 }

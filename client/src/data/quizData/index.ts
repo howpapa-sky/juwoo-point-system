@@ -2,15 +2,18 @@
 export * from './types';
 export { pokemonGoGuideQuiz } from './pokemonGoGuideQuiz';
 export { typeMatchupQuiz } from './typeMatchupQuiz';
+export { dragonVillageQuiz } from './dragonVillageQuiz';
 
 import { QuizQuestion, QuizTier } from './types';
 import { pokemonGoGuideQuiz } from './pokemonGoGuideQuiz';
 import { typeMatchupQuiz } from './typeMatchupQuiz';
+import { dragonVillageQuiz } from './dragonVillageQuiz';
 
 // 모든 퀴즈 데이터
 const allQuizData: QuizQuestion[] = [
   ...pokemonGoGuideQuiz,
   ...typeMatchupQuiz,
+  ...dragonVillageQuiz,
 ];
 
 // 책 ID로 퀴즈 가져오기

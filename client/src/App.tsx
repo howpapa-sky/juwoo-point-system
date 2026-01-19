@@ -19,6 +19,7 @@ import EnglishLearning from "./pages/EnglishLearning";
 import FlashCard from "./pages/FlashCard";
 import EnglishQuiz from "./pages/EnglishQuiz";
 import PokemonQuiz from "./pages/PokemonQuiz";
+import DragonVillageQuiz from "./pages/DragonVillageQuiz";
 import EbookLibrary from "./pages/EbookLibrary";
 import EbookReader from "./pages/EbookReader";
 import EbookQuiz from "./pages/EbookQuiz";
@@ -142,6 +143,13 @@ function Router() {
         {() => (
           <AppLayout>
             <PokemonQuiz />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/dragon-village-quiz"}>
+        {() => (
+          <AppLayout>
+            <DragonVillageQuiz />
           </AppLayout>
         )}
       </Route>

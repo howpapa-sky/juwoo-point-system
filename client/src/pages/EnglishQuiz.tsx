@@ -28,6 +28,7 @@ import {
   Keyboard,
   MousePointer,
   Heart,
+  HelpCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
@@ -41,6 +42,16 @@ import {
   type WordCategory,
   type WordDifficulty,
 } from "@/data/englishWordsData";
+import {
+  FEEDBACK_MESSAGES,
+  getRandomMessage,
+  getCorrectMessage,
+  getIncorrectMessage,
+  getDontKnowMessage,
+  getGuessingMessage,
+  getStreakMessage,
+  SESSION_CONFIG,
+} from "@/constants/feedbackMessages";
 
 // 퀴즈 모드 타입
 type QuizMode = "multiple-choice" | "typing" | "listening" | "reverse" | "mixed";
@@ -141,8 +152,18 @@ export default function EnglishQuiz() {
   const [timeLeft, setTimeLeft] = useState(15);
   const [totalTime, setTotalTime] = useState(0);
 
+  // 🆕 주우 맞춤 개선 - 새로운 상태들
+  const [hintLevel, setHintLevel] = useState(0); // 0~3단계 힌트
+  const [answerStartTime, setAnswerStartTime] = useState<number>(0); // 문제 시작 시간
+  const [lastAnswerPattern, setLastAnswerPattern] = useState<string[]>([]); // 최근 답변 패턴
+  const [guessingDetected, setGuessingDetected] = useState(false); // 찍기 감지됨
+  const [usedDontKnow, setUsedDontKnow] = useState(false); // 모르겠어요 사용
+  const [totalCoins, setTotalCoins] = useState(0); // 획득 코인
+  const [dontKnowCount, setDontKnowCount] = useState(0); // 모르겠어요 사용 횟수
+  const [guessingCount, setGuessingCount] = useState(0); // 찍기 감지 횟수
+
   const inputRef = useRef<HTMLInputElement>(null);
-  const totalQuestions = 15;
+  const totalQuestions = SESSION_CONFIG.defaultQuestionCount; // 🆕 7문제로 변경
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + (isAnswered ? 1 : 0)) / totalQuestions) * 100;
 
@@ -163,14 +184,95 @@ export default function EnglishQuiz() {
     return () => clearTimeout(timer);
   }, [timeLeft, useTimer, gameState, isAnswered]);
 
+  // 🆕 문제 시작 시간 기록
+  useEffect(() => {
+    if (currentQuestion && gameState === "playing" && !isAnswered) {
+      setAnswerStartTime(Date.now());
+      setGuessingDetected(false);
+      setUsedDontKnow(false);
+    }
+  }, [currentIndex, gameState]);
+
+  // 🆕 찍기 감지 함수
+  const detectGuessing = (selectedAnswer: string): 'normal' | 'fast' | 'pattern' => {
+    const answerTime = Date.now() - answerStartTime;
+
+    // 1. 시간 기반 감지: 3초 이내 답변
+    if (answerTime < SESSION_CONFIG.fastAnswerThreshold) {
+      return 'fast';
+    }
+
+    // 2. 패턴 기반 감지: 최근 5문제 중 4개 이상 같은 답
+    const recentAnswers = [...lastAnswerPattern.slice(-(SESSION_CONFIG.patternDetectionWindow - 1)), selectedAnswer];
+    const sameAnswerCount = recentAnswers.filter(a => a === selectedAnswer).length;
+    if (recentAnswers.length >= SESSION_CONFIG.patternDetectionWindow &&
+        sameAnswerCount >= SESSION_CONFIG.patternThreshold) {
+      return 'pattern';
+    }
+
+    return 'normal';
+  };
+
+  // 🆕 찍기 감지 시 처리
+  const handleGuessingDetected = (type: 'fast' | 'pattern') => {
+    setGuessingDetected(true);
+    setGuessingCount(prev => prev + 1);
+
+    toast.warning(
+      type === 'fast'
+        ? getRandomMessage(FEEDBACK_MESSAGES.guessing)
+        : "하나씩 잘 읽어보자! 📖",
+      {
+        description: "천천히 다시 생각해볼까?",
+        duration: 3000,
+      }
+    );
+  };
+
+  // 🆕 "모르겠어요" 버튼 핸들러
+  const handleDontKnow = () => {
+    if (isAnswered) return;
+
+    setUsedDontKnow(true);
+    setIsAnswered(true);
+    setIsCorrect(false);
+    setDontKnowCount(prev => prev + 1);
+    setStreak(0);
+    // 목숨은 유지! (찍기와 다르게 솔직하게 말했으므로)
+
+    // 1 코인 획득
+    setTotalCoins(prev => prev + 1);
+
+    toast.success(getDontKnowMessage(), {
+      description: `정답: ${currentQuestion.correctAnswer}`,
+      duration: 4000,
+    });
+
+    // 정답 발음 재생
+    speakWord(currentQuestion.word.word);
+  };
+
+  // 🆕 힌트 생성 함수
+  const getHints = () => {
+    if (!currentQuestion) return [];
+    const word = currentQuestion.word;
+    return [
+      `이 단어는 "${word.category}" 종류야!`, // 힌트 1: 카테고리
+      word.example ? `문장에서 쓰면: "${word.example}"` : `발음은 "${word.pronunciation}"야!`, // 힌트 2: 예문 또는 발음
+      `정답의 첫 글자는 "${currentQuestion.correctAnswer.charAt(0)}"야!`, // 힌트 3: 첫글자
+    ];
+  };
+
   // 시간 초과
   const handleTimeout = () => {
     setIsAnswered(true);
     setIsCorrect(false);
     setStreak(0);
-    setLives(prev => prev - 1);
-    playSound("wrong");
-    toast.error("시간 초과! ⏰");
+    // 🆕 시간 초과도 목숨 유지 (주우에게 부담 줄이기)
+    toast.info("시간이 다 됐어! ⏰", {
+      description: `정답: ${currentQuestion.correctAnswer}`,
+    });
+    speakWord(currentQuestion.word.word);
   };
 
   // 퀴즈 문제 생성
@@ -249,9 +351,17 @@ export default function EnglishQuiz() {
     setCorrectCount(0);
     setStreak(0);
     setMaxStreak(0);
-    setLives(3);
+    setLives(5); // 🆕 목숨 5개로 증가 (여유롭게)
     setTimeLeft(15);
     setTotalTime(0);
+    // 🆕 새로운 상태들 리셋
+    setHintLevel(0);
+    setTotalCoins(0);
+    setDontKnowCount(0);
+    setGuessingCount(0);
+    setLastAnswerPattern([]);
+    setGuessingDetected(false);
+    setUsedDontKnow(false);
     setGameState("playing");
 
     // 첫 문제가 듣기면 자동 재생
@@ -288,13 +398,25 @@ export default function EnglishQuiz() {
   // 객관식 답 선택
   const handleSelectAnswer = (answer: string) => {
     if (isAnswered) return;
+
+    // 🆕 찍기 감지 (객관식만)
+    const guessingType = detectGuessing(answer);
+    if (guessingType !== 'normal') {
+      handleGuessingDetected(guessingType);
+      // 찍기 감지 시 같은 문제 유지 (답변 처리 안 함)
+      return;
+    }
+
     setUserAnswer(answer);
+    setLastAnswerPattern(prev => [...prev.slice(-(SESSION_CONFIG.patternDetectionWindow - 1)), answer]);
     submitAnswer(answer);
   };
 
   // 주관식 제출
   const handleSubmitTyping = () => {
     if (isAnswered || !userAnswer.trim()) return;
+    // 주관식은 찍기 감지 안 함 (타이핑 필요하므로)
+    setLastAnswerPattern(prev => [...prev.slice(-(SESSION_CONFIG.patternDetectionWindow - 1)), userAnswer]);
     submitAnswer(userAnswer);
   };
 
@@ -304,42 +426,70 @@ export default function EnglishQuiz() {
     const correct = checkAnswer(answer);
     setIsCorrect(correct);
 
+    // 🆕 코인 계산 (난이도별)
+    const difficultyCoins = {
+      easy: 2,
+      medium: 3,
+      hard: 5,
+    };
+    const baseCoins = difficultyCoins[currentQuestion.word.difficulty];
+
     if (correct) {
       // 정답
       const basePoints = currentQuestion.word.difficulty === "easy" ? 10 :
                         currentQuestion.word.difficulty === "medium" ? 15 : 20;
-      const streakBonus = Math.min(streak * 2, 10); // 최대 10점 스트릭 보너스
-      const timeBonus = useTimer ? Math.floor(timeLeft / 3) : 0; // 시간 보너스
+      const streakBonus = Math.min(streak * 2, 10);
+      const timeBonus = useTimer ? Math.floor(timeLeft / 3) : 0;
       const totalPoints = basePoints + streakBonus + timeBonus;
+
+      // 🆕 코인 계산 (힌트 미사용 보너스)
+      const hintBonus = hintLevel === 0 ? 1 : 0;
+      const earnedCoins = baseCoins + hintBonus;
+      setTotalCoins(prev => prev + earnedCoins);
 
       setScore(prev => prev + totalPoints);
       setCorrectCount(prev => prev + 1);
       setStreak(prev => prev + 1);
       setMaxStreak(prev => Math.max(prev, streak + 1));
 
-      if (streak >= 2) {
+      // 🆕 개선된 피드백 메시지
+      const newStreak = streak + 1;
+      const streakMsg = getStreakMessage(newStreak);
+
+      if (newStreak >= 3) {
         playSound("streak");
-        toast.success(`🔥 ${streak + 1}연속 정답! +${totalPoints}점`);
+        toast.success(getCorrectMessage(currentQuestion.word.difficulty), {
+          description: streakMsg || `+${earnedCoins} 코인 🪙`,
+          duration: 2500,
+        });
       } else {
         playSound("correct");
-        toast.success(`정답! +${totalPoints}점`);
+        toast.success(getCorrectMessage(currentQuestion.word.difficulty), {
+          description: hintBonus > 0 ? "스스로 해냈어! 🌟" : `+${earnedCoins} 코인 🪙`,
+          duration: 2500,
+        });
       }
 
       // 연속 정답 효과
-      if (streak >= 4) {
+      if (newStreak >= 4) {
         confetti({
-          particleCount: 30 + streak * 5,
+          particleCount: 30 + newStreak * 5,
           spread: 60,
           origin: { y: 0.7 },
           colors: ["#FFD700", "#FF6B6B", "#4ECDC4"],
         });
       }
     } else {
-      // 오답
+      // 🆕 오답이지만 긍정적 피드백 + 1 코인
       playSound("wrong");
       setStreak(0);
-      setLives(prev => prev - 1);
-      toast.error(`틀렸어요! 정답: ${currentQuestion.correctAnswer}`);
+      setTotalCoins(prev => prev + 1); // 끝까지 풀었으니 1코인
+      // 목숨 감소하지 않음 (주우에게 부담 줄이기)
+
+      toast.info(getIncorrectMessage(), {
+        description: `정답: ${currentQuestion.correctAnswer} (+1 코인 🪙)`,
+        duration: 3000,
+      });
     }
 
     // 정답 발음 재생
@@ -348,20 +498,16 @@ export default function EnglishQuiz() {
 
   // 다음 문제
   const handleNext = async () => {
-    // 목숨 0이면 게임 오버
-    if (lives <= 0 && !isCorrect) {
-      setGameState("result");
-      playSound("complete");
-      await awardPoints();
-      return;
-    }
-
+    // 🆕 목숨 체크 제거 (주우에게 부담 줄이기)
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex(prev => prev + 1);
       setUserAnswer("");
       setIsAnswered(false);
       setIsCorrect(false);
       setTimeLeft(15);
+      setHintLevel(0); // 🆕 힌트 레벨 리셋
+      setGuessingDetected(false);
+      setUsedDontKnow(false);
 
       // 듣기 문제면 자동 재생
       const nextQuestion = questions[currentIndex + 1];
@@ -381,7 +527,7 @@ export default function EnglishQuiz() {
       playSound("complete");
       await awardPoints();
 
-      if (correctCount >= totalQuestions * 0.9) {
+      if (correctCount >= totalQuestions * 0.7) {
         confetti({
           particleCount: 200,
           spread: 100,
@@ -685,6 +831,12 @@ export default function EnglishQuiz() {
                 ))}
               </div>
 
+              {/* 🆕 획득 코인 강조 표시 */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-yellow-100 to-amber-100 rounded-xl border-2 border-yellow-300">
+                <div className="text-5xl font-bold text-yellow-600 mb-1">{totalCoins} 🪙</div>
+                <div className="text-sm text-yellow-700">획득 코인</div>
+              </div>
+
               {/* 점수 표시 */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div className="p-4 bg-blue-100 rounded-xl">
@@ -724,6 +876,15 @@ export default function EnglishQuiz() {
 
               {/* 버튼 */}
               <div className="flex gap-4 justify-center flex-wrap">
+                {/* 🆕 더 풀래요 버튼 (연속 학습 유도) */}
+                <Button
+                  size="lg"
+                  onClick={startGame}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold animate-pulse"
+                >
+                  <Sparkles className="h-5 w-5 mr-2" />
+                  더 풀래요! 🎯
+                </Button>
                 <Button
                   size="lg"
                   onClick={() => setGameState("menu")}
@@ -788,12 +949,12 @@ export default function EnglishQuiz() {
           </Button>
 
           <div className="flex items-center gap-2">
-            {/* 목숨 */}
+            {/* 🆕 목숨 5개로 변경 */}
             <div className="flex items-center gap-1 px-3 py-1 bg-red-100 rounded-full">
-              {[...Array(3)].map((_, i) => (
+              {[...Array(5)].map((_, i) => (
                 <Heart
                   key={i}
-                  className={`h-5 w-5 ${
+                  className={`h-4 w-4 ${
                     i < lives ? "fill-red-500 text-red-500" : "fill-gray-300 text-gray-300"
                   }`}
                 />
@@ -823,13 +984,17 @@ export default function EnglishQuiz() {
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
+              {/* 🆕 난이도 별 표시 */}
               <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                 currentQuestion.word.difficulty === "easy" ? "bg-green-100 text-green-700" :
-                currentQuestion.word.difficulty === "medium" ? "bg-yellow-100 text-yellow-700" :
+                currentQuestion.word.difficulty === "medium" ? "bg-amber-100 text-amber-700" :
                 "bg-red-100 text-red-700"
               }`}>
-                {currentQuestion.word.difficulty === "easy" ? "쉬움" :
-                 currentQuestion.word.difficulty === "medium" ? "보통" : "어려움"}
+                {currentQuestion.word.difficulty === "easy" && "★ 기본"}
+                {currentQuestion.word.difficulty === "medium" && "★★ 보통"}
+                {currentQuestion.word.difficulty === "hard" && (
+                  <>★★★ 도전! <span className="text-[10px]">(틀려도 OK!)</span></>
+                )}
               </span>
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
                 {getModeIcon()} {getModeLabel()}
@@ -935,6 +1100,51 @@ export default function EnglishQuiz() {
               )}
             </div>
 
+            {/* 🆕 3단계 힌트 시스템 */}
+            {!isAnswered && (
+              <div className="mb-4">
+                {/* 힌트 표시 영역 */}
+                {hintLevel > 0 && (
+                  <div className="mb-3 p-3 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                    <div className="flex items-start gap-2">
+                      <Lightbulb className="h-5 w-5 text-yellow-600 mt-0.5" />
+                      <div className="text-sm">
+                        {getHints().slice(0, hintLevel).map((hint, i) => (
+                          <p key={i} className="text-yellow-800 mb-1">💡 힌트 {i + 1}: {hint}</p>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-yellow-600 mt-2">힌트를 써도 코인은 그대로야! 걱정마!</p>
+                  </div>
+                )}
+
+                {/* 힌트 버튼 */}
+                {hintLevel < 3 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setHintLevel(prev => Math.min(prev + 1, 3))}
+                    className="text-yellow-700 border-yellow-300 hover:bg-yellow-50"
+                  >
+                    <HelpCircle className="h-4 w-4 mr-1" />
+                    힌트 {hintLevel + 1} 보기 💡
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* 🆕 찍기 감지 경고 */}
+            {guessingDetected && !isAnswered && (
+              <div className="mb-4 p-3 bg-amber-50 border-2 border-amber-300 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <Timer className="h-5 w-5 text-amber-600" />
+                  <span className="text-amber-700 font-medium">
+                    천천히 다시 생각해볼까? 🤔
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* 답변 영역 */}
             {/* 객관식 / 듣기 / 역방향 */}
             {(currentQuestion.questionType === "multiple-choice" ||
@@ -977,6 +1187,25 @@ export default function EnglishQuiz() {
               </div>
             )}
 
+            {/* 🆕 "모르겠어요" 버튼 - 객관식/듣기/역방향 */}
+            {(currentQuestion.questionType === "multiple-choice" ||
+              currentQuestion.questionType === "listening" ||
+              currentQuestion.questionType === "reverse") && !isAnswered && (
+              <div className="mt-4 text-center">
+                <Button
+                  variant="outline"
+                  onClick={handleDontKnow}
+                  className="text-purple-600 border-purple-300 hover:bg-purple-50 font-medium"
+                >
+                  <HelpCircle className="h-4 w-4 mr-2" />
+                  모르겠어요 🤷 (+1 코인)
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">
+                  솔직하게 말하면 1코인을 받아요!
+                </p>
+              </div>
+            )}
+
             {/* 타이핑 */}
             {currentQuestion.questionType === "typing" && (
               <div className="space-y-4">
@@ -1000,6 +1229,20 @@ export default function EnglishQuiz() {
                     확인
                   </Button>
                 </div>
+
+                {/* 🆕 타이핑 모드 "모르겠어요" 버튼 */}
+                {!isAnswered && (
+                  <div className="text-center">
+                    <Button
+                      variant="outline"
+                      onClick={handleDontKnow}
+                      className="text-purple-600 border-purple-300 hover:bg-purple-50 font-medium"
+                    >
+                      <HelpCircle className="h-4 w-4 mr-2" />
+                      모르겠어요 🤷 (+1 코인)
+                    </Button>
+                  </div>
+                )}
 
                 {isAnswered && (
                   <div className={`p-4 rounded-xl ${isCorrect ? "bg-green-100" : "bg-red-100"}`}>

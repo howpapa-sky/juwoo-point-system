@@ -25,6 +25,7 @@ import { booksData, Book } from "./EbookLibrary";
 import { supabase } from "@/lib/supabaseClient";
 import { useEbookProgress } from "@/hooks/useEbookProgress";
 import { useQuizProgress } from "@/hooks/useQuizProgress";
+import { hasQuizForBook } from "@/data/quizData";
 
 export default function EbookReader() {
   const { user, loading: authLoading } = useSupabaseAuth();
@@ -104,7 +105,7 @@ export default function EbookReader() {
       }
 
       // 퀴즈가 있는 책이면 기초 퀴즈 잠금 해제
-      if (book.hasQuiz) {
+      if (hasQuizForBook(book.id)) {
         await unlockTier('basic');
         toast.success("🎮 퀴즈가 열렸어요! 도전해볼까?");
       }
@@ -240,7 +241,7 @@ export default function EbookReader() {
               </div>
 
               {/* 퀴즈 도전 버튼 */}
-              {book.hasQuiz && (
+              {hasQuizForBook(book.id) && (
                 <div className="mb-6 p-4 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-2xl">
                   <p className="text-lg font-bold mb-2">🎮 퀴즈에 도전해볼까?</p>
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">

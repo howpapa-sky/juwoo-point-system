@@ -18,6 +18,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { englishWordsData, type EnglishWord, type WordCategory, type WordDifficulty } from "@/data/englishWordsData";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
+import { useBadges } from "@/hooks/useBadges.js";
 
 // ============================================
 // 🎯 타입 정의
@@ -190,6 +191,9 @@ const levelTitles = [
 export default function FlashCard() {
   const { user, loading: authLoading } = useSupabaseAuth();
   const isAuthenticated = !!user;
+
+  // 배지 시스템
+  const { checkAndAwardBadges } = useBadges();
 
   // 게임 상태
   const [phase, setPhase] = useState<GamePhase>("setup");
@@ -657,6 +661,12 @@ export default function FlashCard() {
     const totalPoints = basePoints + bonusPoints;
 
     await awardPoints(totalPoints, isPerfect);
+
+    // 배지 체크 (학습 완료 후)
+    setTimeout(() => {
+      checkAndAwardBadges();
+    }, 1000);
+
     setPhase("result");
   };
 

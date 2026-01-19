@@ -25,10 +25,27 @@ import {
   ChevronRight,
   ChevronLeft,
   Crown,
+  Users,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { supabase } from "@/lib/supabaseClient";
+import {
+  FEEDBACK_MESSAGES,
+  getRandomMessage,
+  getCorrectMessage,
+  getIncorrectMessage,
+  getDontKnowMessage,
+  getGuessingMessage,
+  getStreakMessage,
+  calculateCoins,
+  DIFFICULTY_CONFIG,
+  SESSION_CONFIG,
+  ADAPTIVE_PATTERN,
+  RECOVERY_EASY_COUNT,
+  CONSECUTIVE_WRONG_THRESHOLD,
+} from "@/constants/feedbackMessages";
 
 // 문제 타입 정의
 type QuestionType = "multiple-choice" | "short-answer" | "fill-blank" | "true-false";
@@ -1187,10 +1204,33 @@ export default function PokemonQuiz() {
   const [useTimer, setUseTimer] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const totalQuestions = 10;
+  // 🆕 새로운 상태들 - 주우 맞춤 개선
+  const [hintLevel, setHintLevel] = useState(0); // 0~3단계 힌트
+  const [answerStartTime, setAnswerStartTime] = useState<number>(0); // 문제 시작 시간
+  const [consecutiveFastAnswers, setConsecutiveFastAnswers] = useState(0); // 연속 빠른 답변
+  const [lastAnswerPattern, setLastAnswerPattern] = useState<string[]>([]); // 최근 답변 패턴
+  const [guessingDetected, setGuessingDetected] = useState(false); // 찍기 감지됨
+  const [usedDontKnow, setUsedDontKnow] = useState(false); // 모르겠어요 사용
+  const [streak, setStreak] = useState(0); // 연속 정답
+  const [consecutiveWrong, setConsecutiveWrong] = useState(0); // 연속 오답
+  const [totalCoins, setTotalCoins] = useState(0); // 획득 코인
+  const [dontKnowCount, setDontKnowCount] = useState(0); // 모르겠어요 사용 횟수
+  const [guessingCount, setGuessingCount] = useState(0); // 찍기 감지 횟수
+  const [gameMode, setGameMode] = useState<"solo" | "coop">("solo"); // 게임 모드
+
+  const totalQuestions = SESSION_CONFIG.defaultQuestionCount; // 7문제로 변경
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + (isAnswered ? 1 : 0)) / totalQuestions) * 100;
   const maxScore = questions.reduce((sum, q) => sum + q.points, 0);
+
+  // 🆕 문제 시작 시간 기록
+  useEffect(() => {
+    if (currentQuestion && gameState === "playing" && !isAnswered) {
+      setAnswerStartTime(Date.now());
+      setGuessingDetected(false);
+      setUsedDontKnow(false);
+    }
+  }, [currentIndex, gameState]);
 
   useEffect(() => {
     if (!useTimer || gameState !== "playing" || isAnswered) return;
@@ -1204,14 +1244,119 @@ export default function PokemonQuiz() {
     return () => clearTimeout(timer);
   }, [timeLeft, useTimer, gameState, isAnswered]);
 
+  // 🆕 찍기 감지 함수
+  const detectGuessing = (selectedAnswer: string): 'normal' | 'fast' | 'pattern' => {
+    const answerTime = Date.now() - answerStartTime;
+
+    // 1. 시간 기반 감지: 3초 이내 답변
+    if (answerTime < SESSION_CONFIG.fastAnswerThreshold) {
+      return 'fast';
+    }
+
+    // 2. 패턴 기반 감지: 최근 5문제 중 4개 이상 같은 답
+    const recentAnswers = [...lastAnswerPattern.slice(-(SESSION_CONFIG.patternDetectionWindow - 1)), selectedAnswer];
+    const sameAnswerCount = recentAnswers.filter(a => a === selectedAnswer).length;
+    if (recentAnswers.length >= SESSION_CONFIG.patternDetectionWindow &&
+        sameAnswerCount >= SESSION_CONFIG.patternThreshold) {
+      return 'pattern';
+    }
+
+    return 'normal';
+  };
+
+  // 🆕 찍기 감지 시 처리
+  const handleGuessingDetected = (type: 'fast' | 'pattern') => {
+    setGuessingDetected(true);
+    setGuessingCount(prev => prev + 1);
+
+    toast.warning(
+      type === 'fast'
+        ? getRandomMessage(FEEDBACK_MESSAGES.guessing)
+        : "하나씩 잘 읽어보자! 📖",
+      {
+        description: "천천히 다시 생각해볼까?",
+        duration: 3000,
+      }
+    );
+  };
+
+  // 🆕 "모르겠어요" 버튼 핸들러
+  const handleDontKnow = () => {
+    if (isAnswered) return;
+
+    setUsedDontKnow(true);
+    setIsAnswered(true);
+    setIsCorrect(false);
+    setDontKnowCount(prev => prev + 1);
+    setStreak(0);
+
+    // 1 코인 획득
+    setTotalCoins(prev => prev + 1);
+
+    toast.success(getDontKnowMessage(), {
+      description: `정답: ${currentQuestion.correctAnswer}`,
+      duration: 4000,
+    });
+  };
+
+  // 🆕 적응형 문제 선택 함수
+  const selectAdaptiveQuestions = (diff: Difficulty | "all", count: number): QuizQuestion[] => {
+    const easy = allQuizData.filter(q => q.difficulty === 'easy');
+    const medium = allQuizData.filter(q => q.difficulty === 'medium');
+    const hard = allQuizData.filter(q => q.difficulty === 'hard');
+
+    const shuffleArray = <T,>(arr: T[]): T[] => {
+      const shuffled = [...arr];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    };
+
+    // 특정 난이도 선택 시 해당 난이도만
+    if (diff !== 'all') {
+      const pool = allQuizData.filter(q => q.difficulty === diff);
+      return shuffleArray(pool).slice(0, count);
+    }
+
+    // 적응형 패턴: 쉬움 → 쉬움 → 어려움 → 쉬움 → 보통 → 쉬움
+    const result: QuizQuestion[] = [];
+    const usedIds = new Set<string>();
+
+    const getRandomFromPool = (pool: QuizQuestion[]): QuizQuestion | null => {
+      const available = pool.filter(q => !usedIds.has(q.id));
+      if (available.length === 0) return null;
+      const q = available[Math.floor(Math.random() * available.length)];
+      usedIds.add(q.id);
+      return q;
+    };
+
+    for (let i = 0; i < count; i++) {
+      const patternDiff = ADAPTIVE_PATTERN[i % ADAPTIVE_PATTERN.length];
+      const pool = patternDiff === 'easy' ? easy : patternDiff === 'medium' ? medium : hard;
+      const question = getRandomFromPool(pool);
+      if (question) {
+        result.push(question);
+      } else {
+        // 해당 난이도가 부족하면 다른 난이도에서
+        const fallback = getRandomFromPool(easy) || getRandomFromPool(medium) || getRandomFromPool(hard);
+        if (fallback) result.push(fallback);
+      }
+    }
+
+    return result;
+  };
+
   const handleTimeout = () => {
     setIsAnswered(true);
     setIsCorrect(false);
+    setStreak(0);
     toast.error("시간 초과!");
   };
 
   const startGame = () => {
-    const selected = selectQuestions(difficulty, totalQuestions);
+    const selected = selectAdaptiveQuestions(difficulty, totalQuestions);
     setQuestions(selected);
     setCurrentIndex(0);
     setUserAnswer("");
@@ -1220,19 +1365,41 @@ export default function PokemonQuiz() {
     setTotalScore(0);
     setCorrectCount(0);
     setShowHint(false);
+    setHintLevel(0);
     setGameTicket(0);
     setTimeLeft(30);
+    setStreak(0);
+    setConsecutiveWrong(0);
+    setTotalCoins(0);
+    setDontKnowCount(0);
+    setGuessingCount(0);
+    setLastAnswerPattern([]);
+    setGuessingDetected(false);
+    setUsedDontKnow(false);
     setGameState("playing");
   };
 
   const handleSelectAnswer = (answer: string) => {
     if (isAnswered) return;
+
+    // 🆕 찍기 감지
+    const guessingType = detectGuessing(answer);
+    if (guessingType !== 'normal') {
+      handleGuessingDetected(guessingType);
+      // 찍기 감지 시 같은 문제 유지 (답변 처리 안 함)
+      return;
+    }
+
     setUserAnswer(answer);
+    setLastAnswerPattern(prev => [...prev.slice(-(SESSION_CONFIG.patternDetectionWindow - 1)), answer]);
     submitAnswer(answer);
   };
 
   const handleSubmitAnswer = () => {
     if (isAnswered || !userAnswer.trim()) return;
+
+    // 주관식은 찍기 감지 안 함 (타이핑 필요하므로)
+    setLastAnswerPattern(prev => [...prev.slice(-(SESSION_CONFIG.patternDetectionWindow - 1)), userAnswer]);
     submitAnswer(userAnswer);
   };
 
@@ -1241,10 +1408,39 @@ export default function PokemonQuiz() {
     const correct = checkAnswer(answer, currentQuestion);
     setIsCorrect(correct);
 
+    // 🆕 코인 계산
+    const coinResult = calculateCoins(
+      correct,
+      currentQuestion.difficulty,
+      hintLevel,
+      guessingDetected,
+      usedDontKnow,
+      streak + (correct ? 1 : 0)
+    );
+
+    setTotalCoins(prev => prev + coinResult.coins);
+
     if (correct) {
       setTotalScore(prev => prev + currentQuestion.points);
       setCorrectCount(prev => prev + 1);
-      toast.success(`정답! +${currentQuestion.points}점`);
+      setStreak(prev => prev + 1);
+      setConsecutiveWrong(0);
+
+      // 연속 정답 보너스 메시지
+      const newStreak = streak + 1;
+      const streakMsg = getStreakMessage(newStreak);
+
+      toast.success(getCorrectMessage(currentQuestion.difficulty), {
+        description: coinResult.bonusMessage || `+${coinResult.coins} 코인 🪙`,
+        duration: 2500,
+      });
+
+      if (streakMsg && newStreak >= 3) {
+        setTimeout(() => {
+          toast.success(streakMsg, { duration: 2000 });
+        }, 500);
+      }
+
       confetti({
         particleCount: 60,
         spread: 60,
@@ -1252,7 +1448,23 @@ export default function PokemonQuiz() {
         colors: ["#FFD700", "#FF6B6B", "#4ECDC4"],
       });
     } else {
-      toast.error(`오답! 정답: ${currentQuestion.correctAnswer}`);
+      // 🆕 오답이지만 긍정적 피드백 + 1 코인
+      setStreak(0);
+      setConsecutiveWrong(prev => prev + 1);
+
+      toast.info(getIncorrectMessage(), {
+        description: `정답: ${currentQuestion.correctAnswer} (+1 코인 🪙)`,
+        duration: 3000,
+      });
+
+      // 연속 오답 시 격려 메시지
+      if (consecutiveWrong + 1 >= CONSECUTIVE_WRONG_THRESHOLD) {
+        setTimeout(() => {
+          toast.info(getRandomMessage(FEEDBACK_MESSAGES.encouragement.afterManyWrong), {
+            duration: 3000,
+          });
+        }, 1000);
+      }
     }
   };
 
@@ -1263,7 +1475,10 @@ export default function PokemonQuiz() {
       setIsAnswered(false);
       setIsCorrect(false);
       setShowHint(false);
+      setHintLevel(0); // 🆕 힌트 레벨 리셋
       setTimeLeft(30);
+      setGuessingDetected(false);
+      setUsedDontKnow(false);
 
       setTimeout(() => {
         if (questions[currentIndex + 1]?.type === "short-answer" ||
@@ -1349,11 +1564,58 @@ export default function PokemonQuiz() {
 
   const getDifficultyConfig = (diff: Difficulty | "all") => {
     switch (diff) {
-      case "easy": return { color: "from-emerald-500 to-green-500", shadow: "shadow-emerald-500/25", label: "쉬움", emoji: "" };
-      case "medium": return { color: "from-amber-500 to-yellow-500", shadow: "shadow-amber-500/25", label: "보통", emoji: "" };
-      case "hard": return { color: "from-rose-500 to-red-500", shadow: "shadow-rose-500/25", label: "어려움", emoji: "" };
-      default: return { color: "from-violet-500 to-purple-500", shadow: "shadow-violet-500/25", label: "전체", emoji: "" };
+      case "easy": return {
+        color: "from-emerald-500 to-green-500",
+        shadow: "shadow-emerald-500/25",
+        label: "기본",
+        emoji: "",
+        stars: 1,
+        isChallenge: false,
+      };
+      case "medium": return {
+        color: "from-amber-500 to-yellow-500",
+        shadow: "shadow-amber-500/25",
+        label: "보통",
+        emoji: "",
+        stars: 2,
+        isChallenge: false,
+      };
+      case "hard": return {
+        color: "from-rose-500 to-red-500",
+        shadow: "shadow-rose-500/25",
+        label: "도전!",
+        emoji: "",
+        stars: 3,
+        isChallenge: true,
+        challengeLabel: "틀려도 OK!",
+      };
+      default: return {
+        color: "from-violet-500 to-purple-500",
+        shadow: "shadow-violet-500/25",
+        label: "전체",
+        emoji: "",
+        stars: 0,
+        isChallenge: false,
+      };
     }
+  };
+
+  // 🆕 난이도 배지 컴포넌트
+  const DifficultyBadge = ({ diff }: { diff: Difficulty }) => {
+    const config = getDifficultyConfig(diff);
+    return (
+      <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r ${config.color} text-white text-sm font-bold shadow-lg ${config.shadow}`}>
+        {Array.from({ length: config.stars }).map((_, i) => (
+          <Star key={i} className="h-3 w-3 fill-current" />
+        ))}
+        <span className="ml-1">{config.label}</span>
+        {config.isChallenge && (
+          <span className="ml-1 text-xs bg-white/20 px-1.5 rounded">
+            {config.challengeLabel}
+          </span>
+        )}
+      </div>
+    );
   };
 
   // 로그인 체크
@@ -1546,6 +1808,21 @@ export default function PokemonQuiz() {
             </CardContent>
           </Card>
 
+          {/* 🆕 코인 획득 */}
+          <Card className="border-0 bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-lg shadow-amber-500/25 rounded-2xl">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/20 rounded-2xl text-3xl">
+                  🪙
+                </div>
+                <div>
+                  <p className="font-bold text-lg">획득 코인</p>
+                  <p className="text-white/90 text-3xl font-black">{totalCoins} 코인</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* 게임 이용권 */}
           {gameTicket > 0 && (
             <Card className="border-0 bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 rounded-2xl">
@@ -1562,6 +1839,29 @@ export default function PokemonQuiz() {
               </CardContent>
             </Card>
           )}
+
+          {/* 🆕 학습 통계 */}
+          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="text-2xl font-black text-blue-600">{dontKnowCount}</p>
+                  <p className="text-xs text-slate-600">"모르겠어요"</p>
+                  <p className="text-xs text-slate-400">(용기있게!)</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-black text-amber-600">{streak > 0 ? streak : "-"}</p>
+                  <p className="text-xs text-slate-600">최고 연속</p>
+                  <p className="text-xs text-slate-400">정답</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-black text-green-600">{correctCount}</p>
+                  <p className="text-xs text-slate-600">맞춘 문제</p>
+                  <p className="text-xs text-slate-400">/{totalQuestions}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* 메시지 */}
           <Card className="border-0 bg-gradient-to-br from-amber-50 to-orange-50 shadow-lg rounded-2xl">
@@ -1581,12 +1881,30 @@ export default function PokemonQuiz() {
           <div className="space-y-3">
             <Button
               size="lg"
-              onClick={() => setGameState("menu")}
+              onClick={startGame}
               className="w-full h-14 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-2xl shadow-lg"
             >
               <RotateCcw className="h-5 w-5 mr-2" />
               다시 풀기
             </Button>
+
+            {/* 🆕 더 풀래요 버튼 */}
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => {
+                const additionalQuestions = selectAdaptiveQuestions(difficulty, SESSION_CONFIG.additionalQuestionCount);
+                setQuestions(prev => [...prev, ...additionalQuestions]);
+                setCurrentIndex(totalQuestions);
+                setIsAnswered(false);
+                setGameState("playing");
+              }}
+              className="w-full h-12 border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 font-bold rounded-2xl"
+            >
+              <Zap className="h-5 w-5 mr-2" />
+              더 풀래요! (+{SESSION_CONFIG.additionalQuestionCount}문제)
+            </Button>
+
             <div className="grid grid-cols-2 gap-3">
               <Link href="/ebook-library">
                 <Button variant="outline" className="w-full h-12 rounded-xl font-bold">
@@ -1595,8 +1913,8 @@ export default function PokemonQuiz() {
                 </Button>
               </Link>
               <Link href="/dashboard">
-                <Button variant="outline" className="w-full h-12 rounded-xl font-bold">
-                  홈으로
+                <Button variant="ghost" className="w-full h-12 rounded-xl font-medium text-slate-600">
+                  오늘은 여기까지!
                 </Button>
               </Link>
             </div>
@@ -1683,20 +2001,43 @@ export default function PokemonQuiz() {
               {currentQuestion.question}
             </h2>
 
-            {/* 힌트 */}
+            {/* 🆕 3단계 힌트 시스템 */}
             {!isAnswered && (
               <div className="text-center mb-4">
                 <button
-                  onClick={() => setShowHint(!showHint)}
-                  className="text-sm text-amber-600 font-medium flex items-center gap-1 mx-auto"
+                  onClick={() => setHintLevel(prev => Math.min(prev + 1, 3))}
+                  disabled={hintLevel >= 3}
+                  className={`text-sm font-medium flex items-center gap-1 mx-auto px-4 py-2 rounded-xl transition-all ${
+                    hintLevel >= 3
+                      ? "text-slate-400 bg-slate-100"
+                      : "text-amber-600 bg-amber-50 hover:bg-amber-100 active:scale-95"
+                  }`}
                 >
                   <Lightbulb className="h-4 w-4" />
-                  힌트 {showHint ? "숨기기" : "보기"}
+                  힌트 {hintLevel}/3 {hintLevel < 3 ? "(터치하면 힌트가 나와!)" : "(다 봤어!)"}
                 </button>
-                {showHint && (
-                  <p className="mt-2 text-sm text-amber-700 bg-amber-50 p-3 rounded-xl">
-                    {currentQuestion.hint}
-                  </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  힌트를 써도 점수는 그대로야! 걱정마!
+                </p>
+
+                {hintLevel > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {hintLevel >= 1 && (
+                      <div className="text-sm text-amber-700 bg-amber-50 p-3 rounded-xl animate-in fade-in slide-in-from-top-2">
+                        💡 힌트 1: {currentQuestion.hint}
+                      </div>
+                    )}
+                    {hintLevel >= 2 && currentQuestion.explanation && (
+                      <div className="text-sm text-blue-700 bg-blue-50 p-3 rounded-xl animate-in fade-in slide-in-from-top-2">
+                        💡 힌트 2: {currentQuestion.explanation.slice(0, 50)}...
+                      </div>
+                    )}
+                    {hintLevel >= 3 && (
+                      <div className="text-sm text-purple-700 bg-purple-50 p-3 rounded-xl animate-in fade-in slide-in-from-top-2">
+                        💡 힌트 3: 정답은 "{currentQuestion.correctAnswer.charAt(0)}..."로 시작해!
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -1736,6 +2077,32 @@ export default function PokemonQuiz() {
                     </button>
                   );
                 })}
+
+                {/* 🆕 모르겠어요 버튼 */}
+                {!isAnswered && (
+                  <button
+                    onClick={handleDontKnow}
+                    className="w-full p-4 mt-3 rounded-xl font-bold transition-all border-2 border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] flex items-center justify-center gap-2"
+                  >
+                    <HelpCircle className="h-5 w-5" />
+                    모르겠어요 (정답 보기)
+                  </button>
+                )}
+
+                {/* 🆕 찍기 감지 안내 */}
+                {guessingDetected && !isAnswered && (
+                  <div className="mt-3 p-4 bg-amber-50 border-2 border-amber-300 rounded-xl animate-in fade-in">
+                    <div className="flex items-center gap-3">
+                      <Lightbulb className="h-8 w-8 text-amber-500 flex-shrink-0" />
+                      <div>
+                        <p className="font-bold text-amber-800">천천히 다시 생각해볼까? 🤔</p>
+                        <p className="text-sm text-amber-600 mt-1">
+                          틀려도 괜찮아! 끝까지 생각하는 게 중요해
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1761,6 +2128,17 @@ export default function PokemonQuiz() {
                     확인
                   </Button>
                 </div>
+
+                {/* 🆕 모르겠어요 버튼 (주관식) */}
+                {!isAnswered && (
+                  <button
+                    onClick={handleDontKnow}
+                    className="w-full p-3 rounded-xl font-bold transition-all border-2 border-dashed border-slate-300 text-slate-500 hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] flex items-center justify-center gap-2"
+                  >
+                    <HelpCircle className="h-5 w-5" />
+                    모르겠어요 (정답 보기)
+                  </button>
+                )}
 
                 {isAnswered && (
                   <div className={`p-3 rounded-xl ${isCorrect ? "bg-emerald-50" : "bg-rose-50"}`}>

@@ -3,17 +3,26 @@ export * from './types';
 export { pokemonGoGuideQuiz } from './pokemonGoGuideQuiz';
 export { typeMatchupQuiz } from './typeMatchupQuiz';
 export { dragonVillageQuiz } from './dragonVillageQuiz';
+export { dragonVillageStory1Quiz } from './dragonVillageStory1Quiz';
+export { dragonVillageStory2Quiz } from './dragonVillageStory2Quiz';
+export { dragonVillageStory3Quiz } from './dragonVillageStory3Quiz';
 
 import { QuizQuestion, QuizTier } from './types';
 import { pokemonGoGuideQuiz } from './pokemonGoGuideQuiz';
 import { typeMatchupQuiz } from './typeMatchupQuiz';
 import { dragonVillageQuiz } from './dragonVillageQuiz';
+import { dragonVillageStory1Quiz } from './dragonVillageStory1Quiz';
+import { dragonVillageStory2Quiz } from './dragonVillageStory2Quiz';
+import { dragonVillageStory3Quiz } from './dragonVillageStory3Quiz';
 
 // 모든 퀴즈 데이터
 const allQuizData: QuizQuestion[] = [
   ...pokemonGoGuideQuiz,
   ...typeMatchupQuiz,
   ...dragonVillageQuiz,
+  ...dragonVillageStory1Quiz,
+  ...dragonVillageStory2Quiz,
+  ...dragonVillageStory3Quiz,
 ];
 
 // 책 ID로 퀴즈 가져오기

@@ -8,7 +8,7 @@ import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import AdminSettings from "./pages/AdminSettings";
+// AdminSettings moved to admin folder
 import Dashboard from "./pages/Dashboard";
 import PointsManage from "./pages/PointsManage";
 import Transactions from "./pages/Transactions";
@@ -32,7 +32,7 @@ import MyPage from "./pages/MyPage";
 import AppLayout from "./components/AppLayout";
 // Admin CMS imports
 import AdminLayout from "./components/admin/AdminLayout";
-import { AdminDashboard, AdminPointRules, AdminShopItems, AdminEbooks, AdminQuizzes, AdminWords, AdminBadges } from "./pages/admin";
+import { AdminDashboard, AdminPointRules, AdminShopItems, AdminEbooks, AdminQuizzes, AdminWords, AdminBadges, AdminSettings, AdminAnalytics } from "./pages/admin";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -83,13 +83,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      <Route path={"/admin/settings"}>
-        {() => (
-          <AppLayout>
-            <AdminSettings />
-          </AppLayout>
-        )}
-      </Route>
+      {/* Legacy admin settings route - redirects to new admin layout */}
       <Route path={"/statistics"}>
         {() => (
           <AppLayout>
@@ -242,6 +236,20 @@ function Router() {
         {() => (
           <AdminLayout>
             <AdminBadges />
+          </AdminLayout>
+        )}
+      </Route>
+      <Route path="/admin/analytics">
+        {() => (
+          <AdminLayout>
+            <AdminAnalytics />
+          </AdminLayout>
+        )}
+      </Route>
+      <Route path="/admin/settings">
+        {() => (
+          <AdminLayout>
+            <AdminSettings />
           </AdminLayout>
         )}
       </Route>

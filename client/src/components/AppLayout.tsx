@@ -20,6 +20,8 @@ import {
   Home,
   Sparkles,
   ChevronRight,
+  Swords,
+  GraduationCap,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { APP_TITLE } from "@/const";
@@ -56,6 +58,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { path: "/points-manage", label: "포인트 관리", icon: Coins, color: "from-amber-500 to-orange-600" },
     { path: "/shop", label: "포인트 상점", icon: ShoppingBag, color: "from-pink-500 to-rose-600" },
     { path: "/pokemon-quiz", label: "포켓몬 퀴즈", icon: Gamepad2, color: "from-yellow-500 to-amber-600" },
+    { path: "/dragon-village-quiz", label: "드래곤 퀴즈", icon: Swords, color: "from-purple-500 to-pink-600" },
+    { path: "/english-quiz", label: "영어 퀴즈", icon: GraduationCap, color: "from-blue-500 to-indigo-600" },
     { path: "/ebook-library", label: "e북 도서관", icon: Library, color: "from-cyan-500 to-blue-600" },
     { path: "/english-learning", label: "영어 학습", icon: BookOpen, color: "from-emerald-500 to-teal-600" },
     { path: "/goals", label: "목표 설정", icon: Target, color: "from-red-500 to-rose-600" },

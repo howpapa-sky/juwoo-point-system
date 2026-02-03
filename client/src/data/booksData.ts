@@ -1,3 +1,9 @@
+import { dragonVillageStory4Pages } from "./dragonStory4";
+import { dragonVillageStory5Pages } from "./dragonStory5";
+import { dragonVillageStory6Pages } from "./dragonStory6";
+import { dragonVillageStory7Pages } from "./dragonStory7";
+import { dragonVillageStory8Pages } from "./dragonStory8";
+
 // 포켓몬GO 고품질 e북 데이터
 export interface Book {
   id: string;
@@ -607,5 +613,70 @@ export const booksData: Book[] = [
       // 10페이지: 해피엔딩 & 교훈
       "✨ 9장: 영원한 친구들\n\n다크스톰은 무지개빛에 정화되어 사라졌어요.\n\n하늘이 다시 맑아지고, 아름다운 무지개가 떴어요.\n\n\"우와... 스카이, 넌 정말 레인보우 드래곤이 됐어!\"\n\n친구들이 감탄했어요.\n\n스카이는 다시 원래 모습으로 돌아왔어요.\n\n하지만 스카이의 눈에는 무지개빛이 남아있었죠.\n\n\"이건 너희 덕분이야. 너희가 없었다면 불가능했어.\"\n\n7명의 드래곤은 영원한 친구가 되었어요.\n\n🌈 스카이가 배운 것 🌈\n\n다양함은 약점이 아니라 강점이에요!\n서로 다르기 때문에 함께하면 더 강해져요!\n\n- 끝 -\n\n🌟 주우도 다양한 친구들과 함께 빛나는 레인보우야! 🌟"
     ],
+  },
+
+  // ========== 드래곤빌리지 대모험 4권: 바람의 노래 ==========
+  {
+    id: "dragon-village-story-4",
+    title: "드래곤빌리지 대모험 4권: 바람의 노래",
+    author: "아빠",
+    coverEmoji: "🌬️",
+    description: "말더듬이 바람 드래곤 제피르가 노래 축제에서 진정한 용기를 찾는 감동 모험!",
+    difficulty: "보통",
+    readTime: "30분",
+    category: "동화",
+    pages: dragonVillageStory4Pages,
+  },
+
+  // ========== 드래곤빌리지 대모험 5권: 대지의 수호자 ==========
+  {
+    id: "dragon-village-story-5",
+    title: "드래곤빌리지 대모험 5권: 대지의 수호자",
+    author: "아빠",
+    coverEmoji: "🌍",
+    description: "가장 작은 대지 드래곤 테라가 세계수를 지키며 진정한 강함의 의미를 깨닫는 이야기!",
+    difficulty: "보통",
+    readTime: "30분",
+    category: "동화",
+    pages: dragonVillageStory5Pages,
+  },
+
+  // ========== 드래곤빌리지 대모험 6권: 번개의 심장 ==========
+  {
+    id: "dragon-village-story-6",
+    title: "드래곤빌리지 대모험 6권: 번개의 심장",
+    author: "아빠",
+    coverEmoji: "⚡",
+    description: "번개 드래곤 볼트가 폭주하는 힘을 다스리고 반딧불 스파크와 우정을 나누는 전기 충전 모험!",
+    difficulty: "보통",
+    readTime: "30분",
+    category: "동화",
+    pages: dragonVillageStory6Pages,
+  },
+
+  // ========== 드래곤빌리지 대모험 7권: 별빛 드래곤의 비밀 ==========
+  {
+    id: "dragon-village-story-7",
+    title: "드래곤빌리지 대모험 7권: 별빛 드래곤의 비밀",
+    author: "아빠",
+    coverEmoji: "🌟",
+    description: "신비로운 별빛 드래곤 루나의 정체와 변신 괴물 미러의 음모를 밝혀내는 미스터리 모험!",
+    difficulty: "보통",
+    readTime: "30분",
+    category: "동화",
+    pages: dragonVillageStory7Pages,
+  },
+
+  // ========== 드래곤빌리지 대모험 8권: 드래곤 왕국의 대축제 ==========
+  {
+    id: "dragon-village-story-8",
+    title: "드래곤빌리지 대모험 8권: 드래곤 왕국의 대축제",
+    author: "아빠",
+    coverEmoji: "🎊",
+    description: "6명의 영웅이 모두 모여 다크로드에 맞서 싸우는 최종 대결! 전설의 무지개 드래곤이 다시 한번!",
+    difficulty: "보통",
+    readTime: "30분",
+    category: "동화",
+    pages: dragonVillageStory8Pages,
   },
 ];

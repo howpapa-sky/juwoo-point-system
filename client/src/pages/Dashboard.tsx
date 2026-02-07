@@ -1,6 +1,7 @@
 import { useSupabaseAuth } from "@/contexts/SupabaseAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
@@ -21,9 +22,58 @@ import {
   Zap,
   Crown,
   Medal,
+  Trophy,
+  Target,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+
+// ============================================
+// 레벨 시스템
+// ============================================
+interface LevelInfo {
+  level: number;
+  name: string;
+  icon: string;
+  minPoints: number;
+  maxPoints: number;
+  gradient: string;
+  starCount: number;
+}
+
+const LEVELS: LevelInfo[] = [
+  { level: 1, name: "새싹", icon: "🌱", minPoints: 0, maxPoints: 999, gradient: "from-green-400 to-emerald-500", starCount: 1 },
+  { level: 2, name: "작은 별", icon: "⭐", minPoints: 1000, maxPoints: 2999, gradient: "from-yellow-400 to-amber-500", starCount: 1 },
+  { level: 3, name: "용감한 탐험가", icon: "🧭", minPoints: 3000, maxPoints: 5999, gradient: "from-blue-400 to-cyan-500", starCount: 2 },
+  { level: 4, name: "빛나는 기사", icon: "⚔️", minPoints: 6000, maxPoints: 9999, gradient: "from-purple-400 to-violet-500", starCount: 2 },
+  { level: 5, name: "멋진 영웅", icon: "🦸", minPoints: 10000, maxPoints: 14999, gradient: "from-rose-400 to-pink-500", starCount: 3 },
+  { level: 6, name: "전설의 마법사", icon: "🧙", minPoints: 15000, maxPoints: 19999, gradient: "from-indigo-400 to-blue-500", starCount: 3 },
+  { level: 7, name: "슈퍼 챔피언", icon: "🏆", minPoints: 20000, maxPoints: 29999, gradient: "from-orange-400 to-red-500", starCount: 4 },
+  { level: 8, name: "드래곤 마스터", icon: "🐉", minPoints: 30000, maxPoints: 49999, gradient: "from-red-500 to-rose-600", starCount: 4 },
+  { level: 9, name: "우주 대장", icon: "🚀", minPoints: 50000, maxPoints: 99999, gradient: "from-cyan-400 to-blue-600", starCount: 5 },
+  { level: 10, name: "전설의 왕", icon: "👑", minPoints: 100000, maxPoints: Infinity, gradient: "from-amber-400 to-yellow-500", starCount: 5 },
+];
+
+function getCurrentLevel(points: number): LevelInfo {
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (points >= LEVELS[i].minPoints) return LEVELS[i];
+  }
+  return LEVELS[0];
+}
+
+function getLevelProgress(points: number, level: LevelInfo): number {
+  if (level.maxPoints === Infinity) return 100;
+  const range = level.maxPoints - level.minPoints + 1;
+  const progress = points - level.minPoints;
+  return Math.min(Math.round((progress / range) * 100), 100);
+}
+
+function getNextLevel(currentLevel: LevelInfo): LevelInfo | null {
+  const idx = LEVELS.findIndex(l => l.level === currentLevel.level);
+  return idx < LEVELS.length - 1 ? LEVELS[idx + 1] : null;
+}
+
+// ============================================
 
 interface Transaction {
   id: number;
@@ -54,7 +104,6 @@ export default function Dashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // 1. Fetch balance from juwoo_profile
         const { data: profileData, error: profileError } = await supabase
           .from("juwoo_profile")
           .select("current_points")
@@ -64,7 +113,6 @@ export default function Dashboard() {
         if (profileError) throw profileError;
         setBalance(profileData?.current_points || 0);
 
-        // 2. Fetch recent 7 days stats
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -87,10 +135,9 @@ export default function Dashboard() {
 
         setStats({ totalEarned, totalSpent });
 
-        // 3. Fetch recent 5 transactions
         const { data: txData, error: txError } = await supabase
           .from("point_transactions")
-          .select("id, amount, created_at")
+          .select("id, amount, note, created_at")
           .order("created_at", { ascending: false })
           .limit(5);
 
@@ -99,7 +146,7 @@ export default function Dashboard() {
         const txWithBalance = (txData || []).map((tx: any) => ({
           id: tx.id,
           amount: tx.amount,
-          note: null,
+          note: tx.note,
           created_at: tx.created_at,
           rule_name: null,
           rule_category: null,
@@ -121,7 +168,6 @@ export default function Dashboard() {
     if (!confirm("정말로 이 거래를 취소하시겠습니까?")) return;
 
     try {
-      // Find the transaction to cancel
       const { data: txData, error: txError } = await supabase
         .from("point_transactions")
         .select("amount")
@@ -132,7 +178,6 @@ export default function Dashboard() {
 
       const newBalance = balance - txData.amount;
 
-      // Create a reverse transaction
       const { error: insertError } = await supabase
         .from("point_transactions")
         .insert({
@@ -146,7 +191,6 @@ export default function Dashboard() {
 
       if (insertError) throw insertError;
 
-      // Update juwoo_profile balance
       const { error: updateError } = await supabase
         .from("juwoo_profile")
         .update({ current_points: newBalance })
@@ -155,8 +199,6 @@ export default function Dashboard() {
       if (updateError) throw updateError;
 
       toast.success("포인트가 취소되었습니다!");
-
-      // Refresh data
       setBalance(newBalance);
       window.location.reload();
     } catch (error: any) {
@@ -204,6 +246,12 @@ export default function Dashboard() {
     );
   }
 
+  // 레벨 계산
+  const currentLevel = getCurrentLevel(balance);
+  const levelProgress = getLevelProgress(balance, currentLevel);
+  const nextLevel = getNextLevel(currentLevel);
+  const pointsToNextLevel = nextLevel ? nextLevel.minPoints - balance : 0;
+
   return (
     <div className="min-h-screen pb-24 md:pb-8">
       {/* 배경 장식 */}
@@ -237,15 +285,20 @@ export default function Dashboard() {
                 {/* 상단: 레벨 배지 */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
-                    <Crown className="h-4 w-4 text-yellow-300" />
-                    <span className="text-sm font-bold">Lv.{Math.floor(balance / 10000) + 1}</span>
+                    <span className="text-lg">{currentLevel.icon}</span>
+                    <span className="text-sm font-bold">Lv.{currentLevel.level} {currentLevel.name}</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <Star className="h-4 w-4 text-yellow-300 fill-yellow-300" />
-                    <Star className="h-4 w-4 text-yellow-300 fill-yellow-300" />
-                    <Star className="h-4 w-4 text-yellow-300 fill-yellow-300" />
-                    <Star className="h-4 w-4 text-white/30" />
-                    <Star className="h-4 w-4 text-white/30" />
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${
+                          i < currentLevel.starCount
+                            ? "text-yellow-300 fill-yellow-300"
+                            : "text-white/30"
+                        }`}
+                      />
+                    ))}
                   </div>
                 </div>
 
@@ -278,6 +331,64 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 레벨 진행 카드 */}
+        <Card className="border-0 bg-white/90 backdrop-blur-sm shadow-lg rounded-2xl overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`p-2.5 rounded-xl bg-gradient-to-br ${currentLevel.gradient} shadow-lg`}>
+                <span className="text-2xl">{currentLevel.icon}</span>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-slate-800">
+                    Lv.{currentLevel.level} {currentLevel.name}
+                  </h3>
+                  {nextLevel && (
+                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                      <Target className="h-3 w-3" />
+                      다음: {nextLevel.icon} {nextLevel.name}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2">
+                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                    <span>{balance.toLocaleString()}P</span>
+                    <span>{nextLevel ? nextLevel.minPoints.toLocaleString() + 'P' : 'MAX'}</span>
+                  </div>
+                  <Progress value={levelProgress} className="h-2.5" />
+                </div>
+                {nextLevel && (
+                  <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-amber-500" />
+                    <span>다음 레벨까지 <strong className="text-violet-600">{pointsToNextLevel.toLocaleString()}P</strong></span>
+                  </p>
+                )}
+                {!nextLevel && (
+                  <p className="text-xs font-bold text-amber-600 mt-1.5 flex items-center gap-1">
+                    <Crown className="h-3 w-3" />
+                    최고 레벨 달성!
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* 전체 레벨 미니맵 */}
+            <div className="flex items-center gap-0.5 mt-1">
+              {LEVELS.map((level) => (
+                <div
+                  key={level.level}
+                  className={`flex-1 h-1.5 rounded-full transition-all ${
+                    balance >= level.minPoints
+                      ? `bg-gradient-to-r ${level.gradient}`
+                      : "bg-slate-200"
+                  }`}
+                  title={`Lv.${level.level} ${level.name} (${level.minPoints.toLocaleString()}P)`}
+                />
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -334,12 +445,12 @@ export default function Dashboard() {
               desc: "보상 구매",
             },
             {
-              href: "/learning-stats",
-              icon: Medal,
-              label: "내 기록",
-              color: "from-emerald-500 to-teal-500",
-              shadow: "shadow-emerald-500/20",
-              desc: "학습 통계",
+              href: "/badges",
+              icon: Trophy,
+              label: "배지",
+              color: "from-yellow-500 to-amber-500",
+              shadow: "shadow-yellow-500/20",
+              desc: "내 컬렉션",
             },
           ].map((item) => (
             <Link key={item.href} href={item.href}>

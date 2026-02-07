@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/lib/supabaseClient";
+import { seedShopItems } from "@/lib/seedShopItems";
 import { getLoginUrl } from "@/const";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -142,6 +143,9 @@ export default function Shop() {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Seed shop items on first visit
+        await seedShopItems();
+
         const { data: itemsData } = await supabase
           .from('shop_items')
           .select('*')

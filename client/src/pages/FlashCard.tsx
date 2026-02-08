@@ -234,6 +234,11 @@ export default function FlashCard() {
   const [spellingHint, setSpellingHint] = useState(0);
   const [showSpellingAnswer, setShowSpellingAnswer] = useState(false);
 
+  // 클래식 퀴즈 모드 (4지선다)
+  const [classicOptions, setClassicOptions] = useState<EnglishWord[]>([]);
+  const [selectedClassicAnswer, setSelectedClassicAnswer] = useState<number | null>(null);
+  const [isClassicAnswered, setIsClassicAnswered] = useState(false);
+
   // 듣기 게임
   const [listeningOptions, setListeningOptions] = useState<EnglishWord[]>([]);
   const [selectedListeningAnswer, setSelectedListeningAnswer] = useState<number | null>(null);
@@ -304,7 +309,10 @@ export default function FlashCard() {
       perfectRounds: 0,
     });
 
-    if (mode === "matching") {
+    if (mode === "classic") {
+      // 전체 단어 풀에서 오답 보기 생성용으로 사용
+      initClassicQuiz(shuffled[0], englishWordsData);
+    } else if (mode === "matching") {
       initMatchingGame(shuffled.slice(0, Math.min(6, shuffled.length)));
     } else if (mode === "listening") {
       initListeningGame(shuffled[0], shuffled);
@@ -318,10 +326,85 @@ export default function FlashCard() {
   // ============================================
   const currentWord = words[currentIndex];
 
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
-    if (!isFlipped && currentWord) {
+  // 클래식 모드: 4지선다 옵션 생성
+  const initClassicQuiz = useCallback((correctWord: EnglishWord, allWords: EnglishWord[]) => {
+    // 같은 카테고리에서 오답 후보를 먼저 찾고, 부족하면 다른 카테고리에서 보충
+    const sameCatWords = allWords.filter(w => w.id !== correctWord.id && w.category === correctWord.category);
+    const otherWords = allWords.filter(w => w.id !== correctWord.id && w.category !== correctWord.category);
+
+    const distractors: EnglishWord[] = [];
+    const shuffledSameCat = shuffleArray(sameCatWords);
+    const shuffledOther = shuffleArray(otherWords);
+
+    // 같은 카테고리에서 먼저 채우기
+    for (const w of shuffledSameCat) {
+      if (distractors.length >= 3) break;
+      if (!distractors.find(d => d.meaning === w.meaning)) distractors.push(w);
+    }
+    // 부족하면 다른 카테고리에서 보충
+    for (const w of shuffledOther) {
+      if (distractors.length >= 3) break;
+      if (!distractors.find(d => d.meaning === w.meaning) && w.meaning !== correctWord.meaning) distractors.push(w);
+    }
+
+    const options = shuffleArray([correctWord, ...distractors]);
+    setClassicOptions(options);
+    setSelectedClassicAnswer(null);
+    setIsClassicAnswered(false);
+  }, []);
+
+  const handleClassicAnswer = async (wordId: number) => {
+    if (isClassicAnswered || !currentWord) return;
+
+    setSelectedClassicAnswer(wordId);
+    setIsClassicAnswered(true);
+
+    const isCorrect = wordId === currentWord.id;
+
+    if (isCorrect) {
+      const xpGain = Math.floor(10 * difficultyConfig[currentWord.difficulty].xpMultiplier);
+      const newStreak = stats.streak + 1;
+      const starsGain = difficultyConfig[currentWord.difficulty].stars;
+
+      setKnownWords(prev => [...prev, currentWord.id]);
+      setStats(prev => ({
+        ...prev,
+        knownCards: prev.knownCards + 1,
+        streak: newStreak,
+        maxStreak: Math.max(prev.maxStreak, newStreak),
+        xp: prev.xp + xpGain,
+        stars: prev.stars + starsGain,
+      }));
+
+      saveLearningProgress(currentWord.id, true);
+
+      setFloatingXp({ amount: xpGain, id: Date.now() });
+      setTimeout(() => setFloatingXp(null), 1000);
+
+      if (newStreak >= 3 && newStreak % 3 === 0) {
+        setShowStreakAnimation(true);
+        fireConfetti("success");
+        toast.success(getRandomMessage("streak"));
+        setTimeout(() => setShowStreakAnimation(false), 1500);
+      } else {
+        toast.success(getRandomMessage("correct"));
+      }
+
       speakWord(currentWord.word);
+      setTimeout(() => nextCard(), 1500);
+    } else {
+      setUnknownWords(prev => [...prev, currentWord.id]);
+      setStats(prev => ({
+        ...prev,
+        unknownCards: prev.unknownCards + 1,
+        streak: 0,
+      }));
+
+      saveLearningProgress(currentWord.id, false);
+      toast(getRandomMessage("wrong"), { icon: "💪" });
+
+      // 오답 시 정답 확인 후 좀 더 오래 보여주기
+      setTimeout(() => nextCard(), 2500);
     }
   };
 
@@ -365,60 +448,6 @@ export default function FlashCard() {
     }
   };
 
-  const handleKnown = async () => {
-    if (!currentWord) return;
-
-    const xpGain = Math.floor(10 * difficultyConfig[currentWord.difficulty].xpMultiplier);
-    const newStreak = stats.streak + 1;
-    const starsGain = difficultyConfig[currentWord.difficulty].stars;
-
-    setKnownWords(prev => [...prev, currentWord.id]);
-    setStats(prev => ({
-      ...prev,
-      knownCards: prev.knownCards + 1,
-      streak: newStreak,
-      maxStreak: Math.max(prev.maxStreak, newStreak),
-      xp: prev.xp + xpGain,
-      stars: prev.stars + starsGain,
-    }));
-
-    // 학습 기록 저장
-    saveLearningProgress(currentWord.id, true);
-
-    // 플로팅 XP 표시
-    setFloatingXp({ amount: xpGain, id: Date.now() });
-    setTimeout(() => setFloatingXp(null), 1000);
-
-    // 스트릭 애니메이션
-    if (newStreak >= 3 && newStreak % 3 === 0) {
-      setShowStreakAnimation(true);
-      fireConfetti("success");
-      toast.success(getRandomMessage("streak"));
-      setTimeout(() => setShowStreakAnimation(false), 1500);
-    } else {
-      toast.success(getRandomMessage("correct"));
-    }
-
-    nextCard();
-  };
-
-  const handleUnknown = async () => {
-    if (!currentWord) return;
-
-    setUnknownWords(prev => [...prev, currentWord.id]);
-    setStats(prev => ({
-      ...prev,
-      unknownCards: prev.unknownCards + 1,
-      streak: 0,
-    }));
-
-    // 학습 기록 저장
-    saveLearningProgress(currentWord.id, false);
-
-    toast(getRandomMessage("wrong"), { icon: "💪" });
-    nextCard();
-  };
-
   const nextCard = () => {
     setIsFlipped(false);
     setSpellingInput("");
@@ -426,12 +455,16 @@ export default function FlashCard() {
     setShowSpellingAnswer(false);
     setSelectedListeningAnswer(null);
     setIsListeningAnswered(false);
+    setSelectedClassicAnswer(null);
+    setIsClassicAnswered(false);
 
     if (currentIndex < words.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
 
-      if (mode === "listening") {
+      if (mode === "classic") {
+        initClassicQuiz(words[nextIndex], englishWordsData);
+      } else if (mode === "listening") {
         initListeningGame(words[nextIndex], words);
       }
     } else {
@@ -811,7 +844,7 @@ export default function FlashCard() {
               <CardContent className="p-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { id: "classic" as LearningMode, icon: <BookOpen className="h-8 w-8" />, label: "클래식", desc: "카드 뒤집기", color: "from-blue-500 to-cyan-500" },
+                    { id: "classic" as LearningMode, icon: <Target className="h-8 w-8" />, label: "뜻 맞추기", desc: "4지선다 퀴즈", color: "from-blue-500 to-cyan-500" },
                     { id: "matching" as LearningMode, icon: <Shuffle className="h-8 w-8" />, label: "매칭 게임", desc: "짝 맞추기", color: "from-green-500 to-emerald-500" },
                     { id: "spelling" as LearningMode, icon: <Brain className="h-8 w-8" />, label: "스펠링", desc: "철자 맞추기", color: "from-orange-500 to-amber-500" },
                     { id: "listening" as LearningMode, icon: <Music className="h-8 w-8" />, label: "듣기", desc: "귀로 배우기", color: "from-purple-500 to-pink-500" },
@@ -1220,7 +1253,7 @@ export default function FlashCard() {
           )}
         </AnimatePresence>
 
-        {/* ===== 클래식 모드 ===== */}
+        {/* ===== 클래식 모드 (4지선다 퀴즈) ===== */}
         {mode === "classic" && currentWord && (
           <motion.div
             key={currentIndex}
@@ -1228,112 +1261,124 @@ export default function FlashCard() {
             animate={{ x: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            {/* 플래시카드 */}
-            <div className="perspective-1000 mb-6">
-              <motion.div
-                className="relative w-full h-[350px] md:h-[420px] cursor-pointer"
-                onClick={handleFlip}
-                animate={{ rotateY: isFlipped ? 180 : 0 }}
-                transition={{ duration: 0.6, type: "spring" }}
-                style={{ transformStyle: "preserve-3d" }}
-              >
-                {/* 앞면 */}
-                <Card
-                  className={`absolute inset-0 border-4 ${theme.border} bg-gradient-to-br from-white to-gray-50 shadow-xl`}
-                  style={{ backfaceVisibility: "hidden" }}
+            {/* 영어 단어 카드 */}
+            <Card className={`border-4 ${theme.border} shadow-xl mb-6 overflow-hidden`}>
+              <div className={`bg-gradient-to-r ${theme.gradient} p-3 flex items-center justify-between`}>
+                <Badge className="bg-white/20 text-white border-0 text-sm px-3 py-1">
+                  {theme.icon} {currentWord.category}
+                </Badge>
+                <Badge className="bg-white/20 text-white border-0 text-sm">
+                  {difficultyConfig[currentWord.difficulty].label} {"⭐".repeat(difficultyConfig[currentWord.difficulty].stars)}
+                </Badge>
+              </div>
+              <CardContent className="flex flex-col items-center justify-center p-6 py-8">
+                <p className="text-sm text-muted-foreground mb-2">이 단어의 뜻은? 🤔</p>
+                <motion.h2
+                  className="text-5xl md:text-7xl font-black mb-4 bg-gradient-to-br from-gray-800 to-gray-600 bg-clip-text text-transparent"
+                  animate={{ scale: [1, 1.02, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <CardContent className="flex flex-col items-center justify-center h-full p-6">
-                    <Badge className={`mb-4 bg-gradient-to-r ${theme.gradient} text-white border-0 text-base px-4 py-1`}>
-                      {theme.icon} {currentWord.category}
-                    </Badge>
+                  {currentWord.word}
+                </motion.h2>
 
-                    <motion.h2
-                      className="text-6xl md:text-8xl font-black mb-4 bg-gradient-to-br from-gray-800 to-gray-600 bg-clip-text text-transparent"
-                      animate={{ scale: [1, 1.02, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      {currentWord.word}
-                    </motion.h2>
+                <Button
+                  size="sm"
+                  onClick={() => speakWord(currentWord.word)}
+                  className={`bg-gradient-to-r ${theme.gradient} hover:opacity-90 text-white shadow-lg`}
+                >
+                  <Volume2 className="h-4 w-4 mr-2" />
+                  발음 듣기 🔊
+                </Button>
+              </CardContent>
+            </Card>
 
+            {/* 4지선다 보기 */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {classicOptions.map((option, idx) => {
+                const isCorrect = option.id === currentWord.id;
+                const isSelected = selectedClassicAnswer === option.id;
+                const optionLabels = ["①", "②", "③", "④"];
+
+                return (
+                  <motion.div
+                    key={option.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.08 }}
+                    whileHover={{ scale: isClassicAnswered ? 1 : 1.03 }}
+                    whileTap={{ scale: isClassicAnswered ? 1 : 0.97 }}
+                  >
                     <Button
-                      size="lg"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        speakWord(currentWord.word);
-                      }}
-                      className={`bg-gradient-to-r ${theme.gradient} hover:opacity-90 text-white shadow-lg`}
+                      onClick={() => handleClassicAnswer(option.id)}
+                      disabled={isClassicAnswered}
+                      variant="outline"
+                      className={`w-full h-20 text-xl font-bold border-3 transition-all ${
+                        isClassicAnswered
+                          ? isCorrect
+                            ? "bg-green-100 border-green-500 text-green-700 shadow-lg"
+                            : isSelected
+                            ? "bg-red-100 border-red-500 text-red-700"
+                            : "opacity-40"
+                          : "hover:border-purple-400 hover:bg-purple-50 bg-white"
+                      }`}
                     >
-                      <Volume2 className="h-5 w-5 mr-2" />
-                      발음 듣기 🔊
+                      <span className="mr-2 text-sm opacity-70">{optionLabels[idx]}</span>
+                      {option.meaning}
+                      {isClassicAnswered && isCorrect && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="ml-2"
+                        >
+                          ✅
+                        </motion.span>
+                      )}
+                      {isClassicAnswered && isSelected && !isCorrect && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="ml-2"
+                        >
+                          ❌
+                        </motion.span>
+                      )}
                     </Button>
+                  </motion.div>
+                );
+              })}
+            </div>
 
-                    <p className="mt-6 text-muted-foreground text-sm flex items-center gap-2">
-                      <span>👆 카드를 터치하면 뜻이 나와요!</span>
-                    </p>
-                  </CardContent>
-                </Card>
-
-                {/* 뒷면 */}
-                <Card
-                  className={`absolute inset-0 border-4 ${theme.border} bg-gradient-to-br from-white to-gray-50 shadow-xl`}
-                  style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+            {/* 정답 후 추가 정보 표시 */}
+            <AnimatePresence>
+              {isClassicAnswered && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
                 >
-                  <CardContent className="flex flex-col items-center justify-center h-full p-6">
-                    <Badge className={`mb-4 bg-gradient-to-r ${theme.gradient} text-white border-0 text-base px-4 py-1`}>
-                      {theme.icon} {currentWord.category}
-                    </Badge>
-
-                    <h2 className="text-5xl md:text-7xl font-black mb-2 text-gray-800">
-                      {currentWord.meaning}
-                    </h2>
-
-                    <p className="text-xl text-gray-500 mb-4">
-                      {currentWord.pronunciation}
-                    </p>
-
-                    {currentWord.tip && (
-                      <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl px-4 py-2 mb-4">
-                        <p className="text-yellow-800 text-sm flex items-center gap-2">
-                          <Lightbulb className="h-4 w-4" />
+                  <Card className={`border-2 ${selectedClassicAnswer === currentWord.id ? 'border-green-300 bg-green-50' : 'border-blue-300 bg-blue-50'} mb-4`}>
+                    <CardContent className="p-4 text-center">
+                      <p className="text-lg font-bold mb-1">
+                        {currentWord.word} = {currentWord.meaning}
+                      </p>
+                      <p className="text-sm text-gray-500 mb-1">
+                        {currentWord.pronunciation}
+                      </p>
+                      {currentWord.tip && (
+                        <p className="text-sm text-yellow-700 flex items-center justify-center gap-1">
+                          <Lightbulb className="h-3 w-3" />
                           {currentWord.tip}
                         </p>
-                      </div>
-                    )}
-
-                    <p className="text-gray-500 text-sm italic">
-                      "{currentWord.example}"
-                    </p>
-                    <p className="text-gray-400 text-xs">
-                      {currentWord.exampleKorean}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </div>
-
-            {/* 버튼 */}
-            <div className="grid grid-cols-2 gap-4">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button
-                  size="lg"
-                  onClick={handleUnknown}
-                  className="w-full h-16 text-lg font-bold bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white shadow-lg"
-                >
-                  <X className="h-6 w-6 mr-2" />
-                  모르겠어요 😅
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button
-                  size="lg"
-                  onClick={handleKnown}
-                  className="w-full h-16 text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg"
-                >
-                  <Check className="h-6 w-6 mr-2" />
-                  알아요! 😊
-                </Button>
-              </motion.div>
-            </div>
+                      )}
+                      <p className="text-xs text-gray-400 mt-1 italic">
+                        "{currentWord.example}" - {currentWord.exampleKorean}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
 

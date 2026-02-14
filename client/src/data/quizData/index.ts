@@ -6,6 +6,11 @@ export { dragonVillageQuiz } from './dragonVillageQuiz';
 export { dragonVillageStory1Quiz } from './dragonVillageStory1Quiz';
 export { dragonVillageStory2Quiz } from './dragonVillageStory2Quiz';
 export { dragonVillageStory3Quiz } from './dragonVillageStory3Quiz';
+export { dragonVillageStory4Quiz } from './dragonVillageStory4Quiz';
+export { dragonVillageStory5Quiz } from './dragonVillageStory5Quiz';
+export { dragonVillageStory6Quiz } from './dragonVillageStory6Quiz';
+export { dragonVillageStory7Quiz } from './dragonVillageStory7Quiz';
+export { dragonVillageStory8Quiz } from './dragonVillageStory8Quiz';
 
 import { QuizQuestion, QuizTier } from './types';
 import { pokemonGoGuideQuiz } from './pokemonGoGuideQuiz';
@@ -14,6 +19,11 @@ import { dragonVillageQuiz } from './dragonVillageQuiz';
 import { dragonVillageStory1Quiz } from './dragonVillageStory1Quiz';
 import { dragonVillageStory2Quiz } from './dragonVillageStory2Quiz';
 import { dragonVillageStory3Quiz } from './dragonVillageStory3Quiz';
+import { dragonVillageStory4Quiz } from './dragonVillageStory4Quiz';
+import { dragonVillageStory5Quiz } from './dragonVillageStory5Quiz';
+import { dragonVillageStory6Quiz } from './dragonVillageStory6Quiz';
+import { dragonVillageStory7Quiz } from './dragonVillageStory7Quiz';
+import { dragonVillageStory8Quiz } from './dragonVillageStory8Quiz';
 
 // 모든 퀴즈 데이터
 const allQuizData: QuizQuestion[] = [
@@ -23,6 +33,11 @@ const allQuizData: QuizQuestion[] = [
   ...dragonVillageStory1Quiz,
   ...dragonVillageStory2Quiz,
   ...dragonVillageStory3Quiz,
+  ...dragonVillageStory4Quiz,
+  ...dragonVillageStory5Quiz,
+  ...dragonVillageStory6Quiz,
+  ...dragonVillageStory7Quiz,
+  ...dragonVillageStory8Quiz,
 ];
 
 // 책 ID로 퀴즈 가져오기

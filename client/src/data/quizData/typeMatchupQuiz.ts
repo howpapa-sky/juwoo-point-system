@@ -1,4 +1,4 @@
-// 타입 상성 완전 정복 퀴즈
+// 타입 상성 완전 정복 퀴즈 - 45문제 (기초 15 / 실력 15 / 마스터 15)
 import { QuizQuestion } from './types';
 
 export const typeMatchupQuiz: QuizQuestion[] = [

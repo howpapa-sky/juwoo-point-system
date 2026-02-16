@@ -1608,7 +1608,10 @@ export default function DragonVillageQuiz() {
       filtered = [...dragonQuizData];
     }
 
-    const shuffled = filtered.sort(() => Math.random() - 0.5).slice(0, 10);
+    const shuffled = filtered.sort(() => Math.random() - 0.5).slice(0, 10).map(q => ({
+      ...q,
+      options: q.options ? [...q.options].sort(() => Math.random() - 0.5) : q.options,
+    }));
 
     setQuestions(shuffled);
     setCurrentIndex(0);

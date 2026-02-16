@@ -280,7 +280,31 @@ export default function EbookQuiz() {
       return;
     }
 
-    const shuffled = [...tierQuestions].sort(() => Math.random() - 0.5);
+    const shuffled = [...tierQuestions].sort(() => Math.random() - 0.5).map(q => {
+      const shuffleWithRelated = (arr: string[] | undefined, ...related: (string[] | undefined)[]) => {
+        if (!arr) return { arr, related };
+        const indices = arr.map((_, i) => i).sort(() => Math.random() - 0.5);
+        return {
+          arr: indices.map(i => arr[i]),
+          related: related.map(r => r ? indices.map(i => r[i]) : r),
+        };
+      };
+
+      // options + optionEmojis + optionDescriptions 함께 셔플
+      const { arr: options, related } = shuffleWithRelated(q.options, q.optionEmojis, q.optionDescriptions);
+
+      // speakerOptions + optionEmojis 함께 셔플
+      const speakerResult = shuffleWithRelated(q.speakerOptions, q.optionEmojis);
+
+      return {
+        ...q,
+        options,
+        optionEmojis: q.options ? related[0] : q.speakerOptions ? speakerResult.related[0] : q.optionEmojis,
+        optionDescriptions: related[1],
+        speakerOptions: speakerResult.arr,
+        emotionOptions: q.emotionOptions ? [...q.emotionOptions].sort(() => Math.random() - 0.5) : q.emotionOptions,
+      };
+    });
 
     setSelectedTier(tier);
     setQuestions(shuffled);

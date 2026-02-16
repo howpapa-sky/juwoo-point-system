@@ -1114,7 +1114,7 @@ export default function DragonVillageQuiz() {
                 {/* 답변 영역 - 객관식 */}
                 {(currentQuestion.type === "multiple-choice" || currentQuestion.type === "true-false") &&
                   currentQuestion.options && (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {currentQuestion.options.map((option, index) => {
                       const isSelected = userAnswer === option;
                       const isCorrectOption = option === currentQuestion.correctAnswer;
@@ -1129,7 +1129,7 @@ export default function DragonVillageQuiz() {
                         >
                           <Button
                             variant="outline"
-                            className={`w-full h-16 text-lg font-bold transition-all rounded-xl ${
+                            className={`w-full h-auto min-h-16 py-3 px-4 text-base font-bold transition-all rounded-xl flex items-center gap-3 ${
                               showResult
                                 ? isCorrectOption
                                   ? "bg-green-500 hover:bg-green-600 text-white border-4 border-green-600"
@@ -1141,9 +1141,18 @@ export default function DragonVillageQuiz() {
                             onClick={() => handleSelectAnswer(option)}
                             disabled={isAnswered}
                           >
-                            {showResult && isCorrectOption && <CheckCircle className="h-5 w-5 mr-2" />}
-                            {showResult && isSelected && !isCorrectOption && <XCircle className="h-5 w-5 mr-2" />}
-                            {option}
+                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                              showResult && isCorrectOption
+                                ? "bg-green-600 text-white"
+                                : showResult && isSelected && !isCorrectOption
+                                ? "bg-red-600 text-white"
+                                : "bg-purple-100 text-purple-700"
+                            }`}>
+                              {index + 1}
+                            </span>
+                            {showResult && isCorrectOption && <CheckCircle className="h-5 w-5 flex-shrink-0" />}
+                            {showResult && isSelected && !isCorrectOption && <XCircle className="h-5 w-5 flex-shrink-0" />}
+                            <span className="flex-1 text-left">{option}</span>
                           </Button>
                         </motion.div>
                       );

@@ -1128,7 +1128,7 @@ export default function EbookQuiz() {
                                     : "border-gray-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/30 hover:shadow-sm"
                               }`}
                             >
-                              {/* 옵션 번호 */}
+                              {/* 옵션 번호 - 항상 숫자 표시 */}
                               <span
                                 className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                                   isAnswered && isCorrectOpt
@@ -1138,8 +1138,13 @@ export default function EbookQuiz() {
                                       : "bg-gray-100 text-gray-600"
                                 }`}
                               >
-                                {option.emoji || String.fromCharCode(65 + index)}
+                                {index + 1}
                               </span>
+
+                              {/* 옵션 이모지 (있는 경우 별도 표시) */}
+                              {option.emoji && (
+                                <span className="text-xl flex-shrink-0">{option.emoji}</span>
+                              )}
 
                               <div className="flex-1 min-w-0">
                                 <span className="font-medium text-sm leading-tight block">{option.label}</span>

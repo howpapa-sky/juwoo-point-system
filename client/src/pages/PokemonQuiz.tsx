@@ -1356,7 +1356,10 @@ export default function PokemonQuiz() {
   };
 
   const startGame = () => {
-    const selected = selectAdaptiveQuestions(difficulty, totalQuestions);
+    const selected = selectAdaptiveQuestions(difficulty, totalQuestions).map(q => ({
+      ...q,
+      options: q.options ? [...q.options].sort(() => Math.random() - 0.5) : q.options,
+    }));
     setQuestions(selected);
     setCurrentIndex(0);
     setUserAnswer("");

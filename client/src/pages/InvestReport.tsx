@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { SAVINGS_INTEREST_RATE } from "@/lib/investmentConstants";
+import { SAVINGS_INTEREST_RATE, MAX_MULTIPLIER } from "@/lib/investmentConstants";
 
 interface WeeklyReport {
   weekStart: string;
@@ -102,7 +102,7 @@ export default function InvestReport() {
 
         // 반사실적 사고: 소비한 코인의 기회비용
         const counterfactualSavings = Math.round(spent * SAVINGS_INTEREST_RATE);
-        const counterfactualInvestment = Math.round(spent * 0.1); // 해바라기 기준
+        const counterfactualInvestment = Math.round(spent * (MAX_MULTIPLIER['sunflower'] - 1)); // 해바라기 기준
 
         setReport({
           weekStart: monday.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }),

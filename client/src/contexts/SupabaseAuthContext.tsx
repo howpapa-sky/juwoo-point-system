@@ -22,39 +22,39 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<AuthError | null>(null);
 
   useEffect(() => {
-    console.log('[Auth] Initializing Supabase Auth...');
+    if (import.meta.env.DEV) console.log('[Auth] Initializing Supabase Auth...');
     
     // 즉시 onAuthStateChange 리스너 설정
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('[Auth] Auth state changed:', event, session ? 'session exists' : 'no session');
-      console.log('[Auth] User:', session?.user?.email || 'none');
+      if (import.meta.env.DEV) console.log('[Auth] Auth state changed:', event, session ? 'session exists' : 'no session');
+      if (import.meta.env.DEV) console.log('[Auth] User:', session?.user?.email || 'none');
       
       if (session?.user) {
-        console.log('[Auth] Setting user:', session.user.email);
+        if (import.meta.env.DEV) console.log('[Auth] Setting user:', session.user.email);
         setUser(session.user);
 
         // 관리자 이메일로 역할 결정 (DB 조회 없이)
         const adminEmails = ['appearyong@gmail.com', 'admin@juwoo.com'];
         const userEmail = session.user.email || '';
         const role = adminEmails.includes(userEmail) ? 'admin' : 'user';
-        console.log('[Auth] User role determined:', role);
+        if (import.meta.env.DEV) console.log('[Auth] User role determined:', role);
         setUserRole(role);
       } else {
-        console.log('[Auth] No session, clearing user');
+        if (import.meta.env.DEV) console.log('[Auth] No session, clearing user');
         setUser(null);
         setUserRole(null);
       }
       
-      console.log('[Auth] Setting loading to false');
+      if (import.meta.env.DEV) console.log('[Auth] Setting loading to false');
       setLoading(false);
     });
 
     // 초기 세션 확인 (비동기, 타임아웃 없음)
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('[Auth] Initial session check:', session ? 'found' : 'none');
+      if (import.meta.env.DEV) console.log('[Auth] Initial session check:', session ? 'found' : 'none');
       
       if (error) {
-        console.error('[Auth] getSession error:', error);
+        if (import.meta.env.DEV) console.error('[Auth] getSession error:', error);
         setError(error);
       }
       
@@ -63,7 +63,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     }).catch((err) => {
-      console.error('[Auth] getSession failed:', err);
+      if (import.meta.env.DEV) console.error('[Auth] getSession failed:', err);
       setLoading(false);
     });
 

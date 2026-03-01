@@ -294,6 +294,13 @@ function Router() {
           </AdminLayout>
         )}
       </Route>
+      <Route path="/admin/points/transactions">
+        {() => (
+          <AdminLayout>
+            <Transactions />
+          </AdminLayout>
+        )}
+      </Route>
       <Route path="/admin/settings">
         {() => (
           <AdminLayout>

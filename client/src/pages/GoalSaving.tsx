@@ -7,7 +7,6 @@ import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import {
   ArrowLeft,
-  Coins,
   Target,
   Plus,
   Sparkles,

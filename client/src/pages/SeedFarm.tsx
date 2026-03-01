@@ -4,10 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   ArrowLeft,
-  Coins,
   Sprout,
   TrendingUp,
   TrendingDown,
@@ -127,6 +126,7 @@ const DIARY_OPTIONS = [
 export default function SeedFarm() {
   const { user, loading: authLoading } = useSupabaseAuth();
   const isAuthenticated = !!user;
+  const [, navigate] = useLocation();
 
   const [walletBalance, setWalletBalance] = useState(0);
   const [activeSeeds, setActiveSeeds] = useState<Seed[]>([]);
@@ -353,22 +353,29 @@ export default function SeedFarm() {
   };
 
   // 수확 후 소감 저장
-  const handleSaveReflection = async () => {
+  const handleSaveReflection = async (options?: { nextStep?: "main" | "select"; navigateTo?: string }) => {
     if (!harvestResult) return;
     try {
-      await supabase
-        .from("seeds")
-        .update({ diary_reflection: harvestReflection })
-        .eq("id", harvestResult.seed.id);
-      toast.success("투자 일기를 저장했어요!");
+      if (harvestReflection) {
+        await supabase
+          .from("seeds")
+          .update({ diary_reflection: harvestReflection })
+          .eq("id", harvestResult.seed.id);
+        toast.success("투자 일기를 저장했어요!");
+      }
     } catch (error) {
       console.error("Error saving reflection:", error);
     }
-    setStep("main");
     setHarvestResult(null);
     setHarvestReflection("");
     setHarvestingSeed(null);
-    fetchData();
+
+    if (options?.navigateTo) {
+      navigate(options.navigateTo);
+    } else {
+      setStep(options?.nextStep || "main");
+      fetchData();
+    }
   };
 
   const getSeedIcon = (type: string) => {
@@ -578,33 +585,26 @@ export default function SeedFarm() {
               수확한 코인으로 뭐 할까?
             </p>
             <div className="grid grid-cols-3 gap-3">
-              <Link href="/shop">
-                <Button
-                  variant="outline"
-                  className="h-16 w-full flex-col gap-1 rounded-2xl border-2 border-orange-200 text-orange-700 hover:bg-orange-50"
-                  onClick={handleSaveReflection}
-                >
-                  <span className="text-lg">🛒</span>
-                  <span className="text-xs font-bold">쓰기</span>
-                </Button>
-              </Link>
-              <Link href="/savings">
-                <Button
-                  variant="outline"
-                  className="h-16 w-full flex-col gap-1 rounded-2xl border-2 border-blue-200 text-blue-700 hover:bg-blue-50"
-                  onClick={handleSaveReflection}
-                >
-                  <span className="text-lg">🏦</span>
-                  <span className="text-xs font-bold">금고에 넣기</span>
-                </Button>
-              </Link>
+              <Button
+                variant="outline"
+                className="h-16 flex-col gap-1 rounded-2xl border-2 border-orange-200 text-orange-700 hover:bg-orange-50"
+                onClick={() => handleSaveReflection({ navigateTo: "/shop" })}
+              >
+                <span className="text-lg">🛒</span>
+                <span className="text-xs font-bold">쓰기</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-16 flex-col gap-1 rounded-2xl border-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                onClick={() => handleSaveReflection({ navigateTo: "/savings" })}
+              >
+                <span className="text-lg">🏦</span>
+                <span className="text-xs font-bold">금고에 넣기</span>
+              </Button>
               <Button
                 variant="outline"
                 className="h-16 flex-col gap-1 rounded-2xl border-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                onClick={() => {
-                  handleSaveReflection();
-                  setStep("select");
-                }}
+                onClick={() => handleSaveReflection({ nextStep: "select" })}
               >
                 <span className="text-lg">🌱</span>
                 <span className="text-xs font-bold">다시 심기</span>
@@ -615,7 +615,7 @@ export default function SeedFarm() {
           <Button
             variant="ghost"
             className="w-full rounded-2xl text-slate-500"
-            onClick={handleSaveReflection}
+            onClick={() => handleSaveReflection()}
           >
             나중에 결정할래
           </Button>

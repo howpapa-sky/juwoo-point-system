@@ -4,7 +4,7 @@
 -- 저축 계좌
 CREATE TABLE IF NOT EXISTS savings_account (
   id SERIAL PRIMARY KEY,
-  juwoo_id INTEGER DEFAULT 1 NOT NULL,
+  juwoo_id INTEGER DEFAULT 1 NOT NULL UNIQUE,
   balance INTEGER DEFAULT 0 NOT NULL,
   interest_rate DECIMAL(4,2) DEFAULT 0.10 NOT NULL,
   last_interest_date TIMESTAMP DEFAULT NOW(),
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS goal_deposits (
   deposited_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
--- 초기 저축 계좌 생성
+-- 초기 저축 계좌 생성 (juwoo_id UNIQUE로 중복 방지)
 INSERT INTO savings_account (juwoo_id, balance, interest_rate)
 VALUES (1, 0, 0.10)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (juwoo_id) DO NOTHING;

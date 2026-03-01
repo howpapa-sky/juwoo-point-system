@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
+import { SAVINGS_INTEREST_RATE } from "@/lib/investmentConstants";
 import { Link } from "wouter";
 import {
   ArrowLeft,
@@ -159,7 +160,7 @@ export default function Savings() {
       fetchData();
     } catch (error: any) {
       console.error("Error depositing:", error);
-      toast.error("입금에 실패했습니다.");
+      toast.error("잘 안 됐어요. 다시 해볼까?");
     } finally {
       setProcessing(false);
     }
@@ -210,7 +211,7 @@ export default function Savings() {
       fetchData();
     } catch (error: any) {
       console.error("Error withdrawing:", error);
-      toast.error("출금에 실패했습니다.");
+      toast.error("잘 안 됐어요. 다시 해볼까?");
     } finally {
       setProcessing(false);
     }
@@ -461,7 +462,7 @@ export default function Savings() {
                 💡 금고에 오래 넣어둘수록 이자가 더 많이 붙어요!
               </p>
               <p className="text-xs text-blue-500 mt-1">
-                매주 일요일에 금고 잔액의 3%가 이자로 들어옵니다.
+                매주 일요일에 금고 잔액의 {Math.round(SAVINGS_INTEREST_RATE * 100)}%가 이자로 들어옵니다.
               </p>
             </CardContent>
           </Card>

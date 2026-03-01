@@ -124,7 +124,7 @@ export default function GoalSaving() {
       fetchData();
     } catch (error: any) {
       console.error("Error creating goal:", error);
-      toast.error("목표 생성에 실패했습니다.");
+      toast.error("잘 안 됐어요. 다시 해볼까?");
     } finally {
       setProcessing(false);
     }
@@ -200,7 +200,7 @@ export default function GoalSaving() {
       fetchData();
     } catch (error: any) {
       console.error("Error depositing:", error);
-      toast.error("입금에 실패했습니다.");
+      toast.error("잘 안 됐어요. 다시 해볼까?");
     } finally {
       setProcessing(false);
     }
@@ -211,12 +211,12 @@ export default function GoalSaving() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-sm w-full border-0 shadow-2xl bg-white/80 backdrop-blur-xl">
           <CardContent className="p-6 text-center">
-            <div className="mx-auto p-4 bg-gradient-to-br from-red-500 to-rose-500 rounded-3xl w-fit mb-4 shadow-lg">
+            <div className="mx-auto p-4 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-3xl w-fit mb-4 shadow-lg">
               <Target className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-2xl font-black mb-2">로그인이 필요해요</h2>
             <a href={getLoginUrl()}>
-              <Button className="w-full h-14 bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold text-lg rounded-2xl">
+              <Button className="w-full h-14 bg-gradient-to-r from-teal-500 to-emerald-600 text-white font-bold text-lg rounded-2xl">
                 로그인하기
               </Button>
             </a>
@@ -230,9 +230,9 @@ export default function GoalSaving() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="relative">
-          <div className="w-20 h-20 border-4 border-red-200 rounded-full animate-spin border-t-red-600" />
+          <div className="w-20 h-20 border-4 border-teal-200 rounded-full animate-spin border-t-teal-600" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <Target className="h-8 w-8 text-red-600 animate-pulse" />
+            <Target className="h-8 w-8 text-teal-600 animate-pulse" />
           </div>
         </div>
         <p className="text-slate-500 mt-6 font-medium">목표를 불러오는 중...</p>

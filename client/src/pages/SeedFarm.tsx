@@ -344,7 +344,7 @@ export default function SeedFarm() {
       setUnlockedHidden(unlocked);
     } catch (error: any) {
       console.error("Error fetching seed farm:", error);
-      toast.error("씨앗밭 데이터를 불러오지 못했습니다.");
+      toast.error("데이터를 불러오지 못했어요. 다시 시도해볼까?");
     } finally {
       setLoading(false);
     }
@@ -416,7 +416,7 @@ export default function SeedFarm() {
       fetchData();
     } catch (error: any) {
       console.error("Error planting seed:", error);
-      toast.error("씨앗 심기에 실패했습니다.");
+      toast.error("잘 안 됐어요. 다시 해볼까?");
     } finally {
       setProcessing(false);
     }
@@ -496,7 +496,7 @@ export default function SeedFarm() {
         }
       } catch (error: any) {
         console.error("Error harvesting:", error);
-        toast.error("수확에 실패했습니다.");
+        toast.error("잘 안 됐어요. 다시 해볼까?");
         setShowHarvestAnimation(false);
       }
     }, 2000);
@@ -1063,7 +1063,9 @@ export default function SeedFarm() {
         toast.error("최소 10코인 이상 심어야 해요!");
         return;
       }
-      if (totalAllocated > walletBalance) {
+      // 유효한 항목만의 합계로 검증 및 차감
+      const validTotal = entries.reduce((sum, [, v]) => sum + v, 0);
+      if (validTotal > walletBalance) {
         toast.error("지갑에 코인이 부족해요!");
         return;
       }
@@ -1088,8 +1090,8 @@ export default function SeedFarm() {
           });
         }
 
-        // 지갑 차감 (합산 한 번에)
-        const newBalance = walletBalance - totalAllocated;
+        // 지갑 차감 (유효 항목 합계만)
+        const newBalance = walletBalance - validTotal;
         await supabase
           .from("juwoo_profile")
           .update({ current_points: newBalance })
@@ -1103,9 +1105,9 @@ export default function SeedFarm() {
         await supabase.from("point_transactions").insert({
           juwoo_id: 1,
           rule_id: null,
-          amount: -totalAllocated,
+          amount: -validTotal,
           balance_after: newBalance,
-          note: `🌈 묶음 심기: ${seedNames.join(", ")} (${totalAllocated}코인)`,
+          note: `🌈 묶음 심기: ${seedNames.join(", ")} (${validTotal}코인)`,
           created_by: 1,
         });
 
@@ -1118,7 +1120,7 @@ export default function SeedFarm() {
         fetchData();
       } catch (error: any) {
         console.error("Error bundle planting:", error);
-        toast.error("묶음 심기에 실패했습니다.");
+        toast.error("잘 안 됐어요. 다시 해볼까?");
       } finally {
         setProcessing(false);
       }

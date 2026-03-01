@@ -114,7 +114,7 @@ export default function MyWallet() {
         });
       } catch (error: any) {
         console.error("Error fetching wallet data:", error);
-        toast.error("지갑 데이터를 불러오는데 실패했습니다.");
+        toast.error("데이터를 불러오지 못했어요. 다시 시도해볼까?");
       } finally {
         setLoading(false);
       }

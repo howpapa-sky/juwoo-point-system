@@ -1804,7 +1804,7 @@ export default function DragonVillageQuiz() {
         toast.success(`🎉 ${points.toLocaleString()} 포인트 획득!`);
       }
     } catch (error) {
-      console.error("포인트 적립 오류:", error);
+      if (import.meta.env.DEV) console.error("포인트 적립 오류:", error);
     }
   };
 

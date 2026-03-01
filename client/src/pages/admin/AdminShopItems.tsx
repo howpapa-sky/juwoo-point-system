@@ -109,8 +109,8 @@ export default function AdminShopItems() {
       .order("price");
 
     if (error) {
-      toast.error("아이템을 불러오는데 실패했습니다");
-      console.error(error);
+      toast.error("아이템을 불러오지 못했어요");
+      if (import.meta.env.DEV) console.error(error);
     } else {
       setItems(data || []);
     }
@@ -144,8 +144,8 @@ export default function AdminShopItems() {
         .eq("id", editingItem.id);
 
       if (error) {
-        toast.error("아이템 수정에 실패했습니다");
-        console.error(error);
+        toast.error("아이템 수정이 잘 안 됐어요");
+        if (import.meta.env.DEV) console.error(error);
         return;
       }
       toast.success("아이템이 수정되었습니다");
@@ -153,8 +153,8 @@ export default function AdminShopItems() {
       const { error } = await supabase.from("shop_items").insert(itemData);
 
       if (error) {
-        toast.error("아이템 추가에 실패했습니다");
-        console.error(error);
+        toast.error("아이템 추가가 잘 안 됐어요");
+        if (import.meta.env.DEV) console.error(error);
         return;
       }
       toast.success("새 아이템이 추가되었습니다");
@@ -174,8 +174,8 @@ export default function AdminShopItems() {
       .eq("id", itemToDelete.id);
 
     if (error) {
-      toast.error("아이템 삭제에 실패했습니다");
-      console.error(error);
+      toast.error("아이템 삭제가 잘 안 됐어요");
+      if (import.meta.env.DEV) console.error(error);
     } else {
       toast.success("아이템이 삭제되었습니다");
       fetchItems();
@@ -192,7 +192,7 @@ export default function AdminShopItems() {
       .eq("id", item.id);
 
     if (error) {
-      toast.error("상태 변경에 실패했습니다");
+      toast.error("상태 변경이 잘 안 됐어요");
     } else {
       toast.success(item.is_available ? "아이템이 비공개되었습니다" : "아이템이 공개되었습니다");
       fetchItems();
@@ -211,7 +211,7 @@ export default function AdminShopItems() {
     });
 
     if (error) {
-      toast.error("아이템 복제에 실패했습니다");
+      toast.error("아이템 복제가 잘 안 됐어요");
     } else {
       toast.success("아이템이 복제되었습니다");
       fetchItems();

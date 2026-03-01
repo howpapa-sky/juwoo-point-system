@@ -97,8 +97,8 @@ export default function PointsManage() {
         if (profileError) throw profileError;
         setCurrentPoints(profileData?.current_points || 0);
       } catch (error: any) {
-        console.error('Error fetching data:', error);
-        toast.error('데이터를 불러오는데 실패했습니다.');
+        if (import.meta.env.DEV) console.error('Error fetching data:', error);
+        toast.error('데이터를 불러오지 못했어요.');
       } finally {
         setLoading(false);
       }
@@ -164,8 +164,8 @@ export default function PointsManage() {
       setCurrentPoints(newBalance);
       toast.success("포인트가 적용되었습니다!");
     } catch (error: any) {
-      console.error('Error applying rule:', error);
-      toast.error('포인트 적용에 실패했습니다.');
+      if (import.meta.env.DEV) console.error('Error applying rule:', error);
+      toast.error('포인트 적용이 잘 안 됐어요.');
     } finally {
       setApplying(false);
     }
@@ -214,8 +214,8 @@ export default function PointsManage() {
       setManualAmount("");
       setManualNote("");
     } catch (error: any) {
-      console.error('Error manual adjustment:', error);
-      toast.error('포인트 조정에 실패했습니다.');
+      if (import.meta.env.DEV) console.error('Error manual adjustment:', error);
+      toast.error('포인트 조정이 잘 안 됐어요.');
     } finally {
       setApplying(false);
     }
@@ -258,7 +258,7 @@ export default function PointsManage() {
       setCurrentPoints(0);
       toast.success("모든 포인트와 투자/저축 데이터가 초기화되었어요!");
     } catch (error) {
-      console.error('Error resetting points:', error);
+      if (import.meta.env.DEV) console.error('Error resetting points:', error);
       toast.error('초기화가 잘 안 됐어요. 다시 해볼까?');
     } finally {
       setApplying(false);

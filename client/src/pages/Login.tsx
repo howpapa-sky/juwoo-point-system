@@ -26,7 +26,7 @@ export default function Login() {
       setLoading(true);
       await signInWithGoogle();
     } catch (error: any) {
-      toast.error(error.message || '로그인 실패');
+      toast.error(error.message || '로그인이 잘 안 됐어요');
     } finally {
       setLoading(false);
     }
@@ -46,7 +46,7 @@ export default function Login() {
         // useEffect에서 자동으로 리다이렉트됨
       }
     } catch (error: any) {
-      toast.error(error.message || (isSignUp ? '회원가입 실패' : '로그인 실패'));
+      toast.error(error.message || (isSignUp ? '회원가입이 잘 안 됐어요' : '로그인이 잘 안 됐어요'));
     } finally {
       setLoading(false);
     }

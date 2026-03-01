@@ -53,7 +53,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { path: "/wallet", label: "지갑", icon: Wallet },
     { path: "/pokemon-quiz", label: "퀴즈", icon: Gamepad2 },
     { path: "/shop", label: "상점", icon: ShoppingBag },
-    { path: "/my-page", label: "MY", icon: User },
   ];
 
   // 전체 메뉴 아이템
@@ -339,12 +338,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         {/* 하단 */}
         <div className="p-4 border-t dark:border-slate-800 space-y-2">
-          <Link href="/my-page">
-            <Button variant="outline" className="w-full justify-start gap-2 rounded-xl h-11">
-              <User className="w-4 h-4" />
-              마이페이지
-            </Button>
-          </Link>
           <Button
             variant="ghost"
             className="w-full justify-start gap-2 rounded-xl h-11 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"

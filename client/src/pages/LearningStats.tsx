@@ -93,7 +93,7 @@ export default function LearningStats() {
 
       setProgressData(data || []);
     } catch (error) {
-      console.error('Failed to load stats:', error);
+      if (import.meta.env.DEV) console.error('Failed to load stats:', error);
     } finally {
       setLoading(false);
     }

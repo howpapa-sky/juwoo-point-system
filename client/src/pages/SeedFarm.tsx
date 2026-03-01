@@ -343,7 +343,7 @@ export default function SeedFarm() {
       if (totalProfit >= 100) unlocked.add("rainbow");
       setUnlockedHidden(unlocked);
     } catch (error: any) {
-      console.error("Error fetching seed farm:", error);
+      if (import.meta.env.DEV) console.error("Error fetching seed farm:", error);
       toast.error("데이터를 불러오지 못했어요. 다시 시도해볼까?");
     } finally {
       setLoading(false);
@@ -415,7 +415,7 @@ export default function SeedFarm() {
       setCustomDiary("");
       fetchData();
     } catch (error: any) {
-      console.error("Error planting seed:", error);
+      if (import.meta.env.DEV) console.error("Error planting seed:", error);
       toast.error("잘 안 됐어요. 다시 해볼까?");
     } finally {
       setProcessing(false);
@@ -495,7 +495,7 @@ export default function SeedFarm() {
           });
         }
       } catch (error: any) {
-        console.error("Error harvesting:", error);
+        if (import.meta.env.DEV) console.error("Error harvesting:", error);
         toast.error("잘 안 됐어요. 다시 해볼까?");
         setShowHarvestAnimation(false);
       }
@@ -514,7 +514,7 @@ export default function SeedFarm() {
         toast.success("투자 일기를 저장했어요!");
       }
     } catch (error) {
-      console.error("Error saving reflection:", error);
+      if (import.meta.env.DEV) console.error("Error saving reflection:", error);
     }
     setHarvestResult(null);
     setHarvestReflection("");
@@ -1119,7 +1119,7 @@ export default function SeedFarm() {
         setStep("main");
         fetchData();
       } catch (error: any) {
-        console.error("Error bundle planting:", error);
+        if (import.meta.env.DEV) console.error("Error bundle planting:", error);
         toast.error("잘 안 됐어요. 다시 해볼까?");
       } finally {
         setProcessing(false);
@@ -1228,13 +1228,13 @@ export default function SeedFarm() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-slate-600">투자 합계</span>
-                <span className={`font-bold ${totalAllocated > walletBalance ? "text-red-500" : "text-slate-800"}`}>
+                <span className={`font-bold ${totalAllocated > walletBalance ? "text-amber-600" : "text-slate-800"}`}>
                   {totalAllocated.toLocaleString()}코인
                 </span>
               </div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-slate-600">남는 코인</span>
-                <span className={`font-bold ${remaining < 0 ? "text-red-500" : "text-slate-600"}`}>
+                <span className={`font-bold ${remaining < 0 ? "text-amber-600" : "text-slate-600"}`}>
                   {remaining.toLocaleString()}코인
                 </span>
               </div>

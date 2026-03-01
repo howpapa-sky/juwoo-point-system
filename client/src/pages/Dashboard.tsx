@@ -187,8 +187,8 @@ export default function Dashboard() {
 
         setTransactions(txWithBalance);
       } catch (error: any) {
-        console.error("Error fetching dashboard data:", error);
-        toast.error("데이터를 불러오는데 실패했습니다.");
+        if (import.meta.env.DEV) console.error("Error fetching dashboard data:", error);
+        toast.error("데이터를 불러오지 못했어요.");
       } finally {
         setLoading(false);
       }
@@ -233,10 +233,10 @@ export default function Dashboard() {
 
       toast.success("포인트가 취소되었습니다!");
       setBalance(newBalance);
-      window.location.reload();
+      setTransactions(prev => prev.filter(t => t.id !== transactionId));
     } catch (error: any) {
-      console.error("Error canceling transaction:", error);
-      toast.error("취소에 실패했습니다.");
+      if (import.meta.env.DEV) console.error("Error canceling transaction:", error);
+      toast.error("취소가 잘 안 됐어요. 다시 해볼까?");
     }
   };
 

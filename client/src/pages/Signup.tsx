@@ -40,8 +40,8 @@ export default function Signup() {
       toast.success("회원가입이 완료되었습니다! 이메일을 확인해주세요.");
       setLocation("/login");
     } catch (error: any) {
-      console.error("Signup error:", error);
-      toast.error(error.message || "회원가입에 실패했습니다.");
+      if (import.meta.env.DEV) console.error("Signup error:", error);
+      toast.error(error.message || "회원가입이 잘 안 됐어요.");
     } finally {
       setLoading(false);
     }
@@ -51,8 +51,8 @@ export default function Signup() {
     try {
       await signInWithGoogle();
     } catch (error: any) {
-      console.error("Google signup error:", error);
-      toast.error("Google 회원가입에 실패했습니다.");
+      if (import.meta.env.DEV) console.error("Google signup error:", error);
+      toast.error("Google 회원가입이 잘 안 됐어요.");
     }
   };
 

@@ -515,7 +515,7 @@ export function useBadges() {
 
       setEarnedBadges(earnedNames);
     } catch (error) {
-      console.error('배지 로드 실패:', error);
+      if (import.meta.env.DEV) console.error('배지 로드 실패:', error);
     } finally {
       setLoading(false);
     }
@@ -596,7 +596,7 @@ export function useBadges() {
       setStats(userStats);
       return userStats;
     } catch (error) {
-      console.error('통계 로드 실패:', error);
+      if (import.meta.env.DEV) console.error('통계 로드 실패:', error);
       return {
         currentPoints: 0,
         totalPointsEarned: 0,
@@ -660,7 +660,7 @@ export function useBadges() {
             setEarnedBadges(prev => new Set([...prev, badge.id]));
           }
         } catch (error) {
-          console.error(`배지 부여 실패 (${badge.name}):`, error);
+          if (import.meta.env.DEV) console.error(`배지 부여 실패 (${badge.name}):`, error);
         }
       }
     }

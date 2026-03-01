@@ -114,8 +114,8 @@ export default function AdminPointRules() {
       .order("id");
 
     if (error) {
-      toast.error("규칙을 불러오는데 실패했습니다");
-      console.error(error);
+      toast.error("규칙을 불러오지 못했어요");
+      if (import.meta.env.DEV) console.error(error);
     } else {
       setRules(data || []);
     }
@@ -150,8 +150,8 @@ export default function AdminPointRules() {
         .eq("id", editingRule.id);
 
       if (error) {
-        toast.error("규칙 수정에 실패했습니다");
-        console.error(error);
+        toast.error("규칙 수정이 잘 안 됐어요");
+        if (import.meta.env.DEV) console.error(error);
         return;
       }
       toast.success("규칙이 수정되었습니다");
@@ -160,8 +160,8 @@ export default function AdminPointRules() {
       const { error } = await supabase.from("point_rules").insert(ruleData);
 
       if (error) {
-        toast.error("규칙 추가에 실패했습니다");
-        console.error(error);
+        toast.error("규칙 추가가 잘 안 됐어요");
+        if (import.meta.env.DEV) console.error(error);
         return;
       }
       toast.success("새 규칙이 추가되었습니다");
@@ -181,8 +181,8 @@ export default function AdminPointRules() {
       .eq("id", ruleToDelete.id);
 
     if (error) {
-      toast.error("규칙 삭제에 실패했습니다");
-      console.error(error);
+      toast.error("규칙 삭제가 잘 안 됐어요");
+      if (import.meta.env.DEV) console.error(error);
     } else {
       toast.success("규칙이 삭제되었습니다");
       fetchRules();
@@ -199,7 +199,7 @@ export default function AdminPointRules() {
       .eq("id", rule.id);
 
     if (error) {
-      toast.error("상태 변경에 실패했습니다");
+      toast.error("상태 변경이 잘 안 됐어요");
     } else {
       toast.success(rule.is_active ? "규칙이 비활성화되었습니다" : "규칙이 활성화되었습니다");
       fetchRules();
@@ -218,7 +218,7 @@ export default function AdminPointRules() {
     });
 
     if (error) {
-      toast.error("규칙 복제에 실패했습니다");
+      toast.error("규칙 복제가 잘 안 됐어요");
     } else {
       toast.success("규칙이 복제되었습니다");
       fetchRules();

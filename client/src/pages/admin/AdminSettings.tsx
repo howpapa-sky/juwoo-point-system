@@ -161,7 +161,7 @@ export default function AdminSettings() {
         setSettings({ ...defaultSettings, ...JSON.parse(savedSettings) });
       }
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      if (import.meta.env.DEV) console.error('Failed to load settings:', error);
     } finally {
       setLoading(false);
     }
@@ -186,7 +186,7 @@ export default function AdminSettings() {
         storageUsed: `${(JSON.stringify(localStorage).length / 1024).toFixed(2)} KB`,
       });
     } catch (error) {
-      console.error('Failed to load stats:', error);
+      if (import.meta.env.DEV) console.error('Failed to load stats:', error);
     }
   }
 
@@ -202,7 +202,7 @@ export default function AdminSettings() {
       setHasChanges(false);
       toast.success('설정이 저장되었습니다!');
     } catch (error) {
-      toast.error('설정 저장에 실패했습니다.');
+      toast.error('설정 저장이 잘 안 됐어요.');
     } finally {
       setSaving(false);
     }
@@ -246,7 +246,7 @@ export default function AdminSettings() {
 
       toast.success('데이터가 내보내기되었습니다!');
     } catch (error) {
-      toast.error('데이터 내보내기에 실패했습니다.');
+      toast.error('데이터 내보내기가 잘 안 됐어요.');
     }
   }
 

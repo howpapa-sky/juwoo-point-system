@@ -167,7 +167,7 @@ export default function Statistics() {
       setBadges(badgesRes.data || []);
       setEbookProgress(ebookRes.data || []);
     } catch (error) {
-      console.error('Failed to load statistics:', error);
+      if (import.meta.env.DEV) console.error('Failed to load statistics:', error);
     } finally {
       setLoading(false);
     }

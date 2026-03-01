@@ -113,8 +113,8 @@ export default function AdminWords() {
       .order("word");
 
     if (error) {
-      toast.error("단어를 불러오는데 실패했습니다");
-      console.error(error);
+      toast.error("단어를 불러오지 못했어요");
+      if (import.meta.env.DEV) console.error(error);
     } else {
       setWords(data || []);
     }
@@ -147,8 +147,8 @@ export default function AdminWords() {
         .eq("id", editingWord.id);
 
       if (error) {
-        toast.error("단어 수정에 실패했습니다");
-        console.error(error);
+        toast.error("단어 수정이 잘 안 됐어요");
+        if (import.meta.env.DEV) console.error(error);
         return;
       }
       toast.success("단어가 수정되었습니다");
@@ -156,8 +156,8 @@ export default function AdminWords() {
       const { error } = await supabase.from("english_words").insert(wordData);
 
       if (error) {
-        toast.error("단어 추가에 실패했습니다");
-        console.error(error);
+        toast.error("단어 추가가 잘 안 됐어요");
+        if (import.meta.env.DEV) console.error(error);
         return;
       }
       toast.success("새 단어가 추가되었습니다");
@@ -177,8 +177,8 @@ export default function AdminWords() {
       .eq("id", wordToDelete.id);
 
     if (error) {
-      toast.error("단어 삭제에 실패했습니다");
-      console.error(error);
+      toast.error("단어 삭제가 잘 안 됐어요");
+      if (import.meta.env.DEV) console.error(error);
     } else {
       toast.success("단어가 삭제되었습니다");
       fetchWords();
@@ -251,7 +251,7 @@ export default function AdminWords() {
         const { error } = await supabase.from("english_words").insert(newWords);
 
         if (error) {
-          toast.error("단어 업로드에 실패했습니다: " + error.message);
+          toast.error("단어 업로드가 잘 안 됐어요: " + error.message);
         } else {
           toast.success(`${newWords.length}개의 단어가 업로드되었습니다`);
           fetchWords();
@@ -259,7 +259,7 @@ export default function AdminWords() {
         }
       } catch (err) {
         toast.error("파일 처리 중 오류가 발생했습니다");
-        console.error(err);
+        if (import.meta.env.DEV) console.error(err);
       }
     };
     reader.readAsText(file);

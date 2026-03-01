@@ -444,7 +444,7 @@ export default function FlashCard() {
           });
       }
     } catch (error) {
-      console.error('학습 기록 저장 실패:', error);
+      if (import.meta.env.DEV) console.error('학습 기록 저장 실패:', error);
     }
   };
 
@@ -733,7 +733,7 @@ export default function FlashCard() {
 
       toast.success(`🎉 ${points} 포인트 획득!`);
     } catch (error) {
-      console.error('포인트 적립 오류:', error);
+      if (import.meta.env.DEV) console.error('포인트 적립 오류:', error);
     }
   };
 

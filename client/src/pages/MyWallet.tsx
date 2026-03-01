@@ -113,7 +113,7 @@ export default function MyWallet() {
           monthlyInvestReturn,
         });
       } catch (error: any) {
-        console.error("Error fetching wallet data:", error);
+        if (import.meta.env.DEV) console.error("Error fetching wallet data:", error);
         toast.error("데이터를 불러오지 못했어요. 다시 시도해볼까?");
       } finally {
         setLoading(false);

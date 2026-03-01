@@ -79,7 +79,7 @@ export default function GoalSaving() {
 
       setAchievedGoals(doneGoals || []);
     } catch (error: any) {
-      console.error("Error fetching goals:", error);
+      if (import.meta.env.DEV) console.error("Error fetching goals:", error);
       toast.error("목표 데이터를 불러오지 못했습니다.");
     } finally {
       setLoading(false);
@@ -123,7 +123,7 @@ export default function GoalSaving() {
       setNewTarget("");
       fetchData();
     } catch (error: any) {
-      console.error("Error creating goal:", error);
+      if (import.meta.env.DEV) console.error("Error creating goal:", error);
       toast.error("잘 안 됐어요. 다시 해볼까?");
     } finally {
       setProcessing(false);
@@ -199,7 +199,7 @@ export default function GoalSaving() {
       setSelectedGoal(null);
       fetchData();
     } catch (error: any) {
-      console.error("Error depositing:", error);
+      if (import.meta.env.DEV) console.error("Error depositing:", error);
       toast.error("잘 안 됐어요. 다시 해볼까?");
     } finally {
       setProcessing(false);

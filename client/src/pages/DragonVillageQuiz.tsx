@@ -1734,13 +1734,26 @@ export default function DragonVillageQuiz() {
   // 포인트 지급
   const awardPoints = async () => {
     try {
+      // 중복 포인트 방지: 이미 드래곤 빌리지 퀴즈로 포인트를 받았는지 확인
+      const { data: existing } = await supabase
+        .from("point_transactions")
+        .select("id")
+        .eq("juwoo_id", 1)
+        .like("note", "드래곤 빌리지%")
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        toast.info("이미 포인트를 받았어요! 🐉");
+        return;
+      }
+
       const { data: profile } = await supabase
         .from("juwoo_profile")
         .select("current_points")
         .eq("id", 1)
         .single();
 
-      const currentBalance = profile?.current_points || 0;
+      const currentBalance = profile?.current_points ?? 0;
       const scorePercent = Math.round((correctCount / totalQuestions) * 100);
 
       let points = 0;

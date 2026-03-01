@@ -59,29 +59,20 @@ export default function PointsManage() {
     const initialize = async () => {
       setLoading(true);
       try {
-        // One-time auto-reset
+        // One-time auto-reset (전체 초기화)
         if (!localStorage.getItem(POINTS_RESET_FLAG)) {
-          const { data: profileForReset } = await supabase
-            .from('juwoo_profile')
-            .select('current_points')
-            .eq('id', 1)
-            .single();
-
-          const balanceToReset = profileForReset?.current_points || 0;
-          if (balanceToReset !== 0) {
-            await supabase.from('point_transactions').insert({
-              juwoo_id: 1,
-              rule_id: null,
-              amount: -balanceToReset,
-              balance_after: 0,
-              note: '포인트 초기화 (시스템)',
-              created_by: 1,
-            });
-
-            await supabase.from('juwoo_profile')
-              .update({ current_points: 0 })
-              .eq('id', 1);
-          }
+          await supabase.from('goal_deposits').delete().neq('id', 0);
+          await supabase.from('saving_goals').delete().eq('juwoo_id', 1);
+          await supabase.from('interest_history').delete().neq('id', 0);
+          await supabase.from('seeds').delete().eq('juwoo_id', 1);
+          await supabase.from('purchases').delete().neq('id', 0);
+          await supabase.from('point_transactions').delete().eq('juwoo_id', 1);
+          await supabase.from('savings_account')
+            .update({ balance: 0, last_interest_date: null })
+            .eq('juwoo_id', 1);
+          await supabase.from('juwoo_profile')
+            .update({ current_points: 0 })
+            .eq('id', 1);
           localStorage.setItem(POINTS_RESET_FLAG, 'true');
         }
 
@@ -246,37 +237,29 @@ export default function PointsManage() {
   const handleResetPoints = async () => {
     setApplying(true);
     try {
-      const { data: profileData } = await supabase
-        .from('juwoo_profile')
-        .select('current_points')
-        .eq('id', 1)
-        .single();
+      // 1. 의존 테이블부터 삭제 (FK 순서)
+      await supabase.from('goal_deposits').delete().neq('id', 0);
+      await supabase.from('saving_goals').delete().eq('juwoo_id', 1);
+      await supabase.from('interest_history').delete().neq('id', 0);
+      await supabase.from('seeds').delete().eq('juwoo_id', 1);
+      await supabase.from('purchases').delete().neq('id', 0);
+      await supabase.from('point_transactions').delete().eq('juwoo_id', 1);
 
-      const currentBalance = profileData?.current_points || 0;
+      // 2. 금고 잔액 초기화
+      await supabase.from('savings_account')
+        .update({ balance: 0, last_interest_date: null })
+        .eq('juwoo_id', 1);
 
-      if (currentBalance === 0) {
-        toast.info("이미 포인트가 0이에요.");
-        return;
-      }
-
-      await supabase.from('point_transactions').insert({
-        juwoo_id: 1,
-        rule_id: null,
-        amount: -currentBalance,
-        balance_after: 0,
-        note: '포인트 리셋',
-        created_by: 1,
-      });
-
+      // 3. 지갑 잔액 초기화
       await supabase.from('juwoo_profile')
         .update({ current_points: 0 })
         .eq('id', 1);
 
       setCurrentPoints(0);
-      toast.success("포인트가 리셋되었습니다!");
+      toast.success("모든 포인트와 투자/저축 데이터가 초기화되었어요!");
     } catch (error) {
       console.error('Error resetting points:', error);
-      toast.error('포인트 리셋에 실패했습니다.');
+      toast.error('초기화가 잘 안 됐어요. 다시 해볼까?');
     } finally {
       setApplying(false);
     }

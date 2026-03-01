@@ -34,20 +34,33 @@ export default function Transactions() {
       try {
         const { data, error } = await supabase
           .from('point_transactions')
-          .select('id, amount, created_at')
+          .select('id, amount, note, created_at')
           .order('created_at', { ascending: false })
           .limit(limit);
 
         if (error) throw error;
 
-        const formattedTransactions = (data || []).map((tx: any) => ({
-          id: tx.id,
-          amount: tx.amount,
-          note: null,
-          created_at: tx.created_at,
-          rule_name: null,
-          rule_category: null,
-        }));
+        const formattedTransactions = (data || []).map((tx: any) => {
+          // 거래 카테고리 분류
+          const note = tx.note || "";
+          let category = null;
+          if (note.includes("금고 입금")) category = "금고 입금";
+          else if (note.includes("금고 출금")) category = "금고 출금";
+          else if (note.includes("이자")) category = "이자 수입";
+          else if (note.includes("씨앗 심기")) category = "씨앗 심기";
+          else if (note.includes("수확")) category = "씨앗 수확";
+          else if (note.includes("목표 저축")) category = "목표 저축";
+          else if (note.includes("취소")) category = "취소";
+
+          return {
+            id: tx.id,
+            amount: tx.amount,
+            note: tx.note,
+            created_at: tx.created_at,
+            rule_name: null,
+            rule_category: category,
+          };
+        });
 
         setTransactions(formattedTransactions);
       } catch (error: any) {
@@ -180,7 +193,15 @@ export default function Transactions() {
                             {tx.note || tx.rule_name || "포인트 변동"}
                           </p>
                           {tx.rule_category && (
-                            <span className="category-badge bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                              tx.rule_category.includes("금고") ? "bg-blue-100 text-blue-700" :
+                              tx.rule_category.includes("이자") ? "bg-blue-100 text-blue-700" :
+                              tx.rule_category.includes("씨앗") ? "bg-emerald-100 text-emerald-700" :
+                              tx.rule_category.includes("수확") ? "bg-emerald-100 text-emerald-700" :
+                              tx.rule_category.includes("목표") ? "bg-red-100 text-red-700" :
+                              tx.rule_category.includes("취소") ? "bg-slate-100 text-slate-600" :
+                              "bg-purple-100 text-purple-700"
+                            }`}>
                               {tx.rule_category}
                             </span>
                           )}

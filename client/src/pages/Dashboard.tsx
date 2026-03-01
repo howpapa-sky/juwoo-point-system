@@ -24,6 +24,9 @@ import {
   Medal,
   Trophy,
   Target,
+  Wallet,
+  Landmark,
+  Sprout,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
@@ -97,6 +100,9 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats>({ totalEarned: 0, totalSpent: 0 });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savingsBalance, setSavingsBalance] = useState(0);
+  const [investmentBalance, setInvestmentBalance] = useState(0);
+  const [readySeeds, setReadySeeds] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -112,6 +118,33 @@ export default function Dashboard() {
 
         if (profileError) throw profileError;
         setBalance(profileData?.current_points || 0);
+
+        // 금고 잔액
+        const { data: savingsData } = await supabase
+          .from("savings_account")
+          .select("balance")
+          .eq("juwoo_id", 1)
+          .single();
+        setSavingsBalance(savingsData?.balance || 0);
+
+        // 씨앗밭 투자액
+        const { data: seedsData } = await supabase
+          .from("seeds")
+          .select("invested_amount, status, harvest_date")
+          .eq("juwoo_id", 1)
+          .in("status", ["growing", "ready"]);
+
+        const investTotal = (seedsData || []).reduce(
+          (sum: number, s: any) => sum + s.invested_amount,
+          0
+        );
+        setInvestmentBalance(investTotal);
+
+        // 수확 가능한 씨앗 수
+        const readyCount = (seedsData || []).filter(
+          (s: any) => s.status === "ready" || new Date(s.harvest_date) <= new Date()
+        ).length;
+        setReadySeeds(readyCount);
 
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -417,16 +450,84 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        {/* 내 자산 현황 카드 */}
+        <Card className="border-0 bg-white/90 backdrop-blur-sm shadow-lg rounded-2xl overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-amber-500" />
+                <h3 className="font-bold text-slate-700 text-sm">내 자산 현황</h3>
+              </div>
+              <Link href="/wallet">
+                <Button variant="ghost" size="sm" className="h-7 px-2 gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg text-xs font-semibold">
+                  지갑 열기
+                  <ChevronRight className="h-3 w-3" />
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Link href="/wallet">
+                <div className="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer text-center">
+                  <Wallet className="h-4 w-4 text-amber-500 mx-auto mb-1" />
+                  <p className="text-[10px] text-slate-500">지갑</p>
+                  <p className="text-sm font-bold text-amber-600">{balance.toLocaleString()}</p>
+                </div>
+              </Link>
+              <Link href="/savings">
+                <div className="p-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer text-center">
+                  <Landmark className="h-4 w-4 text-blue-500 mx-auto mb-1" />
+                  <p className="text-[10px] text-slate-500">금고</p>
+                  <p className="text-sm font-bold text-blue-600">{savingsBalance.toLocaleString()}</p>
+                </div>
+              </Link>
+              <Link href="/seed-farm">
+                <div className="p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 transition-colors cursor-pointer text-center">
+                  <Sprout className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
+                  <p className="text-[10px] text-slate-500">씨앗밭</p>
+                  <p className="text-sm font-bold text-emerald-600">{investmentBalance.toLocaleString()}</p>
+                </div>
+              </Link>
+            </div>
+            <div className="mt-2 p-2 bg-slate-50 rounded-lg text-center">
+              <p className="text-xs text-slate-500">
+                전체 자산: <strong className="text-slate-700">{(balance + savingsBalance + investmentBalance).toLocaleString()}P</strong>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 수확 가능 알림 */}
+        {readySeeds > 0 && (
+          <Link href="/seed-farm">
+            <Card className="border-0 bg-gradient-to-r from-emerald-400 to-green-500 text-white overflow-hidden shadow-lg shadow-emerald-500/25 rounded-2xl cursor-pointer active:scale-[0.98] transition-all">
+              <CardContent className="p-4 relative">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
+                      <Sprout className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm">씨앗이 다 자랐어요!</p>
+                      <p className="text-white/90 text-xs">{readySeeds}개 수확 가능</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-5 w-5" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+
         {/* 빠른 액션 그리드 */}
         <div className="grid grid-cols-2 gap-3">
           {[
             {
-              href: "/pokemon-quiz",
-              icon: Gamepad2,
-              label: "퀴즈",
+              href: "/wallet",
+              icon: Wallet,
+              label: "내 지갑",
               color: "from-amber-500 to-orange-500",
               shadow: "shadow-orange-500/20",
-              desc: "도전하기",
+              desc: "쓰기/모으기/심기",
             },
             {
               href: "/english-learning",

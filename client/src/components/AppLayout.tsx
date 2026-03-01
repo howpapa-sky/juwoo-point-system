@@ -22,6 +22,9 @@ import {
   ChevronRight,
   Swords,
   GraduationCap,
+  Wallet,
+  Landmark,
+  Sprout,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { APP_TITLE } from "@/const";
@@ -46,7 +49,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // 하단 네비게이션 (모바일 주요 메뉴)
   const bottomNavItems = [
     { path: "/dashboard", label: "홈", icon: Home },
-    { path: "/points-manage", label: "포인트", icon: Coins },
+    { path: "/wallet", label: "지갑", icon: Wallet },
     { path: "/pokemon-quiz", label: "퀴즈", icon: Gamepad2 },
     { path: "/shop", label: "상점", icon: ShoppingBag },
     { path: "/my-page", label: "MY", icon: User },
@@ -55,14 +58,18 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // 전체 메뉴 아이템
   const menuItems = [
     { path: "/dashboard", label: "대시보드", icon: LayoutDashboard, color: "from-violet-500 to-purple-600" },
+    { path: "/wallet", label: "내 지갑", icon: Wallet, color: "from-amber-500 to-orange-600" },
+    { path: "/savings", label: "금고", icon: Landmark, color: "from-blue-500 to-indigo-600" },
+    { path: "/seed-farm", label: "씨앗밭", icon: Sprout, color: "from-emerald-500 to-green-600" },
+    { path: "/shop", label: "상점", icon: ShoppingBag, color: "from-pink-500 to-rose-600" },
     { path: "/points-manage", label: "포인트 관리", icon: Coins, color: "from-amber-500 to-orange-600" },
-    { path: "/shop", label: "포인트 상점", icon: ShoppingBag, color: "from-pink-500 to-rose-600" },
     { path: "/pokemon-quiz", label: "포켓몬 퀴즈", icon: Gamepad2, color: "from-yellow-500 to-amber-600" },
     { path: "/dragon-village-quiz", label: "드래곤 퀴즈", icon: Swords, color: "from-purple-500 to-pink-600" },
     { path: "/english-quiz", label: "영어 퀴즈", icon: GraduationCap, color: "from-blue-500 to-indigo-600" },
     { path: "/ebook-library", label: "e북 도서관", icon: Library, color: "from-cyan-500 to-blue-600" },
     { path: "/english-learning", label: "영어 학습", icon: BookOpen, color: "from-emerald-500 to-teal-600" },
-    { path: "/goals", label: "목표 설정", icon: Target, color: "from-red-500 to-rose-600" },
+    { path: "/goal-saving", label: "목표 모으기", icon: Target, color: "from-red-500 to-rose-600" },
+    { path: "/invest-report", label: "투자 리포트", icon: BarChart3, color: "from-slate-500 to-gray-600" },
     { path: "/badges", label: "배지", icon: Award, color: "from-indigo-500 to-violet-600" },
     { path: "/statistics", label: "통계", icon: BarChart3, color: "from-slate-500 to-gray-600" },
   ];

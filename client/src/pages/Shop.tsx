@@ -1038,6 +1038,27 @@ export default function Shop() {
                   </span>
                 </div>
               </div>
+
+              {/* 기회비용 안내 */}
+              <div className="mt-3 p-3 bg-amber-50 rounded-xl">
+                <p className="text-xs text-amber-700 font-bold mb-2">
+                  이 코인으로 다른 것도 할 수 있어요:
+                </p>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs text-amber-600">
+                    <span>🌻</span>
+                    <span>
+                      해바라기 {Math.floor(selectedItem.point_cost / 10)}번 심기 → {Math.floor(selectedItem.point_cost * 1.1).toLocaleString()}코인 돌아옴
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-amber-600">
+                    <span>🏦</span>
+                    <span>
+                      금고에 넣으면 매주 이자 +{Math.floor(selectedItem.point_cost * 0.03).toLocaleString()}코인
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter className="gap-2">
@@ -1046,14 +1067,14 @@ export default function Shop() {
               className="flex-1 h-12 rounded-xl font-bold"
               onClick={() => setSelectedItem(null)}
             >
-              아니요
+              좀 더 생각해볼래
             </Button>
             <Button
               className="flex-1 h-12 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 font-bold"
               onClick={handlePurchase}
               disabled={purchasing}
             >
-              {purchasing ? "처리중..." : "네, 살래요! 🎉"}
+              {purchasing ? "처리중..." : "사기! 🎉"}
             </Button>
           </DialogFooter>
         </DialogContent>

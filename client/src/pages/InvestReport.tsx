@@ -11,10 +11,12 @@ import {
   Landmark,
   Sprout,
   ShoppingBag,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { SAVINGS_INTEREST_RATE } from "@/lib/investmentConstants";
 
 interface WeeklyReport {
   weekStart: string;
@@ -28,6 +30,8 @@ interface WeeklyReport {
   spendPercent: number;
   savePercent: number;
   investPercent: number;
+  counterfactualSavings: number;
+  counterfactualInvestment: number;
 }
 
 export default function InvestReport() {
@@ -96,6 +100,10 @@ export default function InvestReport() {
         const savePercent = totalOutflow > 0 ? Math.round((savedToVault / totalOutflow) * 100) : 0;
         const investPercent = totalOutflow > 0 ? Math.round((investedToSeed / totalOutflow) * 100) : 0;
 
+        // 반사실적 사고: 소비한 코인의 기회비용
+        const counterfactualSavings = Math.round(spent * SAVINGS_INTEREST_RATE);
+        const counterfactualInvestment = Math.round(spent * 0.1); // 해바라기 기준
+
         setReport({
           weekStart: monday.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }),
           weekEnd: sunday.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }),
@@ -108,6 +116,8 @@ export default function InvestReport() {
           spendPercent,
           savePercent,
           investPercent,
+          counterfactualSavings,
+          counterfactualInvestment,
         });
       } catch (error: any) {
         console.error("Error fetching report:", error);
@@ -346,6 +356,50 @@ export default function InvestReport() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* 반사실적 사고: 만약에... */}
+        {report.spent > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card className="border-0 bg-gradient-to-r from-violet-50 to-purple-50 rounded-2xl">
+              <CardContent className="p-5">
+                <h3 className="font-bold text-slate-700 mb-3 flex items-center gap-2">
+                  <Search className="h-4 w-4 text-violet-500" />
+                  🔍 만약에...
+                </h3>
+                <p className="text-sm text-slate-500 mb-3">
+                  이번 주 쓴 {report.spent.toLocaleString()}코인으로 다른 걸 했다면?
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-3 bg-white/60 rounded-xl">
+                    <span className="text-lg">🏦</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-700">금고에 넣었다면</p>
+                      <p className="text-xs text-blue-600 font-bold">
+                        매주 이자 +{report.counterfactualSavings}코인씩!
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-white/60 rounded-xl">
+                    <span className="text-lg">🌻</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-700">해바라기에 심었다면</p>
+                      <p className="text-xs text-emerald-600 font-bold">
+                        +{report.counterfactualInvestment}코인 돌아왔을 거예요!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 mt-3 text-center">
+                  그것도 좋은 선택이야! 다음에는 어떻게 할까? 😊
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
     </div>
   );

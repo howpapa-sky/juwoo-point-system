@@ -17,12 +17,20 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
+import {
+  GROWTH_DAYS,
+  GROWTH_LABELS,
+  MIN_GUARANTEE,
+  MAX_MULTIPLIER,
+  getTodayWeather,
+  getWeatherBonus,
+} from "@/lib/investmentConstants";
 
 // ============================================
 // 씨앗 타입 정의
 // ============================================
 interface SeedType {
-  type: "sunflower" | "tree" | "clover";
+  type: string;
   icon: string;
   name: string;
   concept: string;
@@ -31,17 +39,18 @@ interface SeedType {
   minGuarantee: string;
   color: string;
   gradient: string;
+  hidden?: boolean;
 }
 
-const SEED_TYPES: SeedType[] = [
+const BASE_SEED_TYPES: SeedType[] = [
   {
     type: "sunflower",
     icon: "🌻",
     name: "해바라기 씨앗",
     concept: "예금",
-    description: "느리지만 확실해요",
-    resultRange: "무조건 120%",
-    minGuarantee: "120%",
+    description: "항상 웃는 친구. 믿음직해요!",
+    resultRange: "무조건 110%",
+    minGuarantee: "110%",
     color: "text-yellow-600",
     gradient: "from-yellow-400 to-amber-500",
   },
@@ -50,9 +59,9 @@ const SEED_TYPES: SeedType[] = [
     icon: "🌳",
     name: "나무 씨앗",
     concept: "펀드",
-    description: "보통은 잘 자라요",
-    resultRange: "80~150%",
-    minGuarantee: "80%",
+    description: "비바람도 이겨내는 든든한 친구",
+    resultRange: "85~140%",
+    minGuarantee: "85%",
     color: "text-green-600",
     gradient: "from-green-400 to-emerald-500",
   },
@@ -61,45 +70,138 @@ const SEED_TYPES: SeedType[] = [
     icon: "🍀",
     name: "네잎클로버 씨앗",
     concept: "주식",
-    description: "대박 아니면 쪽박!",
-    resultRange: "20~250%",
-    minGuarantee: "20%",
+    description: "무지개 너머의 행운을 찾아요",
+    resultRange: "30~250%",
+    minGuarantee: "30%",
     color: "text-emerald-600",
     gradient: "from-emerald-400 to-teal-500",
   },
 ];
 
-// 결과 분포 함수
+const HIDDEN_SEED_TYPES: SeedType[] = [
+  {
+    type: "rose",
+    icon: "🌹",
+    name: "장미 씨앗",
+    concept: "안정성장",
+    description: "아름다운 장미에는 가시가 있어요",
+    resultRange: "100~180%",
+    minGuarantee: "100%",
+    color: "text-rose-600",
+    gradient: "from-rose-400 to-pink-500",
+    hidden: true,
+  },
+  {
+    type: "bamboo",
+    icon: "🎋",
+    name: "대나무 씨앗",
+    concept: "꾸준함",
+    description: "대나무는 참을성 있게 자라요",
+    resultRange: "105~125%",
+    minGuarantee: "105%",
+    color: "text-lime-600",
+    gradient: "from-lime-400 to-green-500",
+    hidden: true,
+  },
+  {
+    type: "rainbow",
+    icon: "🌈",
+    name: "무지개 씨앗",
+    concept: "올인",
+    description: "모든 가능성이 담긴 특별한 씨앗",
+    resultRange: "50~300%",
+    minGuarantee: "50%",
+    color: "text-violet-600",
+    gradient: "from-violet-400 to-pink-500",
+    hidden: true,
+  },
+];
+
+// 기본 SEED_TYPES (숨겨진 씨앗 포함하여 조회용)
+const ALL_SEED_TYPES: SeedType[] = [...BASE_SEED_TYPES, ...HIDDEN_SEED_TYPES];
+const SEED_TYPES = ALL_SEED_TYPES;
+
+// 결과 분포 함수 (수정된 확률 분포)
 function getResultMultiplier(seedType: string): number {
   const rand = Math.random() * 100;
 
   if (seedType === "sunflower") {
-    return 1.2;
+    return 1.1; // 110% 확정
   }
 
   if (seedType === "tree") {
-    // 80%: 15%, 90%: 15%, 100%: 15%, 110%: 20%, 120%: 15%, 130%: 10%, 150%: 10%
-    if (rand < 15) return 0.8;
-    if (rand < 30) return 0.9;
-    if (rand < 45) return 1.0;
-    if (rand < 65) return 1.1;
+    // 85%:10%, 95%:10%, 100%:15%, 110%:25%, 120%:20%, 130%:10%, 140%:10%
+    // 기대값 ~112%, 최소 85%
+    if (rand < 10) return 0.85;
+    if (rand < 20) return 0.95;
+    if (rand < 35) return 1.0;
+    if (rand < 60) return 1.1;
     if (rand < 80) return 1.2;
     if (rand < 90) return 1.3;
-    return 1.5;
+    return 1.4;
   }
 
   if (seedType === "clover") {
-    // 20%: 10%, 50%: 10%, 80%: 15%, 100%: 15%, 150%: 20%, 200%: 15%, 250%: 15%
-    if (rand < 10) return 0.2;
-    if (rand < 20) return 0.5;
-    if (rand < 35) return 0.8;
-    if (rand < 50) return 1.0;
-    if (rand < 70) return 1.5;
+    // 30%:5%, 50%:8%, 80%:12%, 100%:15%, 150%:25%, 200%:20%, 250%:15%
+    // 기대값 ~145%, 최소 30%
+    if (rand < 5) return 0.3;
+    if (rand < 13) return 0.5;
+    if (rand < 25) return 0.8;
+    if (rand < 40) return 1.0;
+    if (rand < 65) return 1.5;
     if (rand < 85) return 2.0;
     return 2.5;
   }
 
+  // 숨겨진 씨앗들
+  if (seedType === "rose") {
+    // 100%:20%, 120%:25%, 140%:25%, 160%:20%, 180%:10%
+    if (rand < 20) return 1.0;
+    if (rand < 45) return 1.2;
+    if (rand < 70) return 1.4;
+    if (rand < 90) return 1.6;
+    return 1.8;
+  }
+
+  if (seedType === "bamboo") {
+    // 105%:25%, 110%:30%, 115%:25%, 120%:15%, 125%:5%
+    if (rand < 25) return 1.05;
+    if (rand < 55) return 1.1;
+    if (rand < 80) return 1.15;
+    if (rand < 95) return 1.2;
+    return 1.25;
+  }
+
+  if (seedType === "rainbow") {
+    // 50%:10%, 80%:15%, 100%:15%, 150%:20%, 200%:20%, 250%:10%, 300%:10%
+    if (rand < 10) return 0.5;
+    if (rand < 25) return 0.8;
+    if (rand < 40) return 1.0;
+    if (rand < 60) return 1.5;
+    if (rand < 80) return 2.0;
+    if (rand < 90) return 2.5;
+    return 3.0;
+  }
+
   return 1.0;
+}
+
+// 성장 스토리 스니펫
+function getGrowthStory(progress: number, daysLeft: number, isReady: boolean): string {
+  if (isReady || daysLeft === 0) return "🌾 열매가 익었어요! 수확해볼까?";
+  if (daysLeft === 1) return "내일 열매가 열려요! 두근두근 🥁";
+  if (progress >= 80) return "🌸 꽃이 피기 시작했어요!";
+  if (progress >= 50) return "🌿 잎이 무성해졌어요! 열매가 곧 열릴 거예요";
+  if (progress >= 20) return "🌱 싹이 났어요! 잘 자라고 있어요";
+  return "💤 아직 땅속에서 준비 중...";
+}
+
+// 수확 결과 스토리
+function getHarvestStory(seedIcon: string, profit: number, invested: number): string {
+  if (profit > invested * 0.3) return `${seedIcon} 황금 열매가 가득 열렸어요! +${profit}코인 🍎`;
+  if (profit > 0) return `${seedIcon} 열매가 잘 익었어요! +${profit}코인`;
+  if (profit === 0) return "심은 만큼 돌아왔어요. 다음엔 더 좋은 일이 있을 거야!";
+  return "이번엔 열매가 적었어요. 하지만 나무는 더 단단해졌어요 💪";
 }
 
 interface Seed {
@@ -134,12 +236,18 @@ export default function SeedFarm() {
   const [loading, setLoading] = useState(true);
 
   // 플로우 상태
-  const [step, setStep] = useState<"main" | "select" | "amount" | "diary" | "harvest">("main");
+  const [step, setStep] = useState<"main" | "select" | "amount" | "diary" | "harvest" | "bundle">("main");
   const [selectedSeedType, setSelectedSeedType] = useState<SeedType | null>(null);
   const [plantAmount, setPlantAmount] = useState("");
   const [diaryEntry, setDiaryEntry] = useState("");
   const [customDiary, setCustomDiary] = useState("");
   const [processing, setProcessing] = useState(false);
+
+  // 숨겨진 씨앗 해금 상태
+  const [unlockedHidden, setUnlockedHidden] = useState<Set<string>>(new Set());
+
+  // 묶음 심기 상태
+  const [bundleAllocations, setBundleAllocations] = useState<Record<string, number>>({});
 
   // 수확
   const [harvestingSeed, setHarvestingSeed] = useState<Seed | null>(null);
@@ -147,6 +255,9 @@ export default function SeedFarm() {
     seed: Seed;
     multiplier: number;
     amount: number;
+    weatherName?: string;
+    weatherIcon?: string;
+    weatherBonus?: number;
   } | null>(null);
   const [harvestReflection, setHarvestReflection] = useState("");
   const [showHarvestAnimation, setShowHarvestAnimation] = useState(false);
@@ -200,6 +311,37 @@ export default function SeedFarm() {
         .limit(20);
 
       setHarvestHistory(harvestedSeeds || []);
+
+      // 숨겨진 씨앗 해금 체크
+      const allSeedsData = [...updatedSeeds, ...(harvestedSeeds || [])];
+      const totalInvested = allSeedsData.reduce((sum, s) => sum + (s.invested_amount || 0), 0);
+      const totalProfit = (harvestedSeeds || []).reduce(
+        (sum: number, s: Seed) => sum + ((s.harvested_amount || 0) - s.invested_amount),
+        0
+      );
+
+      // 동시 재배 3종 횟수 추정
+      let simultaneousCount = 0;
+      const sortedSeeds = allSeedsData.sort(
+        (a, b) => new Date(a.planted_date).getTime() - new Date(b.planted_date).getTime()
+      );
+      for (const s of sortedSeeds) {
+        const planted = new Date(s.planted_date);
+        const harvest = new Date(s.harvest_date);
+        const overlapping = sortedSeeds.filter((os) => {
+          const op = new Date(os.planted_date);
+          const oh = new Date(os.harvest_date);
+          return op < harvest && oh > planted;
+        });
+        const uniqueTypes = new Set(overlapping.map((os) => os.seed_type));
+        if (uniqueTypes.size >= 3) simultaneousCount++;
+      }
+
+      const unlocked = new Set<string>();
+      if (totalInvested >= 500) unlocked.add("rose");
+      if (simultaneousCount >= 5) unlocked.add("bamboo");
+      if (totalProfit >= 100) unlocked.add("rainbow");
+      setUnlockedHidden(unlocked);
     } catch (error: any) {
       console.error("Error fetching seed farm:", error);
       toast.error("씨앗밭 데이터를 불러오지 못했습니다.");
@@ -229,7 +371,8 @@ export default function SeedFarm() {
     try {
       const now = new Date();
       const harvestDate = new Date(now);
-      harvestDate.setDate(harvestDate.getDate() + 14);
+      const growthDays = GROWTH_DAYS[selectedSeedType.type] || 14;
+      harvestDate.setDate(harvestDate.getDate() + growthDays);
 
       const diary = diaryEntry === "custom" ? customDiary : diaryEntry;
 
@@ -262,7 +405,7 @@ export default function SeedFarm() {
       });
 
       toast.success(`${selectedSeedType.icon} ${selectedSeedType.name}을 심었어요!`, {
-        description: "2주 뒤에 수확할 수 있어요!",
+        description: `${growthDays}일 뒤에 수확할 수 있어요!`,
       });
 
       setStep("main");
@@ -284,7 +427,11 @@ export default function SeedFarm() {
     setHarvestingSeed(seed);
     setShowHarvestAnimation(true);
 
-    const multiplier = getResultMultiplier(seed.seed_type);
+    const weather = getTodayWeather();
+    const baseMultiplier = getResultMultiplier(seed.seed_type);
+    const weatherBonus = getWeatherBonus(seed.seed_type);
+    const minGuarantee = MIN_GUARANTEE[seed.seed_type] || 0.1;
+    const multiplier = Math.max(minGuarantee, baseMultiplier + weatherBonus);
     const harvestedAmount = Math.max(1, Math.floor(seed.invested_amount * multiplier));
 
     // 두근두근 애니메이션 후 결과
@@ -331,6 +478,9 @@ export default function SeedFarm() {
           seed,
           multiplier,
           amount: harvestedAmount,
+          weatherName: weather.name,
+          weatherIcon: weather.icon,
+          weatherBonus: weatherBonus,
         });
 
         setShowHarvestAnimation(false);
@@ -533,12 +683,18 @@ export default function SeedFarm() {
                 </div>
 
                 <p className="mt-4 text-slate-600">
-                  {isProfit
-                    ? profit > harvestResult.seed.invested_amount * 0.3
-                      ? "와! 대박이에요! 엄청 잘 자랐어요!"
-                      : "와! 잘 자랐어요!"
-                    : "괜찮아! 투자는 이런 거야. 다음엔 더 잘할 수 있어!"}
+                  {getHarvestStory(
+                    getSeedIcon(harvestResult.seed.seed_type),
+                    profit,
+                    harvestResult.seed.invested_amount
+                  )}
                 </p>
+
+                {harvestResult.weatherBonus !== undefined && harvestResult.weatherBonus !== 0 && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    {harvestResult.weatherIcon} 오늘 {harvestResult.weatherName} 날씨가 영향을 줬어요!
+                  </p>
+                )}
 
                 {!isProfit && (
                   <p className="mt-2 text-sm text-slate-500">
@@ -645,46 +801,67 @@ export default function SeedFarm() {
             </h1>
           </div>
 
+          {/* 기본 씨앗 */}
           <div className="space-y-3">
-            {SEED_TYPES.map((seed, index) => (
-              <motion.div
-                key={seed.type}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card
-                  className={`border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer rounded-2xl active:scale-[0.98]`}
-                  onClick={() => {
-                    setSelectedSeedType(seed);
-                    setStep("amount");
-                  }}
+            {(() => {
+              const availableSeeds = [
+                ...BASE_SEED_TYPES,
+                ...HIDDEN_SEED_TYPES.filter((s) => unlockedHidden.has(s.type)),
+              ];
+              return availableSeeds.map((seed, index) => (
+                <motion.div
+                  key={seed.type}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
                 >
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${seed.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}
-                      >
-                        <span className="text-3xl">{seed.icon}</span>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-black text-slate-800 text-lg">{seed.name}</h3>
-                        <p className="text-slate-500 text-sm mb-2">"{seed.description}"</p>
-                        <div className="flex items-center gap-3">
-                          <span className="px-2 py-1 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
-                            2주 후 결과
-                          </span>
-                          <span className={`px-2 py-1 bg-slate-100 rounded-lg text-xs font-bold ${seed.color}`}>
-                            {seed.resultRange}
-                          </span>
+                  <Card
+                    className={`border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer rounded-2xl active:scale-[0.98] ${seed.hidden ? "ring-2 ring-violet-200" : ""}`}
+                    onClick={() => {
+                      setSelectedSeedType(seed);
+                      setStep("amount");
+                    }}
+                  >
+                    <CardContent className="p-5">
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${seed.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}
+                        >
+                          <span className="text-3xl">{seed.icon}</span>
                         </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-black text-slate-800 text-lg">{seed.name}</h3>
+                            {seed.hidden && (
+                              <span className="px-1.5 py-0.5 bg-violet-100 rounded text-[10px] font-bold text-violet-600">특별</span>
+                            )}
+                          </div>
+                          <p className="text-slate-500 text-sm mb-2">"{seed.description}"</p>
+                          {/* 과거 결과 예시 (있을 경우) */}
+                          {harvestHistory.find(h => h.seed_type === seed.type) && (() => {
+                            const last = harvestHistory.find(h => h.seed_type === seed.type)!;
+                            return (
+                              <p className="text-xs text-slate-400 mb-2">
+                                지난번: {last.invested_amount}코인 → {last.harvested_amount}코인 됐어요
+                              </p>
+                            );
+                          })()}
+                          <div className="flex items-center gap-3">
+                            <span className="px-2 py-1 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
+                              {GROWTH_LABELS[seed.type] || "2주 후 결과"}
+                            </span>
+                            <span className={`px-2 py-1 bg-slate-100 rounded-lg text-xs font-bold ${seed.color}`}>
+                              {seed.resultRange}
+                            </span>
+                          </div>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-slate-400 mt-2" />
                       </div>
-                      <ChevronRight className="h-5 w-5 text-slate-400 mt-2" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ));
+            })()}
           </div>
         </div>
       </div>
@@ -696,18 +873,8 @@ export default function SeedFarm() {
   // ============================================
   if (step === "amount" && selectedSeedType) {
     const amount = parseInt(plantAmount) || 0;
-    const bestCase =
-      selectedSeedType.type === "sunflower"
-        ? Math.floor(amount * 1.2)
-        : selectedSeedType.type === "tree"
-          ? Math.floor(amount * 1.5)
-          : Math.floor(amount * 2.5);
-    const worstCase =
-      selectedSeedType.type === "sunflower"
-        ? Math.floor(amount * 1.2)
-        : selectedSeedType.type === "tree"
-          ? Math.floor(amount * 0.8)
-          : Math.floor(amount * 0.2);
+    const bestCase = Math.floor(amount * (MAX_MULTIPLIER[selectedSeedType.type] || 1.1));
+    const worstCase = Math.floor(amount * (MIN_GUARANTEE[selectedSeedType.type] || 1.0));
 
     return (
       <div className="min-h-screen pb-24 md:pb-8">
@@ -854,6 +1021,257 @@ export default function SeedFarm() {
   }
 
   // ============================================
+  // 묶음 심기 화면
+  // ============================================
+  if (step === "bundle") {
+    const availableForBundle = [
+      ...BASE_SEED_TYPES,
+      ...HIDDEN_SEED_TYPES.filter((s) => unlockedHidden.has(s.type)),
+    ];
+    const totalAllocated = Object.values(bundleAllocations).reduce((sum, v) => sum + v, 0);
+    const remaining = walletBalance - totalAllocated;
+
+    const applyPreset = (preset: "equal" | "safe" | "adventure") => {
+      const types = availableForBundle.map((s) => s.type);
+      const newAllocations: Record<string, number> = {};
+      if (preset === "equal") {
+        const each = Math.floor(walletBalance / types.length);
+        types.forEach((t) => (newAllocations[t] = Math.max(0, Math.min(each, walletBalance))));
+      } else if (preset === "safe") {
+        // 해바라기 50%, 나머지 균등
+        const sunflowerAmt = Math.floor(walletBalance * 0.5);
+        newAllocations["sunflower"] = sunflowerAmt;
+        const rest = walletBalance - sunflowerAmt;
+        const others = types.filter((t) => t !== "sunflower");
+        const each = Math.floor(rest / others.length);
+        others.forEach((t) => (newAllocations[t] = each));
+      } else {
+        // 클로버 50%, 나머지 균등
+        const cloverAmt = Math.floor(walletBalance * 0.5);
+        newAllocations["clover"] = cloverAmt;
+        const rest = walletBalance - cloverAmt;
+        const others = types.filter((t) => t !== "clover");
+        const each = Math.floor(rest / others.length);
+        others.forEach((t) => (newAllocations[t] = each));
+      }
+      setBundleAllocations(newAllocations);
+    };
+
+    const handleBundlePlant = async () => {
+      const entries = Object.entries(bundleAllocations).filter(([, v]) => v >= 10);
+      if (entries.length === 0) {
+        toast.error("최소 10코인 이상 심어야 해요!");
+        return;
+      }
+      if (totalAllocated > walletBalance) {
+        toast.error("지갑에 코인이 부족해요!");
+        return;
+      }
+
+      setProcessing(true);
+      try {
+        const now = new Date();
+
+        // 각 씨앗별로 개별 레코드 생성
+        for (const [seedType, amount] of entries) {
+          const harvestDate = new Date(now);
+          harvestDate.setDate(harvestDate.getDate() + (GROWTH_DAYS[seedType] || 14));
+
+          await supabase.from("seeds").insert({
+            juwoo_id: 1,
+            seed_type: seedType,
+            invested_amount: amount,
+            planted_date: now.toISOString(),
+            harvest_date: harvestDate.toISOString(),
+            status: "growing",
+            diary_entry: "묶음 심기",
+          });
+        }
+
+        // 지갑 차감 (합산 한 번에)
+        const newBalance = walletBalance - totalAllocated;
+        await supabase
+          .from("juwoo_profile")
+          .update({ current_points: newBalance })
+          .eq("id", 1);
+
+        // 거래 내역
+        const seedNames = entries.map(([type]) => {
+          const seed = SEED_TYPES.find((s) => s.type === type);
+          return seed ? `${seed.icon}${seed.name}` : type;
+        });
+        await supabase.from("point_transactions").insert({
+          juwoo_id: 1,
+          rule_id: null,
+          amount: -totalAllocated,
+          balance_after: newBalance,
+          note: `🌈 묶음 심기: ${seedNames.join(", ")} (${totalAllocated}코인)`,
+          created_by: 1,
+        });
+
+        toast.success("묶음 심기 완료!", {
+          description: `${entries.length}종류의 씨앗을 심었어요!`,
+        });
+
+        setBundleAllocations({});
+        setStep("main");
+        fetchData();
+      } catch (error: any) {
+        console.error("Error bundle planting:", error);
+        toast.error("묶음 심기에 실패했습니다.");
+      } finally {
+        setProcessing(false);
+      }
+    };
+
+    // 예측 범위 계산
+    const bundleMin = Object.entries(bundleAllocations)
+      .filter(([, v]) => v >= 10)
+      .reduce((sum, [type, amt]) => sum + Math.floor(amt * (MIN_GUARANTEE[type] || 1.0)), 0);
+    const bundleMax = Object.entries(bundleAllocations)
+      .filter(([, v]) => v >= 10)
+      .reduce((sum, [type, amt]) => sum + Math.floor(amt * (MAX_MULTIPLIER[type] || 1.1)), 0);
+
+    return (
+      <div className="min-h-screen pb-24 md:pb-8">
+        <div className="px-4 pt-4 space-y-4 max-w-lg mx-auto">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-xl"
+              onClick={() => {
+                setStep("main");
+                setBundleAllocations({});
+              }}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-black text-slate-800">
+                🌈 묶음 심기
+              </h1>
+              <p className="text-sm text-slate-500">
+                여러 씨앗을 한꺼번에 심어요
+              </p>
+            </div>
+          </div>
+
+          {/* 지갑 잔액 */}
+          <div className="flex items-center justify-between p-3 bg-white/80 rounded-2xl">
+            <span className="text-sm text-slate-600">내 지갑</span>
+            <span className="font-bold text-slate-800">
+              {walletBalance.toLocaleString()}코인
+            </span>
+          </div>
+
+          {/* 프리셋 버튼 */}
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              variant="outline"
+              className="h-10 rounded-xl text-xs font-bold border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              onClick={() => applyPreset("equal")}
+            >
+              균등 분배
+            </Button>
+            <Button
+              variant="outline"
+              className="h-10 rounded-xl text-xs font-bold border-blue-200 text-blue-700 hover:bg-blue-50"
+              onClick={() => applyPreset("safe")}
+            >
+              안전 위주
+            </Button>
+            <Button
+              variant="outline"
+              className="h-10 rounded-xl text-xs font-bold border-violet-200 text-violet-700 hover:bg-violet-50"
+              onClick={() => applyPreset("adventure")}
+            >
+              모험 위주
+            </Button>
+          </div>
+
+          {/* 씨앗별 분배 */}
+          <Card className="border-0 bg-white/90 rounded-2xl shadow-lg">
+            <CardContent className="p-4 space-y-3">
+              {availableForBundle.map((seed) => (
+                <div key={seed.type} className="flex items-center gap-3">
+                  <span className="text-2xl w-8 text-center">{seed.icon}</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-slate-700">{seed.name}</p>
+                    <p className="text-xs text-slate-400">
+                      {GROWTH_LABELS[seed.type]} | {seed.resultRange}
+                    </p>
+                  </div>
+                  <input
+                    type="number"
+                    value={bundleAllocations[seed.type] || ""}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 0;
+                      setBundleAllocations((prev) => ({
+                        ...prev,
+                        [seed.type]: val,
+                      }));
+                    }}
+                    placeholder="0"
+                    className="w-20 h-10 px-3 border-2 border-slate-200 rounded-xl text-sm font-bold text-right focus:border-emerald-500 focus:outline-none"
+                    min={0}
+                  />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* 합산 정보 */}
+          <Card className="border-0 bg-slate-50 rounded-2xl">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-slate-600">투자 합계</span>
+                <span className={`font-bold ${totalAllocated > walletBalance ? "text-red-500" : "text-slate-800"}`}>
+                  {totalAllocated.toLocaleString()}코인
+                </span>
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-slate-600">남는 코인</span>
+                <span className={`font-bold ${remaining < 0 ? "text-red-500" : "text-slate-600"}`}>
+                  {remaining.toLocaleString()}코인
+                </span>
+              </div>
+              {totalAllocated > 0 && (
+                <div className="pt-2 border-t border-slate-200">
+                  <p className="text-xs text-slate-500">
+                    예상 수확: {bundleMin.toLocaleString()}~{bundleMax.toLocaleString()}코인
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 심기 버튼 */}
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              className="h-14 rounded-2xl font-bold"
+              onClick={() => {
+                setStep("main");
+                setBundleAllocations({});
+              }}
+            >
+              다시 생각해볼래
+            </Button>
+            <Button
+              className="h-14 bg-gradient-to-r from-violet-500 to-purple-600 text-white font-bold text-lg rounded-2xl shadow-lg active:scale-[0.98] transition-all"
+              onClick={handleBundlePlant}
+              disabled={processing || totalAllocated === 0 || totalAllocated > walletBalance}
+            >
+              {processing ? "심는 중..." : "묶음 심기! 🌈"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================
   // 메인 화면
   // ============================================
   return (
@@ -877,6 +1295,24 @@ export default function SeedFarm() {
             </h1>
           </div>
         </div>
+
+        {/* 오늘의 날씨 */}
+        {(() => {
+          const weather = getTodayWeather();
+          return (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="flex items-center gap-2 px-4 py-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm">
+                <span className="text-2xl">{weather.icon}</span>
+                <div>
+                  <p className="text-sm font-bold text-slate-700">
+                    오늘의 씨앗밭 날씨: {weather.name}
+                  </p>
+                  <p className="text-xs text-slate-500">{weather.description}</p>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
 
         {/* 자라는 중인 씨앗 */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -923,11 +1359,14 @@ export default function SeedFarm() {
                             <span>
                               예상 수확:{" "}
                               {seedType?.type === "sunflower"
-                                ? `${Math.floor(seed.invested_amount * 1.2)}코인 확정`
-                                : `${Math.floor(seed.invested_amount * (seedType?.type === "tree" ? 0.8 : 0.2))}~${Math.floor(seed.invested_amount * (seedType?.type === "tree" ? 1.5 : 2.5))}코인`}
+                                ? `${Math.floor(seed.invested_amount * 1.1)}코인 확정`
+                                : `${Math.floor(seed.invested_amount * (MIN_GUARANTEE[seedType?.type || "tree"] || 0.85))}~${Math.floor(seed.invested_amount * (MAX_MULTIPLIER[seedType?.type || "tree"] || 1.4))}코인`}
                             </span>
                           </div>
                           <Progress value={progress} className="h-2.5" />
+                          <p className="text-xs text-emerald-600 mt-1 font-medium">
+                            {getGrowthStory(progress, daysLeft, isReady)}
+                          </p>
                         </div>
 
                         {isReady && (
@@ -953,11 +1392,12 @@ export default function SeedFarm() {
           </Card>
         </motion.div>
 
-        {/* 새 씨앗 심기 버튼 */}
+        {/* 새 씨앗 심기 + 묶음 심기 */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="space-y-2"
         >
           <Button
             className="w-full h-14 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-emerald-500/25 active:scale-[0.98] transition-all"
@@ -966,6 +1406,23 @@ export default function SeedFarm() {
             <Sprout className="h-5 w-5 mr-2" />
             새로운 씨앗 심기
           </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant="outline"
+              className="h-12 rounded-2xl font-bold border-2 border-violet-200 text-violet-700 hover:bg-violet-50"
+              onClick={() => setStep("bundle")}
+            >
+              🌈 묶음 심기
+            </Button>
+            <Link href="/seed-album">
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-2xl font-bold border-2 border-amber-200 text-amber-700 hover:bg-amber-50"
+              >
+                📖 씨앗 도감
+              </Button>
+            </Link>
+          </div>
         </motion.div>
 
         {/* 수확 기록 */}

@@ -320,7 +320,7 @@ export default function MyWallet() {
                       <span className="text-xl">🏦</span>
                       <div>
                         <p className="font-semibold text-slate-800 text-sm">금고</p>
-                        <p className="text-xs text-slate-500">매주 이자 +10%</p>
+                        <p className="text-xs text-slate-500">매주 이자 +3%</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

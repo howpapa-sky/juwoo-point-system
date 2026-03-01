@@ -66,7 +66,7 @@ export default function Savings() {
       if (!savingsData) {
         const { data: newSavings } = await supabase
           .from("savings_account")
-          .insert({ juwoo_id: 1, balance: 0, interest_rate: 0.10 })
+          .insert({ juwoo_id: 1, balance: 0, interest_rate: 0.03 })
           .select()
           .single();
         savingsData = newSavings;
@@ -332,6 +332,49 @@ export default function Savings() {
           </motion.div>
         )}
 
+        {/* 시간여행 — 복리 시뮬레이션 */}
+        {savings && savings.balance > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <Card className="border-0 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl">
+              <CardContent className="p-4">
+                <h3 className="font-bold text-slate-700 mb-2 flex items-center gap-2">
+                  🔮 시간여행: 금고에 계속 넣어두면?
+                </h3>
+                <div className="space-y-2">
+                  {[
+                    { label: "1주 뒤", weeks: 1, icon: "🌱" },
+                    { label: "2주 뒤", weeks: 2, icon: "🌿" },
+                    { label: "1달 뒤", weeks: 4, icon: "🌳" },
+                    { label: "2달 뒤", weeks: 8, icon: "🌳🌳" },
+                  ].map(({ label, weeks, icon }) => {
+                    const futureBalance = Math.floor(
+                      savings.balance * Math.pow(1 + savings.interestRate, weeks)
+                    );
+                    const gain = futureBalance - savings.balance;
+                    return (
+                      <div key={weeks} className="flex items-center justify-between p-2 bg-white/60 rounded-lg">
+                        <span className="text-sm text-slate-600 flex items-center gap-2">
+                          <span>{icon}</span> {label}
+                        </span>
+                        <span className="text-sm font-bold text-indigo-600">
+                          {futureBalance.toLocaleString()}코인 <span className="text-indigo-400 font-normal">(+{gain.toLocaleString()})</span>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  오래 두면 이자가 이자를 낳아요! 이게 복리예요 🪄
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* 입금 / 출금 버튼 */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -418,7 +461,7 @@ export default function Savings() {
                 💡 금고에 오래 넣어둘수록 이자가 더 많이 붙어요!
               </p>
               <p className="text-xs text-blue-500 mt-1">
-                매주 일요일에 금고 잔액의 10%가 이자로 들어옵니다.
+                매주 일요일에 금고 잔액의 3%가 이자로 들어옵니다.
               </p>
             </CardContent>
           </Card>

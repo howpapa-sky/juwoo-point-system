@@ -34,6 +34,7 @@ import Savings from "./pages/Savings";
 import SeedFarm from "./pages/SeedFarm";
 import GoalSaving from "./pages/GoalSaving";
 import InvestReport from "./pages/InvestReport";
+import SeedAlbum from "./pages/SeedAlbum";
 import AppLayout from "./components/AppLayout";
 // Admin CMS imports
 import AdminLayout from "./components/admin/AdminLayout";
@@ -205,6 +206,13 @@ function Router() {
         {() => (
           <AppLayout>
             <InvestReport />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/seed-album">
+        {() => (
+          <AppLayout>
+            <SeedAlbum />
           </AppLayout>
         )}
       </Route>

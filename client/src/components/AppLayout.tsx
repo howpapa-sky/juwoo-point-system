@@ -25,6 +25,7 @@ import {
   Wallet,
   Landmark,
   Sprout,
+  Album,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { APP_TITLE } from "@/const";
@@ -68,6 +69,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { path: "/english-quiz", label: "영어 퀴즈", icon: GraduationCap, color: "from-blue-500 to-indigo-600" },
     { path: "/ebook-library", label: "e북 도서관", icon: Library, color: "from-cyan-500 to-blue-600" },
     { path: "/english-learning", label: "영어 학습", icon: BookOpen, color: "from-emerald-500 to-teal-600" },
+    { path: "/seed-album", label: "씨앗 도감", icon: Album, color: "from-amber-500 to-yellow-600" },
     { path: "/goal-saving", label: "목표 모으기", icon: Target, color: "from-red-500 to-rose-600" },
     { path: "/invest-report", label: "투자 리포트", icon: BarChart3, color: "from-slate-500 to-gray-600" },
     { path: "/badges", label: "배지", icon: Award, color: "from-indigo-500 to-violet-600" },

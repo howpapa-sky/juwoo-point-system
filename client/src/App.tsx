@@ -29,6 +29,12 @@ import VoiceLearning from "./pages/VoiceLearning";
 import Goals from "./pages/Goals";
 import Badges from "./pages/Badges";
 import MyPage from "./pages/MyPage";
+import MyWallet from "./pages/MyWallet";
+import Savings from "./pages/Savings";
+import SeedFarm from "./pages/SeedFarm";
+import GoalSaving from "./pages/GoalSaving";
+import InvestReport from "./pages/InvestReport";
+import SeedAlbum from "./pages/SeedAlbum";
 import AppLayout from "./components/AppLayout";
 // Admin CMS imports
 import AdminLayout from "./components/admin/AdminLayout";
@@ -165,6 +171,48 @@ function Router() {
         {() => (
           <AppLayout>
             <EbookQuiz />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/wallet">
+        {() => (
+          <AppLayout>
+            <MyWallet />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/savings">
+        {() => (
+          <AppLayout>
+            <Savings />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/seed-farm">
+        {() => (
+          <AppLayout>
+            <SeedFarm />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/goal-saving">
+        {() => (
+          <AppLayout>
+            <GoalSaving />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/invest-report">
+        {() => (
+          <AppLayout>
+            <InvestReport />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/seed-album">
+        {() => (
+          <AppLayout>
+            <SeedAlbum />
           </AppLayout>
         )}
       </Route>

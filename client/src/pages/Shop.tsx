@@ -107,7 +107,7 @@ export default function Shop() {
 
         setPurchases(purchasesData || []);
       } catch (error) {
-        console.error('Error fetching shop data:', error);
+        if (import.meta.env.DEV) console.error('Error fetching shop data:', error);
         toast.error('데이터를 불러오지 못했어요.');
       } finally {
         setLoading(false);
@@ -161,7 +161,7 @@ export default function Shop() {
       setShowSuccess(true);
       celebratePurchase();
     } catch (error) {
-      console.error('Error purchasing item:', error);
+      if (import.meta.env.DEV) console.error('Error purchasing item:', error);
       toast.error('구매가 잘 안 됐어요. 다시 해볼까?');
     } finally {
       setPurchasing(false);

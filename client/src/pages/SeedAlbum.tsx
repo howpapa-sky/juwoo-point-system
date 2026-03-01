@@ -219,7 +219,7 @@ export default function SeedAlbum() {
           bestRecords,
         });
       } catch (error: any) {
-        console.error("Error fetching album stats:", error);
+        if (import.meta.env.DEV) console.error("Error fetching album stats:", error);
         toast.error("도감 데이터를 불러오지 못했습니다.");
       } finally {
         setLoading(false);

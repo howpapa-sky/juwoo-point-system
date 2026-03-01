@@ -91,7 +91,7 @@ export default function Savings() {
         setInterestHistory(historyData || []);
       }
     } catch (error: any) {
-      console.error("Error fetching savings:", error);
+      if (import.meta.env.DEV) console.error("Error fetching savings:", error);
       toast.error("금고 데이터를 불러오지 못했습니다.");
     } finally {
       setLoading(false);
@@ -159,7 +159,7 @@ export default function Savings() {
       setDepositAmount("");
       fetchData();
     } catch (error: any) {
-      console.error("Error depositing:", error);
+      if (import.meta.env.DEV) console.error("Error depositing:", error);
       toast.error("잘 안 됐어요. 다시 해볼까?");
     } finally {
       setProcessing(false);
@@ -210,7 +210,7 @@ export default function Savings() {
       setWithdrawAmount("");
       fetchData();
     } catch (error: any) {
-      console.error("Error withdrawing:", error);
+      if (import.meta.env.DEV) console.error("Error withdrawing:", error);
       toast.error("잘 안 됐어요. 다시 해볼까?");
     } finally {
       setProcessing(false);

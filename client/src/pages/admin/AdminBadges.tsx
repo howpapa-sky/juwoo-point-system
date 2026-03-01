@@ -142,8 +142,8 @@ export default function AdminBadges() {
 
       setBadges(badgesWithCounts);
     } catch (error) {
-      console.error("Error fetching badges:", error);
-      toast.error("배지를 불러오는데 실패했습니다");
+      if (import.meta.env.DEV) console.error("Error fetching badges:", error);
+      toast.error("배지를 불러오지 못했어요");
     } finally {
       setLoading(false);
     }
@@ -195,8 +195,8 @@ export default function AdminBadges() {
       setFormData(DEFAULT_BADGE);
       fetchBadges();
     } catch (error) {
-      console.error("Error creating badge:", error);
-      toast.error("배지 생성에 실패했습니다");
+      if (import.meta.env.DEV) console.error("Error creating badge:", error);
+      toast.error("배지 생성이 잘 안 됐어요");
     } finally {
       setIsSaving(false);
     }
@@ -230,8 +230,8 @@ export default function AdminBadges() {
       setSelectedBadge(null);
       fetchBadges();
     } catch (error) {
-      console.error("Error updating badge:", error);
-      toast.error("배지 수정에 실패했습니다");
+      if (import.meta.env.DEV) console.error("Error updating badge:", error);
+      toast.error("배지 수정이 잘 안 됐어요");
     } finally {
       setIsSaving(false);
     }
@@ -254,8 +254,8 @@ export default function AdminBadges() {
       setSelectedBadge(null);
       fetchBadges();
     } catch (error) {
-      console.error("Error deleting badge:", error);
-      toast.error("배지 삭제에 실패했습니다");
+      if (import.meta.env.DEV) console.error("Error deleting badge:", error);
+      toast.error("배지 삭제가 잘 안 됐어요");
     }
   };
 
@@ -276,8 +276,8 @@ export default function AdminBadges() {
       toast.success("배지가 복제되었습니다");
       fetchBadges();
     } catch (error) {
-      console.error("Error duplicating badge:", error);
-      toast.error("배지 복제에 실패했습니다");
+      if (import.meta.env.DEV) console.error("Error duplicating badge:", error);
+      toast.error("배지 복제가 잘 안 됐어요");
     }
   };
 

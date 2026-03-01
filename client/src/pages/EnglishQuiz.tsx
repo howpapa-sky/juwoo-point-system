@@ -327,44 +327,158 @@ const speakWord = (text: string, rate: number = 0.8) => {
 // XP 계산
 const calculateXPRequired = (level: number) => Math.floor(100 * Math.pow(1.3, level - 1));
 
-// 카테고리 이모지 매핑
-const categoryImageMap: Record<string, string[]> = {
-  "dog": ["🐕", "🐈", "🐰", "🐻"],
-  "cat": ["🐈", "🐕", "🐰", "🦊"],
-  "bird": ["🐦", "🐟", "🐸", "🐍"],
-  "fish": ["🐟", "🐦", "🦋", "🐌"],
-  "apple": ["🍎", "🍌", "🍊", "🍇"],
-  "banana": ["🍌", "🍎", "🍊", "🍋"],
-  "orange": ["🍊", "🍎", "🍋", "🍇"],
-  "red": ["🔴", "🔵", "🟢", "🟡"],
-  "blue": ["🔵", "🔴", "🟢", "🟣"],
-  "green": ["🟢", "🔴", "🔵", "🟡"],
-  "one": ["1️⃣", "2️⃣", "3️⃣", "4️⃣"],
-  "two": ["2️⃣", "1️⃣", "3️⃣", "5️⃣"],
-  "three": ["3️⃣", "1️⃣", "2️⃣", "4️⃣"],
-  "mom": ["👩", "👨", "👶", "👴"],
-  "dad": ["👨", "👩", "👶", "👵"],
-  "baby": ["👶", "👨", "👩", "🧒"],
-  "pizza": ["🍕", "🍔", "🌭", "🍟"],
-  "bread": ["🍞", "🍕", "🍔", "🥐"],
-  "cake": ["🎂", "🍕", "🍩", "🍪"],
-  "sun": ["☀️", "🌙", "⭐", "🌈"],
-  "moon": ["🌙", "☀️", "⭐", "☁️"],
-  "star": ["⭐", "☀️", "🌙", "🌈"],
-  "car": ["🚗", "🚌", "✈️", "🚢"],
-  "bus": ["🚌", "🚗", "🚂", "🚁"],
-  "train": ["🚂", "🚗", "🚌", "✈️"],
+// ============================================
+// 단어별 이모지 매핑 (그림 맞추기용)
+// ============================================
+const wordEmojiMap: Record<string, string> = {
+  // 동물
+  cat: "🐱", dog: "🐕", bird: "🐦", fish: "🐟", cow: "🐄",
+  pig: "🐷", duck: "🦆", hen: "🐔", horse: "🐴", sheep: "🐑",
+  rabbit: "🐰", frog: "🐸", bear: "🐻", lion: "🦁", tiger: "🐯",
+  monkey: "🐒", elephant: "🐘", mouse: "🐭", snake: "🐍", turtle: "🐢",
+  whale: "🐋", dolphin: "🐬", penguin: "🐧", owl: "🦉", bee: "🐝",
+  ant: "🐜", butterfly: "🦋", snail: "🐌", shark: "🦈", crab: "🦀",
+  octopus: "🐙", fox: "🦊", deer: "🦌", gorilla: "🦍", zebra: "🦓",
+  giraffe: "🦒", kangaroo: "🦘", koala: "🐨", panda: "🐼", hamster: "🐹",
+  wolf: "🐺", bat: "🦇", eagle: "🦅", parrot: "🦜", swan: "🦢",
+  peacock: "🦚", flamingo: "🦩", hedgehog: "🦔", squirrel: "🐿️", camel: "🐫",
+  hippo: "🦛", rhino: "🦏", seal: "🦭", otter: "🦦", raccoon: "🦝",
+  skunk: "🦨", lobster: "🦞", shrimp: "🦐", jellyfish: "🪼", rooster: "🐓",
+  chick: "🐤", goat: "🐐", ram: "🐏", ox: "🐂", bug: "🐛",
+  worm: "🪱", scorpion: "🦂", spider: "🕷️", caterpillar: "🐛", cricket: "🦗",
+  mosquito: "🦟", fly: "🪰", ladybug: "🐞", dragonfly: "🪰", starfish: "⭐",
+  dinosaur: "🦕", crocodile: "🐊", lizard: "🦎", chameleon: "🦎", salamander: "🦎",
+  // 음식
+  bread: "🍞", rice: "🍚", egg: "🥚", milk: "🥛", water: "💧",
+  pizza: "🍕", cake: "🎂", cookie: "🍪", candy: "🍬", chocolate: "🍫",
+  cheese: "🧀", butter: "🧈", soup: "🍲", salad: "🥗", sandwich: "🥪",
+  hamburger: "🍔", hotdog: "🌭", spaghetti: "🍝", noodle: "🍜", sushi: "🍣",
+  taco: "🌮", burrito: "🌯", dumpling: "🥟", pancake: "🥞", waffle: "🧇",
+  donut: "🍩", pie: "🥧", popcorn: "🍿", pretzel: "🥨", bagel: "🥯",
+  croissant: "🥐", muffin: "🧁", pudding: "🍮", honey: "🍯", jam: "🫙",
+  ketchup: "🥫", salt: "🧂", pepper: "🌶️", garlic: "🧄", onion: "🧅",
+  potato: "🥔", carrot: "🥕", corn: "🌽", tomato: "🍅", broccoli: "🥦",
+  mushroom: "🍄", cucumber: "🥒", lettuce: "🥬", peanut: "🥜", chestnut: "🌰",
+  meat: "🥩", chicken: "🍗", bacon: "🥓", steak: "🥩",
+  icecream: "🍦", popsicle: "🍦", cupcake: "🧁", brownie: "🍫", cereal: "🥣",
+  yogurt: "🥛", juice: "🧃", tea: "🍵", coffee: "☕", lemonade: "🍋",
+  // 과일
+  apple: "🍎", banana: "🍌", orange: "🍊", grape: "🍇", lemon: "🍋",
+  strawberry: "🍓", watermelon: "🍉", peach: "🍑", cherry: "🍒", pineapple: "🍍",
+  mango: "🥭", coconut: "🥥", kiwi: "🥝", blueberry: "🫐", avocado: "🥑",
+  pear: "🍐", plum: "🍑", melon: "🍈", fig: "🫒", lime: "🍈",
+  pomegranate: "🫐", cranberry: "🫐", raspberry: "🫐", blackberry: "🫐", papaya: "🍈",
+  guava: "🍈", passionfruit: "🍈", dragonfruit: "🍈", lychee: "🍈", persimmon: "🍊",
+  tangerine: "🍊", grapefruit: "🍊", apricot: "🍑", nectarine: "🍑", date: "🫒",
+  cantaloupe: "🍈", honeydew: "🍈", jackfruit: "🍈",
+  starfruit: "⭐", mulberry: "🫐", gooseberry: "🫐", boysenberry: "🫐", currant: "🫐",
+  // 숫자
+  one: "1️⃣", two: "2️⃣", three: "3️⃣", four: "4️⃣", five: "5️⃣",
+  six: "6️⃣", seven: "7️⃣", eight: "8️⃣", nine: "9️⃣", ten: "🔟",
+  zero: "0️⃣", hundred: "💯", eleven: "1️⃣", twelve: "2️⃣", thirteen: "3️⃣",
+  fourteen: "4️⃣", fifteen: "5️⃣", sixteen: "6️⃣", seventeen: "7️⃣", eighteen: "8️⃣",
+  nineteen: "9️⃣", twenty: "2️⃣", thirty: "3️⃣", forty: "4️⃣", fifty: "5️⃣",
+  first: "🥇", second: "🥈", third: "🥉", last: "🏁", half: "½",
+  double: "✌️", triple: "🤟", quarter: "¼", pair: "👫", dozen: "📦",
+  million: "🔢", billion: "🔢", thousand: "🔢", once: "☝️", twice: "✌️",
+  // 색깔
+  red: "🔴", blue: "🔵", yellow: "🟡", green: "🟢", orange: "🟠",
+  purple: "🟣", pink: "🩷", white: "⚪", black: "⚫", brown: "🟤",
+  gray: "🩶", gold: "🥇", silver: "🥈", rainbow: "🌈", sky: "🔵",
+  navy: "🔵", beige: "🟤", ivory: "⚪", coral: "🩷", crimson: "🔴",
+  scarlet: "🔴", emerald: "🟢", turquoise: "🔵", violet: "🟣", indigo: "🟣",
+  magenta: "🩷", teal: "🟢", maroon: "🟤", olive: "🟢", tan: "🟤",
+  // 가족
+  mom: "👩", dad: "👨", baby: "👶", family: "👨‍👩‍👧", mother: "👩",
+  father: "👨", brother: "👦", sister: "👧", grandma: "👵", grandpa: "👴",
+  son: "👦", daughter: "👧", uncle: "👨", aunt: "👩", cousin: "🧒",
+  nephew: "👦", niece: "👧", husband: "👨", wife: "👩", parent: "👪",
+  child: "🧒", kid: "🧒", twin: "👯", toddler: "🧒", teenager: "🧑",
+  adult: "🧑", elder: "🧓", ancestor: "👴", relative: "👨‍👩‍👦", neighbor: "🏠",
 };
 
-// 기본 이모지 옵션
-const getImageOptions = (word: string): string[] => {
+// 카테고리별 이모지 그룹 (오답 생성용)
+const getCategoryEmojis = (category: string): string[] => {
+  const emojisByCategory: Record<string, string[]> = {
+    "동물": ["🐱", "🐕", "🐦", "🐟", "🐄", "🐷", "🦆", "🐔", "🐴", "🐑", "🐰", "🐸", "🐻", "🦁", "🐯", "🐒", "🐘", "🐭", "🐍", "🐢", "🐋", "🐬", "🐧", "🦉", "🐝", "🐜", "🦋", "🐌", "🦈", "🦀"],
+    "음식": ["🍞", "🍚", "🥚", "🥛", "💧", "🍕", "🎂", "🍪", "🍬", "🍫", "🧀", "🍲", "🥗", "🥪", "🍔", "🌭", "🍝", "🍜", "🍣", "🌮", "🥟", "🥞", "🍩", "🍿", "🥐", "🧁", "🍮", "🍯", "☕", "🍵"],
+    "과일": ["🍎", "🍌", "🍊", "🍇", "🍋", "🍓", "🍉", "🍑", "🍒", "🍍", "🥭", "🥥", "🥝", "🫐", "🥑", "🍐", "🍈", "🫒", "🍅"],
+    "숫자": ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "0️⃣", "💯", "🥇", "🥈", "🥉", "🏁"],
+    "색깔": ["🔴", "🔵", "🟡", "🟢", "🟠", "🟣", "🩷", "⚪", "⚫", "🟤", "🩶", "🌈"],
+    "가족": ["👩", "👨", "👶", "👨‍👩‍👧", "👦", "👧", "👵", "👴", "🧒", "👪", "🧑", "🧓", "🏠"],
+  };
+  return emojisByCategory[category] ?? [];
+};
+
+// 이모지 옵션 생성 (스마트 버전)
+const getImageOptions = (word: string, category?: string): string[] => {
   const lower = word.toLowerCase();
-  if (categoryImageMap[lower]) {
-    return categoryImageMap[lower].sort(() => Math.random() - 0.5);
+  const correctEmoji = wordEmojiMap[lower];
+
+  if (!correctEmoji) {
+    const defaults = ["❓", "🎯", "💫", "🌟"];
+    return defaults.sort(() => Math.random() - 0.5);
   }
-  // 기본 이모지 세트
-  const defaults = ["❓", "🎯", "💫", "🌟"];
-  return defaults.sort(() => Math.random() - 0.5);
+
+  // 같은 카테고리에서 오답 이모지 선택
+  const categoryPool = category ? getCategoryEmojis(category) : [];
+  const wrongEmojis = categoryPool
+    .filter(e => e !== correctEmoji)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+
+  // 부족하면 다른 카테고리에서 채움
+  if (wrongEmojis.length < 3) {
+    const allEmojis = Object.values(wordEmojiMap);
+    const unique = [...new Set(allEmojis)].filter(e => e !== correctEmoji && !wrongEmojis.includes(e));
+    wrongEmojis.push(...unique.sort(() => Math.random() - 0.5).slice(0, 3 - wrongEmojis.length));
+  }
+
+  return [correctEmoji, ...wrongEmojis].sort(() => Math.random() - 0.5);
+};
+
+// ============================================
+// 스마트 오답 생성 함수
+// ============================================
+const shuffleArray = <T,>(arr: T[]): T[] => [...arr].sort(() => Math.random() - 0.5);
+
+const generateSmartDistractors = (
+  word: EnglishWord,
+  field: "meaning" | "word"
+): string[] => {
+  const pool = englishWordsData.filter(w => w.id !== word.id);
+
+  // 1순위: 같은 카테고리 + 같은 난이도
+  const sameCatDiff = pool.filter(
+    w => w.category === word.category && w.difficulty === word.difficulty
+  );
+  // 2순위: 같은 카테고리
+  const sameCat = pool.filter(w => w.category === word.category);
+  // 3순위: 같은 난이도
+  const sameDiff = pool.filter(w => w.difficulty === word.difficulty);
+
+  const used = new Set<number>();
+  const result: string[] = [];
+
+  const addFrom = (source: EnglishWord[]) => {
+    const shuffled = shuffleArray(source);
+    for (const w of shuffled) {
+      if (result.length >= 3) break;
+      if (used.has(w.id)) continue;
+      // 중복 답안 방지
+      if (result.includes(w[field])) continue;
+      if (w[field] === word[field]) continue;
+      used.add(w.id);
+      result.push(w[field]);
+    }
+  };
+
+  addFrom(sameCatDiff);
+  addFrom(sameCat);
+  addFrom(sameDiff);
+  addFrom(pool);
+
+  return result;
 };
 
 // ============================================
@@ -510,21 +624,13 @@ export default function EnglishQuiz() {
       if (questionType === "multiple-choice" || questionType === "listening" ||
           quizMode === "speed-round" || quizMode === "time-attack" ||
           quizMode === "survival" || quizMode === "boss-battle") {
-        const wrongAnswers = englishWordsData
-          .filter(w => w.id !== word.id)
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 3)
-          .map(w => w.meaning);
+        const wrongAnswers = generateSmartDistractors(word, "meaning");
         options = [...wrongAnswers, word.meaning].sort(() => Math.random() - 0.5);
       } else if (questionType === "reverse") {
-        const wrongAnswers = englishWordsData
-          .filter(w => w.id !== word.id)
-          .sort(() => Math.random() - 0.5)
-          .slice(0, 3)
-          .map(w => w.word);
+        const wrongAnswers = generateSmartDistractors(word, "word");
         options = [...wrongAnswers, word.word].sort(() => Math.random() - 0.5);
       } else if (questionType === "picture-match" || quizMode === "picture-match") {
-        imageOptions = getImageOptions(word.word);
+        imageOptions = getImageOptions(word.word, word.category);
       } else if (questionType === "word-scramble" || quizMode === "word-scramble") {
         scrambledLetters = word.word.split("").sort(() => Math.random() - 0.5);
       }
@@ -967,7 +1073,7 @@ export default function EnglishQuiz() {
         toast.success(`🎉 ${points.toLocaleString()} 포인트 획득!`);
       }
     } catch (error) {
-      console.error("포인트 적립 오류:", error);
+      if (import.meta.env.DEV) console.error("포인트 적립 오류:", error);
     }
   };
 
@@ -1785,7 +1891,7 @@ export default function EnglishQuiz() {
                                 ? isCorrectOption
                                   ? "bg-green-500 hover:bg-green-600 text-white border-4 border-green-600"
                                   : isSelected && !isCorrectOption
-                                  ? "bg-red-500 hover:bg-red-600 text-white border-4 border-red-600"
+                                  ? "bg-slate-400 hover:bg-slate-500 text-white border-4 border-slate-500"
                                   : "opacity-50 border-2"
                                 : "hover:bg-blue-100 border-2 border-blue-300 hover:border-blue-500"
                             }`}
@@ -1828,14 +1934,14 @@ export default function EnglishQuiz() {
 
                     {isAnswered && (
                       <motion.div
-                        className={`p-4 rounded-xl ${isCorrect ? "bg-green-100" : "bg-red-100"}`}
+                        className={`p-4 rounded-xl ${isCorrect ? "bg-green-100" : "bg-slate-100"}`}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                       >
                         <div className="flex items-center gap-2 mb-1">
-                          {isCorrect ? <CheckCircle className="h-6 w-6 text-green-600" /> : <XCircle className="h-6 w-6 text-red-600" />}
-                          <span className={`font-bold ${isCorrect ? "text-green-700" : "text-red-700"}`}>
-                            {isCorrect ? "정답!" : `오답! 정답: ${currentQuestion.correctAnswer}`}
+                          {isCorrect ? <CheckCircle className="h-6 w-6 text-green-600" /> : <XCircle className="h-6 w-6 text-slate-500" />}
+                          <span className={`font-bold ${isCorrect ? "text-green-700" : "text-slate-600"}`}>
+                            {isCorrect ? "정답!" : `아쉬워요! 정답: ${currentQuestion.correctAnswer}`}
                           </span>
                         </div>
                       </motion.div>

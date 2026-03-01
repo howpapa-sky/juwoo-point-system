@@ -95,8 +95,8 @@ export default function WordLearning() {
 
       setCategories(categoryList);
     } catch (error) {
-      console.error('카테고리 로드 오류:', error);
-      toast.error('카테고리를 불러오는데 실패했습니다.');
+      if (import.meta.env.DEV) console.error('카테고리 로드 오류:', error);
+      toast.error('카테고리를 불러오지 못했어요.');
     } finally {
       setLoading(false);
     }
@@ -130,8 +130,8 @@ export default function WordLearning() {
         setSelectedCategory(null);
       }
     } catch (error) {
-      console.error('단어 로드 오류:', error);
-      toast.error('단어를 불러오는데 실패했습니다.');
+      if (import.meta.env.DEV) console.error('단어 로드 오류:', error);
+      toast.error('단어를 가져오지 못했어요.');
     } finally {
       setLoading(false);
     }
@@ -219,7 +219,7 @@ export default function WordLearning() {
         origin: { y: 0.6 },
       });
     } catch (error) {
-      console.error('포인트 적립 오류:', error);
+      if (import.meta.env.DEV) console.error('포인트 적립 오류:', error);
     }
   };
 
@@ -294,12 +294,12 @@ export default function WordLearning() {
                   <div className="text-3xl font-bold text-green-600">{correctCount}</div>
                 </div>
 
-                <div className="text-center p-4 bg-red-50 dark:bg-red-950 rounded-lg border-2 border-red-200 dark:border-red-800">
+                <div className="text-center p-4 bg-slate-50 dark:bg-slate-950 rounded-lg border-2 border-slate-200 dark:border-slate-800">
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <XCircle className="h-5 w-5 text-red-600" />
+                    <XCircle className="h-5 w-5 text-slate-500" />
                     <span className="text-sm font-medium text-muted-foreground">오답</span>
                   </div>
-                  <div className="text-3xl font-bold text-red-600">{words.length - correctCount}</div>
+                  <div className="text-3xl font-bold text-slate-600">{words.length - correctCount}</div>
                 </div>
               </div>
 
@@ -430,7 +430,7 @@ export default function WordLearning() {
                   isAnswered
                     ? isCorrect
                       ? 'border-green-500 bg-green-50 dark:bg-green-950'
-                      : 'border-red-500 bg-red-50 dark:bg-red-950'
+                      : 'border-slate-400 bg-slate-50 dark:bg-slate-950'
                     : ''
                 }`}
                 autoFocus
@@ -441,14 +441,14 @@ export default function WordLearning() {
                   className={`p-4 rounded-lg border-2 ${
                     isCorrect
                       ? 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700'
-                      : 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700'
+                      : 'bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     {isCorrect ? (
                       <CheckCircle2 className="h-5 w-5 text-green-600" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-red-600" />
+                      <XCircle className="h-5 w-5 text-slate-500" />
                     )}
                     <span className="font-bold">
                       {isCorrect ? '정답입니다!' : '오답입니다!'}

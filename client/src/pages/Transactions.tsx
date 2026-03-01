@@ -64,7 +64,7 @@ export default function Transactions() {
 
         setTransactions(formattedTransactions);
       } catch (error: any) {
-        console.error('Error fetching transactions:', error);
+        if (import.meta.env.DEV) console.error('Error fetching transactions:', error);
       } finally {
         setLoading(false);
       }
@@ -116,11 +116,10 @@ export default function Transactions() {
         description: `${Math.abs(amount).toLocaleString()} 포인트가 복원되었습니다.`,
       });
 
-      // 목록 새로고침
-      window.location.reload();
+      fetchTransactions();
     } catch (error: any) {
-      console.error('Error cancelling transaction:', error);
-      toast.error('거래 취소 실패', {
+      if (import.meta.env.DEV) console.error('Error cancelling transaction:', error);
+      toast.error('거래 취소가 잘 안 됐어요', {
         description: error.message || '다시 시도해주세요.',
       });
     } finally {
@@ -198,7 +197,7 @@ export default function Transactions() {
                               tx.rule_category.includes("이자") ? "bg-blue-100 text-blue-700" :
                               tx.rule_category.includes("씨앗") ? "bg-emerald-100 text-emerald-700" :
                               tx.rule_category.includes("수확") ? "bg-emerald-100 text-emerald-700" :
-                              tx.rule_category.includes("목표") ? "bg-red-100 text-red-700" :
+                              tx.rule_category.includes("목표") ? "bg-amber-100 text-amber-700" :
                               tx.rule_category.includes("취소") ? "bg-slate-100 text-slate-600" :
                               "bg-purple-100 text-purple-700"
                             }`}>
@@ -220,7 +219,7 @@ export default function Transactions() {
                         <div className="text-right">
                           <div
                             className={`text-2xl font-bold ${
-                              tx.amount > 0 ? "text-green-600" : "text-red-600"
+                              tx.amount > 0 ? "text-green-600" : "text-slate-500"
                             }`}
                           >
                             {tx.amount > 0 ? "+" : ""}

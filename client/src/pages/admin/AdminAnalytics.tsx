@@ -83,7 +83,7 @@ export default function AdminAnalytics() {
         purchases: purchasesRes.data || [],
       });
     } catch (error) {
-      console.error('Failed to load analytics:', error);
+      if (import.meta.env.DEV) console.error('Failed to load analytics:', error);
     } finally {
       setLoading(false);
     }

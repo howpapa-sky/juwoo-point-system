@@ -52,7 +52,7 @@ export default function VoiceLearning() {
     };
 
     recognitionInstance.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      if (import.meta.env.DEV) console.error('Speech recognition error:', event.error);
       setIsListening(false);
       if (event.error === 'no-speech') {
         toast.error('음성이 감지되지 않았습니다. 다시 시도해주세요.');
@@ -78,8 +78,8 @@ export default function VoiceLearning() {
       if (error) throw error;
       setWords(data || []);
     } catch (error) {
-      console.error('Failed to load words:', error);
-      toast.error('단어를 불러오는데 실패했습니다.');
+      if (import.meta.env.DEV) console.error('Failed to load words:', error);
+      toast.error('단어를 가져오지 못했어요.');
     } finally {
       setLoading(false);
     }
@@ -163,7 +163,7 @@ export default function VoiceLearning() {
           toast.success(`🎉 학습 완료! +500 포인트 적립!`);
         }
       } catch (error) {
-        console.error('Failed to award points:', error);
+        if (import.meta.env.DEV) console.error('Failed to award points:', error);
       }
     }
   }
@@ -227,8 +227,8 @@ export default function VoiceLearning() {
                 <div className="text-3xl font-bold text-green-600">{correctCount}</div>
                 <div className="text-sm text-gray-600 mt-1">정답</div>
               </div>
-              <div className="text-center p-4 bg-red-100 rounded-lg">
-                <div className="text-3xl font-bold text-red-600">{words.length - correctCount}</div>
+              <div className="text-center p-4 bg-slate-100 rounded-lg">
+                <div className="text-3xl font-bold text-slate-600">{words.length - correctCount}</div>
                 <div className="text-sm text-gray-600 mt-1">오답</div>
               </div>
             </div>
@@ -249,14 +249,14 @@ export default function VoiceLearning() {
                 <div
                   key={index}
                   className={`flex items-center justify-between p-3 rounded-lg ${
-                    result.correct ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+                    result.correct ? 'bg-green-50 border border-green-200' : 'bg-slate-50 border border-slate-200'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     {result.correct ? (
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     ) : (
-                      <XCircle className="w-5 h-5 text-red-600" />
+                      <XCircle className="w-5 h-5 text-slate-500" />
                     )}
                     <div>
                       <div className="font-bold">{result.word}</div>

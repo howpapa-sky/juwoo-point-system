@@ -156,8 +156,8 @@ export default function AdminPanel() {
         setRecentTransactions(formattedRecent);
 
       } catch (error: any) {
-        console.error('Error fetching admin data:', error);
-        toast.error('데이터 로드 실패', {
+        if (import.meta.env.DEV) console.error('Error fetching admin data:', error);
+        toast.error('데이터를 불러오지 못했어요', {
           description: error.message || '다시 시도해주세요.',
         });
       } finally {

@@ -44,8 +44,8 @@ export default function Goals() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching goals:', error);
-      toast.error("목표를 불러오는데 실패했습니다");
+      if (import.meta.env.DEV) console.error('Error fetching goals:', error);
+      toast.error("목표를 불러오지 못했어요");
     } else {
       setGoals(data || []);
     }
@@ -76,8 +76,8 @@ export default function Goals() {
       });
 
     if (error) {
-      console.error('Error adding goal:', error);
-      toast.error("목표 추가에 실패했습니다");
+      if (import.meta.env.DEV) console.error('Error adding goal:', error);
+      toast.error("목표 추가가 잘 안 됐어요");
     } else {
       toast.success("새 목표가 추가되었습니다!");
       setDialogOpen(false);
@@ -97,8 +97,8 @@ export default function Goals() {
       .eq('id', goalId);
 
     if (error) {
-      console.error('Error completing goal:', error);
-      toast.error("목표 달성 처리에 실패했습니다");
+      if (import.meta.env.DEV) console.error('Error completing goal:', error);
+      toast.error("목표 달성 처리가 잘 안 됐어요");
     } else {
       toast.success("🎉 목표를 달성했습니다!");
       fetchGoals();
@@ -113,8 +113,8 @@ export default function Goals() {
       .eq('id', goalId);
 
     if (error) {
-      console.error('Error updating progress:', error);
-      toast.error("진행률 업데이트에 실패했습니다");
+      if (import.meta.env.DEV) console.error('Error updating progress:', error);
+      toast.error("진행률 업데이트가 잘 안 됐어요");
     } else {
       toast.success("진행률이 업데이트되었습니다");
       fetchGoals();

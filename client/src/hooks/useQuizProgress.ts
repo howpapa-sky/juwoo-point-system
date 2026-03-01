@@ -178,7 +178,7 @@ export function useQuizProgress(bookId: string) {
 
       if (insertError) throw insertError;
     } catch (err) {
-      console.error('Failed to save quiz attempt:', err);
+      if (import.meta.env.DEV) console.error('Failed to save quiz attempt:', err);
     }
   }, []);
 
@@ -261,7 +261,7 @@ export async function awardQuizPoints(
 
     return true;
   } catch (err) {
-    console.error('Failed to award quiz points:', err);
+    if (import.meta.env.DEV) console.error('Failed to award quiz points:', err);
     return false;
   }
 }

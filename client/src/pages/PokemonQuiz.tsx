@@ -1506,13 +1506,26 @@ export default function PokemonQuiz() {
 
   const awardPointsAndTicket = async () => {
     try {
+      // 중복 포인트 방지: 이미 포켓몬 퀴즈로 포인트를 받았는지 확인
+      const { data: existing } = await supabase
+        .from("point_transactions")
+        .select("id")
+        .eq("juwoo_id", 1)
+        .like("note", "포켓몬 퀴즈%")
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        toast.info("이미 포인트를 받았어요! 🎮");
+        return;
+      }
+
       const { data: profile } = await supabase
         .from("juwoo_profile")
         .select("current_points")
         .eq("id", 1)
         .single();
 
-      const currentBalance = profile?.current_points || 0;
+      const currentBalance = profile?.current_points ?? 0;
       const scorePercent = Math.round((totalScore / maxScore) * 100);
       let points = 0;
       let ticketMinutes = 0;
@@ -1549,6 +1562,7 @@ export default function PokemonQuiz() {
           juwoo_id: 1,
           rule_id: null,
           amount: points,
+          balance_after: newBalance,
           note: note,
           created_by: 1,
         });

@@ -876,13 +876,34 @@ export default function EnglishQuiz() {
   // 포인트 지급
   const awardPoints = async () => {
     try {
+      // 중복 포인트 방지: 이미 영어 퀴즈로 포인트를 받았는지 확인
+      const { data: existing } = await supabase
+        .from("point_transactions")
+        .select("id")
+        .eq("juwoo_id", 1)
+        .like("note", "영어 퀴즈%")
+        .limit(1);
+
+      // 보스/스피드/서바이벌 모드도 체크
+      const { data: existingSpecial } = await supabase
+        .from("point_transactions")
+        .select("id")
+        .eq("juwoo_id", 1)
+        .or("note.like.보스 %,note.like.스피드 라운드%,note.like.서바이벌%")
+        .limit(1);
+
+      if ((existing && existing.length > 0) || (existingSpecial && existingSpecial.length > 0)) {
+        toast.info("이미 포인트를 받았어요! 📚");
+        return;
+      }
+
       const { data: profile } = await supabase
         .from("juwoo_profile")
         .select("current_points")
         .eq("id", 1)
         .single();
 
-      const currentBalance = profile?.current_points || 0;
+      const currentBalance = profile?.current_points ?? 0;
       const totalQ = quizMode === "speed-round" ? speedCount : questions.length;
       const scorePercent = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
 
@@ -891,13 +912,13 @@ export default function EnglishQuiz() {
 
       if (quizMode === "boss-battle" && bossHP <= 0) {
         points = 5000;
-        note = `보스 ${bossName} 처치! 🗡️`;
+        note = `영어 퀴즈 보스 ${bossName} 처치! 🗡️`;
       } else if (quizMode === "speed-round") {
         points = speedCount * 100;
-        note = `스피드 라운드 ${speedCount}개 정답! ⚡`;
+        note = `영어 퀴즈 스피드 라운드 ${speedCount}개 정답! ⚡`;
       } else if (quizMode === "survival" && correctCount >= 20) {
         points = correctCount * 150;
-        note = `서바이벌 ${correctCount}문제 클리어! 🏅`;
+        note = `영어 퀴즈 서바이벌 ${correctCount}문제 클리어! 🏅`;
       } else if (scorePercent === 100) {
         points = 3000;
         note = "영어 퀴즈 만점 달성! 🏆";

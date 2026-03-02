@@ -8,11 +8,14 @@ import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Toolti
 import {
   Calendar, TrendingUp, Target, Award, ArrowLeft, Star, Flame,
   Trophy, Crown, Zap, BookOpen, Brain, Sparkles, Medal,
-  CheckCircle, XCircle, Clock, BarChart3
+  CheckCircle, XCircle, Clock, BarChart3, Users
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { englishWordsData, type WordCategory } from "@/data/englishWordsData";
 import { motion, AnimatePresence } from "framer-motion";
+import { useXP } from "@/hooks/useXP";
+import { useSRS } from "@/hooks/useSRS";
+import { SRS_BOX_META } from "@/lib/englishConstants";
 
 // 카테고리 색상
 const categoryColors: Record<string, string> = {
@@ -75,6 +78,8 @@ interface DailyStat {
 export default function LearningStats() {
   const [progressData, setProgressData] = useState<LearningProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const { profile, levelProgress } = useXP();
+  const { gardenStats, totalWords: srsWordCount } = useSRS();
 
   // 전체 단어 수 (englishWordsData 기준)
   const totalWordsCount = englishWordsData.length;
@@ -253,7 +258,69 @@ export default function LearningStats() {
               돌아가기
             </Button>
           </Link>
+          <Link href="/parent-dashboard">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Users className="h-4 w-4" />
+              부모님 대시보드
+            </Button>
+          </Link>
         </div>
+
+        {/* 영어 학습 레벨 & 단어 정원 요약 */}
+        {profile && (
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"
+          >
+            {/* XP/레벨 카드 */}
+            <Card className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 border-violet-200">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="text-3xl">{levelProgress?.current.title.split(' ').pop()}</div>
+                  <div>
+                    <div className="font-bold text-lg">{levelProgress?.current.title}</div>
+                    <div className="text-sm text-muted-foreground">
+                      레벨 {profile.level} | XP {profile.total_xp}
+                    </div>
+                  </div>
+                </div>
+                {levelProgress?.next && (
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>다음 레벨까지</span>
+                      <span>{Math.round((levelProgress.progress ?? 0) * 100)}%</span>
+                    </div>
+                    <Progress value={(levelProgress.progress ?? 0) * 100} className="h-2" />
+                  </div>
+                )}
+                <div className="flex gap-4 mt-2 text-sm">
+                  <span>🔥 {profile.current_streak}일 연속</span>
+                  <span>📚 {profile.total_words_learned}개 학습</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 단어 정원 미니 카드 */}
+            <Card className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-200">
+              <CardContent className="p-4">
+                <div className="font-bold text-lg mb-2">🌱 단어 정원</div>
+                <div className="flex gap-2 mb-2">
+                  {[1, 2, 3, 4, 5].map((box) => (
+                    <div key={box} className="flex-1 text-center">
+                      <div className="text-xl">{SRS_BOX_META[box].icon}</div>
+                      <div className="font-bold">{gardenStats[box] ?? 0}</div>
+                      <div className="text-[10px] text-muted-foreground">{SRS_BOX_META[box].label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  총 {srsWordCount}개 단어 | 마스터 {(gardenStats[4] ?? 0) + (gardenStats[5] ?? 0)}개
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* 타이틀 */}
         <motion.div

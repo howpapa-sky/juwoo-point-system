@@ -22,21 +22,13 @@ import {
   XCircle,
   Lightbulb,
   Award,
-  Timer,
   Flame,
   Crown,
   Headphones,
   Keyboard,
   MousePointer,
-  Heart,
   Image,
   Shuffle,
-  Link2,
-  Clock,
-  Swords,
-  Shield,
-  Gift,
-  TrendingUp,
   Medal,
   Gamepad2,
 } from "lucide-react";
@@ -51,14 +43,21 @@ import {
   type WordCategory,
   type WordDifficulty,
 } from "@/data/englishWordsData";
+import { useSRS } from '@/hooks/useSRS';
+import { useGuessingDetector } from '@/hooks/useGuessingDetector';
+import { useDifficulty } from '@/hooks/useDifficulty';
+import { useXP } from '@/hooks/useXP';
+import { useSessionLog } from '@/hooks/useSessionLog';
+import { CORRECT_MESSAGES, WRONG_MESSAGES, DONT_KNOW_MESSAGES, GUESSING_MESSAGES, randomMessage, XP_TABLE } from '@/lib/englishConstants';
+import { usePronunciation } from '@/hooks/usePronunciation';
 
 // ============================================
 // 타입 정의
 // ============================================
 type QuizMode =
   | "multiple-choice" | "typing" | "listening" | "reverse" | "mixed"
-  | "picture-match" | "word-scramble" | "word-connect" | "speed-round"
-  | "time-attack" | "boss-battle" | "survival";
+  | "picture-match" | "word-scramble" | "word-connect"
+  | "spelling";
 
 type GameState = "menu" | "mode-select" | "playing" | "result" | "stats";
 
@@ -160,9 +159,6 @@ const allBadges: Badge[] = [
   { id: "streak_5", name: "달리기 시작", icon: "🏃", condition: "5연속 정답", earned: false },
   { id: "streak_10", name: "멈출 수 없어", icon: "🔥", condition: "10연속 정답", earned: false },
   { id: "streak_20", name: "전설의 시작", icon: "⚡", condition: "20연속 정답", earned: false },
-  { id: "speed_demon", name: "번개 손", icon: "⚡", condition: "스피드 라운드 20개", earned: false },
-  { id: "survivor", name: "서바이버", icon: "🏅", condition: "서바이벌 20문제", earned: false },
-  { id: "boss_slayer", name: "보스 슬레이어", icon: "🗡️", condition: "보스 배틀 승리", earned: false },
   { id: "level_10", name: "초보 졸업", icon: "🎓", condition: "레벨 10 달성", earned: false },
   { id: "level_25", name: "중급자", icon: "📚", condition: "레벨 25 달성", earned: false },
   { id: "animal_master", name: "동물 박사", icon: "🦁", condition: "동물 50단어 마스터", earned: false },
@@ -180,10 +176,6 @@ const gameModes = [
   { id: "reverse", name: "한→영", icon: <BookOpen className="h-6 w-6" />, desc: "영어로 답하기", color: "orange" },
   { id: "picture-match", name: "그림 맞추기", icon: <Image className="h-6 w-6" />, desc: "이모지 매칭", color: "cyan", isNew: true },
   { id: "word-scramble", name: "철자 퍼즐", icon: <Shuffle className="h-6 w-6" />, desc: "섞인 글자 배열", color: "yellow", isNew: true },
-  { id: "speed-round", name: "스피드", icon: <Clock className="h-6 w-6" />, desc: "30초 도전", color: "red", isNew: true },
-  { id: "time-attack", name: "타임어택", icon: <Timer className="h-6 w-6" />, desc: "최단 시간 도전", color: "amber", isNew: true },
-  { id: "boss-battle", name: "보스 배틀", icon: <Swords className="h-6 w-6" />, desc: "포켓몬 보스전", color: "violet", isNew: true },
-  { id: "survival", name: "서바이벌", icon: <Shield className="h-6 w-6" />, desc: "틀리면 탈락", color: "slate", isNew: true },
 ];
 
 // ============================================
@@ -231,7 +223,7 @@ const streakVariants = {
 // ============================================
 // 효과음 시스템
 // ============================================
-const playSound = (type: "correct" | "wrong" | "complete" | "streak" | "levelup" | "click" | "boss") => {
+const playSound = (type: "correct" | "wrong" | "complete" | "streak" | "levelup" | "click") => {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
@@ -293,14 +285,6 @@ const playSound = (type: "correct" | "wrong" | "complete" | "streak" | "levelup"
         osc.start(audioContext.currentTime + i * 0.15);
         osc.stop(audioContext.currentTime + i * 0.15 + 0.4);
       });
-    } else if (type === "boss") {
-      oscillator.type = "sawtooth";
-      oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.2);
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.3);
     } else if (type === "click") {
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
       gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
@@ -310,17 +294,6 @@ const playSound = (type: "correct" | "wrong" | "complete" | "streak" | "levelup"
     }
   } catch (e) {
     // Audio not supported
-  }
-};
-
-// TTS 발음 함수
-const speakWord = (text: string, rate: number = 0.8) => {
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    utterance.rate = rate;
-    window.speechSynthesis.speak(utterance);
   }
 };
 
@@ -382,7 +355,7 @@ const wordEmojiMap: Record<string, string> = {
   double: "✌️", triple: "🤟", quarter: "¼", pair: "👫", dozen: "📦",
   million: "🔢", billion: "🔢", thousand: "🔢", once: "☝️", twice: "✌️",
   // 색깔
-  red: "🔴", blue: "🔵", yellow: "🟡", green: "🟢", orange: "🟠",
+  red: "🔴", blue: "🔵", yellow: "🟡", green: "🟢",
   purple: "🟣", pink: "🩷", white: "⚪", black: "⚫", brown: "🟤",
   gray: "🩶", gold: "🥇", silver: "🥈", rainbow: "🌈", sky: "🔵",
   navy: "🔵", beige: "🟤", ivory: "⚪", coral: "🩷", crimson: "🔴",
@@ -430,7 +403,7 @@ const getImageOptions = (word: string, category?: string): string[] => {
   // 부족하면 다른 카테고리에서 채움
   if (wrongEmojis.length < 3) {
     const allEmojis = Object.values(wordEmojiMap);
-    const unique = [...new Set(allEmojis)].filter(e => e !== correctEmoji && !wrongEmojis.includes(e));
+    const unique = Array.from(new Set(allEmojis)).filter(e => e !== correctEmoji && !wrongEmojis.includes(e));
     wrongEmojis.push(...unique.sort(() => Math.random() - 0.5).slice(0, 3 - wrongEmojis.length));
   }
 
@@ -488,6 +461,17 @@ export default function EnglishQuiz() {
   const { user, loading: authLoading } = useSupabaseAuth();
   const isAuthenticated = !!user;
 
+  // New hooks
+  const { updateWordByName, addWords } = useSRS();
+  const { recordAnswer: recordGuessingAnswer, resetDetector, getGuessingCount, resetGuessingCount } = useGuessingDetector();
+  const { getNextDifficulty, recordResult: recordDifficultyAnswer } = useDifficulty();
+  const { addXP, updateStreak } = useXP();
+  const { startSession, logAnswer, endSession } = useSessionLog();
+  const { speak } = usePronunciation();
+  const [sessionId, setSessionId] = useState<number | null>(null);
+  const [dontKnowCount, setDontKnowCount] = useState(0);
+  const answerStartTimeRef = useRef<number>(Date.now());
+
   // 게임 상태
   const [gameState, setGameState] = useState<GameState>("menu");
   const [quizMode, setQuizMode] = useState<QuizMode>("mixed");
@@ -508,13 +492,7 @@ export default function EnglishQuiz() {
   const [correctCount, setCorrectCount] = useState(0);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
-  const [lives, setLives] = useState(3);
   const [combo, setCombo] = useState(1);
-
-  // 타이머
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [totalTime, setTotalTime] = useState(0);
-  const [isTimerActive, setIsTimerActive] = useState(false);
 
   // XP 및 레벨
   const [userProgress, setUserProgress] = useState<UserProgress>({
@@ -525,12 +503,6 @@ export default function EnglishQuiz() {
   const [earnedXP, setEarnedXP] = useState(0);
   const [showLevelUp, setShowLevelUp] = useState(false);
 
-  // 보스 배틀
-  const [bossHP, setBossHP] = useState(100);
-  const [playerHP, setPlayerHP] = useState(100);
-  const [bossName, setBossName] = useState("피카츄");
-  const [bossEmoji, setBossEmoji] = useState("⚡");
-
   // 배지 & 미션
   const [badges, setBadges] = useState<Badge[]>(allBadges);
   const [newBadge, setNewBadge] = useState<Badge | null>(null);
@@ -540,54 +512,11 @@ export default function EnglishQuiz() {
     { id: "daily_perfect", name: "완벽주의", goal: 1, current: 0, reward: 50, icon: "💯", completed: false },
   ]);
 
-  // 스피드 라운드
-  const [speedCount, setSpeedCount] = useState(0);
-
   const inputRef = useRef<HTMLInputElement>(null);
-  const totalQuestions = quizMode === "speed-round" ? 999 : quizMode === "survival" ? 999 : 15;
+  const totalQuestions = 15;
   const currentQuestion = questions[currentIndex];
-  const progress = quizMode === "speed-round" || quizMode === "survival"
-    ? 100
-    : ((currentIndex + (isAnswered ? 1 : 0)) / Math.min(totalQuestions, questions.length)) * 100;
+  const progress = ((currentIndex + (isAnswered ? 1 : 0)) / Math.min(totalQuestions, questions.length)) * 100;
   const theme = themes[currentTheme];
-
-  // 타이머 로직
-  useEffect(() => {
-    if (!isTimerActive || gameState !== "playing" || isAnswered) return;
-
-    if (timeLeft <= 0) {
-      if (quizMode === "speed-round") {
-        // 스피드 라운드 종료
-        setGameState("result");
-        playSound("complete");
-        return;
-      } else if (quizMode === "time-attack") {
-        // 타임어택: 시간 초과 = 오답
-        handleTimeout();
-        return;
-      }
-    }
-
-    const timer = setTimeout(() => {
-      setTimeLeft(prev => prev - 1);
-      setTotalTime(prev => prev + 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [timeLeft, isTimerActive, gameState, isAnswered, quizMode]);
-
-  // 시간 초과
-  const handleTimeout = () => {
-    setIsAnswered(true);
-    setIsCorrect(false);
-    setStreak(0);
-    setCombo(1);
-    if (quizMode !== "speed-round") {
-      setLives(prev => prev - 1);
-    }
-    playSound("wrong");
-    toast.error("시간 초과! ⏰");
-  };
 
   // 퀴즈 문제 생성
   const generateQuestions = useCallback(() => {
@@ -603,7 +532,7 @@ export default function EnglishQuiz() {
       wordPool = [...englishWordsData];
     }
 
-    const count = quizMode === "speed-round" || quizMode === "survival" ? 50 : 15;
+    const count = 15;
     const shuffled = wordPool.sort(() => Math.random() - 0.5).slice(0, count);
 
     const modes: QuizMode[] = ["multiple-choice", "typing", "listening", "reverse"];
@@ -613,17 +542,13 @@ export default function EnglishQuiz() {
 
       if (quizMode === "mixed") {
         questionType = modes[index % modes.length];
-      } else if (quizMode === "speed-round" || quizMode === "time-attack" || quizMode === "survival" || quizMode === "boss-battle") {
-        questionType = "multiple-choice";
       }
 
       let options: string[] | undefined;
       let scrambledLetters: string[] | undefined;
       let imageOptions: string[] | undefined;
 
-      if (questionType === "multiple-choice" || questionType === "listening" ||
-          quizMode === "speed-round" || quizMode === "time-attack" ||
-          quizMode === "survival" || quizMode === "boss-battle") {
+      if (questionType === "multiple-choice" || questionType === "listening") {
         const wrongAnswers = generateSmartDistractors(word, "meaning");
         options = [...wrongAnswers, word.meaning].sort(() => Math.random() - 0.5);
       } else if (questionType === "reverse") {
@@ -650,9 +575,8 @@ export default function EnglishQuiz() {
   }, [quizMode, difficulty, selectedCategory]);
 
   // 게임 시작
-  const startGame = (mode?: QuizMode) => {
+  const startGame = async (mode?: QuizMode) => {
     if (mode) setQuizMode(mode);
-    const actualMode = mode || quizMode;
 
     const newQuestions = generateQuestions();
     setQuestions(newQuestions);
@@ -667,47 +591,21 @@ export default function EnglishQuiz() {
     setCombo(1);
     setEarnedXP(0);
     setSelectedLetters([]);
-    setSpeedCount(0);
-
-    // 모드별 설정
-    if (actualMode === "speed-round") {
-      setTimeLeft(30);
-      setIsTimerActive(true);
-      setLives(999);
-    } else if (actualMode === "time-attack") {
-      setTimeLeft(60);
-      setIsTimerActive(true);
-      setLives(3);
-    } else if (actualMode === "survival") {
-      setLives(1);
-      setIsTimerActive(false);
-      setTimeLeft(0);
-    } else if (actualMode === "boss-battle") {
-      setBossHP(100);
-      setPlayerHP(100);
-      const bosses = [
-        { name: "피카츄", emoji: "⚡" },
-        { name: "파이리", emoji: "🔥" },
-        { name: "꼬부기", emoji: "💧" },
-        { name: "이상해씨", emoji: "🌿" },
-        { name: "뮤츠", emoji: "👾" },
-      ];
-      const boss = bosses[Math.floor(Math.random() * bosses.length)];
-      setBossName(boss.name);
-      setBossEmoji(boss.emoji);
-      setLives(999);
-      setIsTimerActive(false);
-    } else {
-      setLives(3);
-      setIsTimerActive(false);
-      setTimeLeft(15);
-    }
+    setDontKnowCount(0);
+    resetDetector();
+    resetGuessingCount();
 
     setGameState("playing");
     playSound("click");
 
+    // Start session logging
+    const sid = await startSession('english-quiz');
+    if (sid) setSessionId(sid);
+
+    answerStartTimeRef.current = Date.now();
+
     if (newQuestions[0]?.questionType === "listening") {
-      setTimeout(() => speakWord(newQuestions[0].word.word), 500);
+      setTimeout(() => speak(newQuestions[0].word.word), 500);
     }
   };
 
@@ -755,10 +653,10 @@ export default function EnglishQuiz() {
   };
 
   // 객관식 답 선택
-  const handleSelectAnswer = (answer: string) => {
+  const handleSelectAnswer = (answer: string, selectedIndex?: number) => {
     if (isAnswered) return;
     setUserAnswer(answer);
-    submitAnswer(answer);
+    submitAnswer(answer, selectedIndex);
   };
 
   // 주관식 제출
@@ -767,16 +665,103 @@ export default function EnglishQuiz() {
     submitAnswer(userAnswer);
   };
 
+  // 다음 문제로 이동 (공통)
+  const moveToNextQuestion = () => {
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setUserAnswer("");
+      setIsAnswered(false);
+      setIsCorrect(false);
+      setSelectedLetters([]);
+      answerStartTimeRef.current = Date.now();
+
+      const nextQuestion = questions[currentIndex + 1];
+      if (nextQuestion?.questionType === "listening") {
+        setTimeout(() => speak(nextQuestion.word.word), 300);
+      }
+
+      setTimeout(() => {
+        if (nextQuestion?.questionType === "typing") {
+          inputRef.current?.focus();
+        }
+      }, 100);
+    } else {
+      endGame();
+    }
+  };
+
+  // "모르겠어요" 처리
+  const handleDontKnow = async () => {
+    if (!currentQuestion) return;
+    const correctAnswer = currentQuestion.correctAnswer;
+
+    setIsAnswered(true);
+    setIsCorrect(false);
+    setStreak(0);
+    setCombo(1);
+
+    // SRS update - don't_know
+    await updateWordByName(currentQuestion.word.word, 'dont_know');
+
+    // Log answer
+    if (sessionId) {
+      await logAnswer({
+        sessionId,
+        word: currentQuestion.word.word,
+        questionType: currentQuestion.questionType ?? 'multiple-choice',
+        isCorrect: false,
+        answerTimeMs: 0,
+        usedDontKnow: true,
+        wasGuessing: false,
+      });
+    }
+
+    // Award 1 coin for honesty
+    setDontKnowCount(prev => prev + 1);
+
+    // Show correct answer with TTS
+    speak(currentQuestion.word.word);
+    toast(randomMessage(DONT_KNOW_MESSAGES), {
+      icon: '🦁',
+      description: `정답: ${correctAnswer}`,
+      duration: 3000,
+    });
+
+    // Add XP for honest attempt
+    addXP('quiz_dont_know');
+
+    // Record for difficulty adjustment
+    recordDifficultyAnswer(false);
+
+    // Move to next question after delay
+    setTimeout(() => {
+      moveToNextQuestion();
+    }, 2500);
+  };
+
   // 답변 제출
-  const submitAnswer = (answer: string) => {
+  const submitAnswer = async (answer: string, selectedIndex?: number) => {
     setIsAnswered(true);
     const correct = checkAnswer(answer);
     setIsCorrect(correct);
 
+    const answerTimeMs = Date.now() - answerStartTimeRef.current;
+
     const baseXP = { easy: 10, medium: 15, hard: 25, expert: 40 };
-    let xpGained = baseXP[currentQuestion.word.difficulty as keyof typeof baseXP] || 10;
+    let xpGained = baseXP[currentQuestion.word.difficulty as keyof typeof baseXP] ?? 10;
 
     if (correct) {
+      // Guessing detection before awarding XP
+      const guessingResult = recordGuessingAnswer(selectedIndex ?? 0, true, answerTimeMs);
+      // Correct answers are never guessing per the hook logic, so just award XP
+      const xpAction = currentQuestion.word.difficulty === 'hard' ? 'quiz_correct_hard' :
+                       currentQuestion.word.difficulty === 'medium' ? 'quiz_correct_medium' :
+                       'quiz_correct_easy' as const;
+      addXP(xpAction);
+
+      // SRS update - correct
+      await updateWordByName(currentQuestion.word.word, 'correct');
+
       // 정답 처리
       const basePoints = currentQuestion.word.difficulty === "easy" ? 10 :
                         currentQuestion.word.difficulty === "medium" ? 15 :
@@ -799,18 +784,6 @@ export default function EnglishQuiz() {
 
       setEarnedXP(prev => prev + Math.floor(xpGained));
 
-      // 보스 배틀 데미지
-      if (quizMode === "boss-battle") {
-        const damage = 15 + Math.floor(streak * 2);
-        setBossHP(prev => Math.max(0, prev - damage));
-        playSound("boss");
-      }
-
-      // 스피드 라운드 카운트
-      if (quizMode === "speed-round") {
-        setSpeedCount(prev => prev + 1);
-      }
-
       // 효과음 & 이펙트
       if (streak >= 4) {
         playSound("streak");
@@ -820,10 +793,10 @@ export default function EnglishQuiz() {
           origin: { y: 0.7 },
           colors: ["#FFD700", "#FF6B6B", "#4ECDC4"],
         });
-        toast.success(`🔥 ${streak + 1}연속! +${totalPoints}점 (x${comboMultiplier.toFixed(1)})`);
+        toast.success(randomMessage(CORRECT_MESSAGES) + ` +${totalPoints}점 (x${comboMultiplier.toFixed(1)})`);
       } else {
         playSound("correct");
-        toast.success(`정답! +${totalPoints}점`);
+        toast.success(randomMessage(CORRECT_MESSAGES) + ` +${totalPoints}점`);
       }
     } else {
       // 오답 처리
@@ -831,69 +804,52 @@ export default function EnglishQuiz() {
       setStreak(0);
       setCombo(1);
 
-      if (quizMode === "boss-battle") {
-        const damage = 20;
-        setPlayerHP(prev => Math.max(0, prev - damage));
-      } else if (quizMode !== "speed-round") {
-        setLives(prev => prev - 1);
+      // Guessing detection for wrong answers
+      const guessingResult = recordGuessingAnswer(selectedIndex ?? 0, false, answerTimeMs);
+      if (guessingResult.isGuessing) {
+        toast(randomMessage(GUESSING_MESSAGES), { icon: '⏰' });
+      } else {
+        addXP('quiz_attempt_wrong');
       }
 
-      toast.error(`틀렸어요! 정답: ${currentQuestion.correctAnswer}`);
+      // SRS update - wrong
+      await updateWordByName(currentQuestion.word.word, 'wrong');
+
+      toast(randomMessage(WRONG_MESSAGES), {
+        icon: '💪',
+        description: `정답: ${currentQuestion.correctAnswer}`,
+      });
     }
 
-    speakWord(currentQuestion.word.word);
+    // Record for difficulty adjustment
+    recordDifficultyAnswer(correct);
 
-    // 스피드 라운드/서바이벌 자동 진행
-    if (quizMode === "speed-round") {
-      setTimeout(() => handleNext(), 500);
+    // Log answer
+    if (sessionId) {
+      await logAnswer({
+        sessionId,
+        word: currentQuestion.word.word,
+        questionType: currentQuestion.questionType ?? 'multiple-choice',
+        isCorrect: correct,
+        answerTimeMs,
+        usedDontKnow: false,
+        wasGuessing: false,
+        userAnswer: answer,
+        correctAnswer: currentQuestion.correctAnswer,
+      });
     }
+
+    speak(currentQuestion.word.word);
   };
 
   // 다음 문제
   const handleNext = async () => {
-    // 게임 오버 체크
-    if (lives <= 0 || (quizMode === "boss-battle" && playerHP <= 0)) {
-      endGame();
-      return;
-    }
-
-    // 보스 처치
-    if (quizMode === "boss-battle" && bossHP <= 0) {
-      toast.success(`🎉 ${bossName}을(를) 물리쳤다!`);
-      endGame();
-      return;
-    }
-
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setUserAnswer("");
-      setIsAnswered(false);
-      setIsCorrect(false);
-      setSelectedLetters([]);
-
-      if (quizMode === "time-attack") {
-        setTimeLeft(prev => prev + (isCorrect ? 3 : -5)); // 정답 +3초, 오답 -5초
-      }
-
-      const nextQuestion = questions[currentIndex + 1];
-      if (nextQuestion?.questionType === "listening") {
-        setTimeout(() => speakWord(nextQuestion.word.word), 300);
-      }
-
-      setTimeout(() => {
-        if (nextQuestion?.questionType === "typing") {
-          inputRef.current?.focus();
-        }
-      }, 100);
-    } else {
-      endGame();
-    }
+    moveToNextQuestion();
   };
 
   // 게임 종료
   const endGame = async () => {
     setGameState("result");
-    setIsTimerActive(false);
     playSound("complete");
 
     // XP 적용 및 레벨업 체크
@@ -926,13 +882,27 @@ export default function EnglishQuiz() {
     // 포인트 지급
     await awardPoints();
 
-    if (correctCount >= (quizMode === "speed-round" ? speedCount : questions.length) * 0.9) {
+    if (correctCount >= questions.length * 0.9) {
       confetti({
         particleCount: 150,
         spread: 100,
         origin: { y: 0.5 },
       });
     }
+
+    // End session logging
+    const wrongCount = questions.length - correctCount - dontKnowCount;
+    if (sessionId) {
+      await endSession(sessionId, {
+        totalCorrect: correctCount,
+        totalWrong: wrongCount >= 0 ? wrongCount : 0,
+        totalDontKnow: dontKnowCount,
+        guessingCount: getGuessingCount(),
+        xpEarned: earnedXP,
+        coinsEarned: 0,
+      });
+    }
+    await updateStreak();
   };
 
   // 배지 체크
@@ -965,12 +935,6 @@ export default function EnglishQuiz() {
       if (badge && !badge.earned) { badge.earned = true; earned = badge; }
     }
 
-    // 보스 슬레이어
-    if (quizMode === "boss-battle" && bossHP <= 0) {
-      const badge = newBadges.find(b => b.id === "boss_slayer");
-      if (badge && !badge.earned) { badge.earned = true; earned = badge; }
-    }
-
     if (earned) {
       setNewBadge(earned);
       setTimeout(() => setNewBadge(null), 3000);
@@ -982,24 +946,20 @@ export default function EnglishQuiz() {
   // 포인트 지급
   const awardPoints = async () => {
     try {
-      // 중복 포인트 방지: 이미 영어 퀴즈로 포인트를 받았는지 확인
+      // C6 fix: 중복 포인트 방지 - 오늘 날짜 필터 추가
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
       const { data: existing } = await supabase
         .from("point_transactions")
         .select("id")
         .eq("juwoo_id", 1)
         .like("note", "영어 퀴즈%")
+        .gte("created_at", todayStart.toISOString())
         .limit(1);
 
-      // 보스/스피드/서바이벌 모드도 체크
-      const { data: existingSpecial } = await supabase
-        .from("point_transactions")
-        .select("id")
-        .eq("juwoo_id", 1)
-        .or("note.like.보스 %,note.like.스피드 라운드%,note.like.서바이벌%")
-        .limit(1);
-
-      if ((existing && existing.length > 0) || (existingSpecial && existingSpecial.length > 0)) {
-        toast.info("이미 포인트를 받았어요! 📚");
+      if (existing && existing.length > 0) {
+        toast("이미 오늘 포인트를 받았어요! 내일 다시 도전해보자!", { icon: '📚' });
         return;
       }
 
@@ -1010,22 +970,13 @@ export default function EnglishQuiz() {
         .single();
 
       const currentBalance = profile?.current_points ?? 0;
-      const totalQ = quizMode === "speed-round" ? speedCount : questions.length;
+      const totalQ = questions.length;
       const scorePercent = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
 
       let points = 0;
       let note = "";
 
-      if (quizMode === "boss-battle" && bossHP <= 0) {
-        points = 5000;
-        note = `영어 퀴즈 보스 ${bossName} 처치! 🗡️`;
-      } else if (quizMode === "speed-round") {
-        points = speedCount * 100;
-        note = `영어 퀴즈 스피드 라운드 ${speedCount}개 정답! ⚡`;
-      } else if (quizMode === "survival" && correctCount >= 20) {
-        points = correctCount * 150;
-        note = `영어 퀴즈 서바이벌 ${correctCount}문제 클리어! 🏅`;
-      } else if (scorePercent === 100) {
+      if (scorePercent === 100) {
         points = 3000;
         note = "영어 퀴즈 만점 달성! 🏆";
       } else if (scorePercent >= 90) {
@@ -1045,6 +996,12 @@ export default function EnglishQuiz() {
         note = "영어 퀴즈 도전!";
       }
 
+      // "모르겠어요" 정직 보너스 (1코인 per don't know)
+      if (dontKnowCount > 0) {
+        points += dontKnowCount;
+        note += ` (정직 보너스 +${dontKnowCount})`;
+      }
+
       // 스트릭 보너스
       if (maxStreak >= 10) {
         points += 500;
@@ -1056,7 +1013,7 @@ export default function EnglishQuiz() {
       if (points > 0) {
         const newBalance = currentBalance + points;
 
-        await supabase.from("point_transactions").insert({
+        const { error: insertError } = await supabase.from("point_transactions").insert({
           juwoo_id: 1,
           rule_id: null,
           amount: points,
@@ -1065,10 +1022,14 @@ export default function EnglishQuiz() {
           created_by: 1,
         });
 
-        await supabase
+        if (insertError) throw insertError;
+
+        const { error: updateError } = await supabase
           .from("juwoo_profile")
           .update({ current_points: newBalance })
           .eq("id", 1);
+
+        if (updateError) throw updateError;
 
         toast.success(`🎉 ${points.toLocaleString()} 포인트 획득!`);
       }
@@ -1376,7 +1337,7 @@ export default function EnglishQuiz() {
   // 결과 화면
   // ============================================
   if (gameState === "result") {
-    const totalQ = quizMode === "speed-round" ? speedCount || 1 : questions.length;
+    const totalQ = questions.length || 1;
     const scorePercent = Math.round((correctCount / totalQ) * 100);
     const stars = scorePercent >= 90 ? 3 : scorePercent >= 70 ? 2 : scorePercent >= 40 ? 1 : 0;
 
@@ -1405,11 +1366,7 @@ export default function EnglishQuiz() {
                     <Trophy className="h-16 w-16 text-white" />
                   </motion.div>
                   <h1 className="text-3xl md:text-4xl font-bold mt-4 mb-2">
-                    {quizMode === "boss-battle" && bossHP <= 0
-                      ? `${bossName} 처치! 🗡️`
-                      : quizMode === "speed-round"
-                      ? `${speedCount}개 정답!`
-                      : "퀴즈 완료!"}
+                    퀴즈 완료!
                   </h1>
                 </motion.div>
 
@@ -1561,10 +1518,7 @@ export default function EnglishQuiz() {
       "reverse": "한→영",
       "picture-match": "그림 맞추기",
       "word-scramble": "철자 퍼즐",
-      "speed-round": "스피드",
-      "time-attack": "타임어택",
-      "boss-battle": "보스 배틀",
-      "survival": "서바이벌",
+      "spelling": "스펠링",
     };
     return labels[currentQuestion.questionType] || labels[quizMode] || "";
   };
@@ -1584,17 +1538,6 @@ export default function EnglishQuiz() {
           </Button>
 
           <div className="flex items-center gap-2">
-            {/* 목숨 (서바이벌/일반 모드) */}
-            {quizMode !== "speed-round" && quizMode !== "boss-battle" && (
-              <div className="flex items-center gap-1 px-3 py-1 bg-red-100 rounded-full">
-                {[...Array(Math.min(lives, 3))].map((_, i) => (
-                  <motion.div key={i} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: i * 0.1 }}>
-                    <Heart className="h-5 w-5 fill-red-500 text-red-500" />
-                  </motion.div>
-                ))}
-              </div>
-            )}
-
             {/* 스트릭 */}
             <AnimatePresence>
               {streak > 0 && (
@@ -1611,69 +1554,11 @@ export default function EnglishQuiz() {
                 </motion.div>
               )}
             </AnimatePresence>
-
-            {/* 타이머 */}
-            {(quizMode === "speed-round" || quizMode === "time-attack") && (
-              <motion.div
-                className={`px-3 py-1 rounded-full font-bold ${
-                  timeLeft <= 5 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-                }`}
-                animate={timeLeft <= 5 ? { scale: [1, 1.1, 1] } : {}}
-                transition={{ repeat: Infinity, duration: 0.5 }}
-              >
-                ⏱️ {timeLeft}s
-              </motion.div>
-            )}
-
-            {/* 스피드 라운드 카운트 */}
-            {quizMode === "speed-round" && (
-              <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-bold">
-                ✓ {speedCount}
-              </div>
-            )}
           </div>
         </motion.div>
 
-        {/* 보스 배틀 HP 바 */}
-        {quizMode === "boss-battle" && (
-          <motion.div
-            className="mb-4 p-4 bg-white/80 rounded-xl shadow-lg"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            {/* 보스 HP */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-red-600">{bossEmoji} {bossName}</span>
-                <span className="text-sm">{bossHP}/100 HP</span>
-              </div>
-              <div className="w-full h-4 bg-red-200 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-red-500 to-red-600"
-                  animate={{ width: `${bossHP}%` }}
-                  transition={{ type: "spring" }}
-                />
-              </div>
-            </div>
-            {/* 플레이어 HP */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-blue-600">🧒 주우</span>
-                <span className="text-sm">{playerHP}/100 HP</span>
-              </div>
-              <div className="w-full h-4 bg-blue-200 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-blue-500 to-blue-600"
-                  animate={{ width: `${playerHP}%` }}
-                  transition={{ type: "spring" }}
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-
         {/* 진행률 */}
-        {quizMode !== "speed-round" && quizMode !== "survival" && (
+        {(
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -1720,10 +1605,8 @@ export default function EnglishQuiz() {
 
                 {/* 문제 영역 */}
                 <div className="text-center mb-6">
-                  {/* 객관식 / 보스배틀 / 스피드 / 타임어택 / 서바이벌 */}
-                  {(currentQuestion.questionType === "multiple-choice" ||
-                    quizMode === "boss-battle" || quizMode === "speed-round" ||
-                    quizMode === "time-attack" || quizMode === "survival") && (
+                  {/* 객관식 */}
+                  {(currentQuestion.questionType === "multiple-choice") && (
                     <>
                       <p className="text-sm text-muted-foreground mb-4">이 단어의 뜻은?</p>
                       <motion.div
@@ -1735,7 +1618,7 @@ export default function EnglishQuiz() {
                         <h2 className="text-4xl md:text-5xl font-bold text-blue-600">
                           {currentQuestion.word.word}
                         </h2>
-                        <Button variant="outline" size="icon" onClick={() => speakWord(currentQuestion.word.word)} className="rounded-full">
+                        <Button variant="outline" size="icon" onClick={() => speak(currentQuestion.word.word)} className="rounded-full">
                           <Volume2 className="h-5 w-5" />
                         </Button>
                       </motion.div>
@@ -1750,7 +1633,7 @@ export default function EnglishQuiz() {
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Button
                           size="lg"
-                          onClick={() => speakWord(currentQuestion.word.word)}
+                          onClick={() => speak(currentQuestion.word.word)}
                           className={`mb-4 bg-gradient-to-r ${theme.primary}`}
                         >
                           <Volume2 className="h-8 w-8 mr-2" />
@@ -1775,7 +1658,7 @@ export default function EnglishQuiz() {
                       <p className="text-sm text-muted-foreground mb-4">이 단어의 뜻을 입력하세요!</p>
                       <div className="flex items-center justify-center gap-3 mb-4">
                         <h2 className="text-4xl md:text-5xl font-bold text-blue-600">{currentQuestion.word.word}</h2>
-                        <Button variant="outline" size="icon" onClick={() => speakWord(currentQuestion.word.word)} className="rounded-full">
+                        <Button variant="outline" size="icon" onClick={() => speak(currentQuestion.word.word)} className="rounded-full">
                           <Volume2 className="h-5 w-5" />
                         </Button>
                       </div>
@@ -1798,7 +1681,7 @@ export default function EnglishQuiz() {
                       <p className="text-sm text-muted-foreground mb-4">🖼️ 단어에 맞는 그림을 고르세요!</p>
                       <div className="flex items-center justify-center gap-3 mb-4">
                         <h2 className="text-4xl md:text-5xl font-bold text-blue-600">{currentQuestion.word.word}</h2>
-                        <Button variant="outline" size="icon" onClick={() => speakWord(currentQuestion.word.word)} className="rounded-full">
+                        <Button variant="outline" size="icon" onClick={() => speak(currentQuestion.word.word)} className="rounded-full">
                           <Volume2 className="h-5 w-5" />
                         </Button>
                       </div>
@@ -1847,16 +1730,25 @@ export default function EnglishQuiz() {
 
                       {/* 제출 버튼 */}
                       {!isAnswered && (
-                        <div className="mt-4 flex justify-center gap-2">
-                          <Button variant="outline" onClick={() => setSelectedLetters([])}>
-                            초기화
-                          </Button>
+                        <div className="mt-4 flex flex-col items-center gap-2">
+                          <div className="flex justify-center gap-2">
+                            <Button variant="outline" onClick={() => setSelectedLetters([])}>
+                              초기화
+                            </Button>
+                            <Button
+                              onClick={submitScramble}
+                              disabled={selectedLetters.length !== currentQuestion.scrambledLetters?.length}
+                              className={`bg-gradient-to-r ${theme.primary} text-white`}
+                            >
+                              확인
+                            </Button>
+                          </div>
                           <Button
-                            onClick={submitScramble}
-                            disabled={selectedLetters.length !== currentQuestion.scrambledLetters?.length}
-                            className={`bg-gradient-to-r ${theme.primary} text-white`}
+                            variant="outline"
+                            className="w-full mt-3 border-dashed border-amber-400 text-amber-600 hover:bg-amber-50"
+                            onClick={handleDontKnow}
                           >
-                            확인
+                            🦁 모르겠어요 (괜찮아!)
                           </Button>
                         </div>
                       )}
@@ -1867,9 +1759,7 @@ export default function EnglishQuiz() {
                 {/* 답변 영역 - 객관식 */}
                 {(currentQuestion.questionType === "multiple-choice" ||
                   currentQuestion.questionType === "listening" ||
-                  currentQuestion.questionType === "reverse" ||
-                  quizMode === "boss-battle" || quizMode === "speed-round" ||
-                  quizMode === "time-attack" || quizMode === "survival") &&
+                  currentQuestion.questionType === "reverse") &&
                   currentQuestion.options && (
                   <div className="grid grid-cols-2 gap-3">
                     {currentQuestion.options.map((option, index) => {
@@ -1895,7 +1785,7 @@ export default function EnglishQuiz() {
                                   : "opacity-50 border-2"
                                 : "hover:bg-blue-100 border-2 border-blue-300 hover:border-blue-500"
                             }`}
-                            onClick={() => handleSelectAnswer(option)}
+                            onClick={() => handleSelectAnswer(option, index)}
                             disabled={isAnswered}
                           >
                             {showResult && isCorrectOption && <CheckCircle className="h-5 w-5 mr-2" />}
@@ -1906,6 +1796,20 @@ export default function EnglishQuiz() {
                       );
                     })}
                   </div>
+                )}
+
+                {/* "모르겠어요" 버튼 - 객관식 */}
+                {(currentQuestion.questionType === "multiple-choice" ||
+                  currentQuestion.questionType === "listening" ||
+                  currentQuestion.questionType === "reverse") &&
+                  !isAnswered && (
+                  <Button
+                    variant="outline"
+                    className="w-full mt-3 border-dashed border-amber-400 text-amber-600 hover:bg-amber-50"
+                    onClick={handleDontKnow}
+                  >
+                    🦁 모르겠어요 (괜찮아!)
+                  </Button>
                 )}
 
                 {/* 답변 영역 - 타이핑 */}
@@ -1941,10 +1845,21 @@ export default function EnglishQuiz() {
                         <div className="flex items-center gap-2 mb-1">
                           {isCorrect ? <CheckCircle className="h-6 w-6 text-green-600" /> : <XCircle className="h-6 w-6 text-slate-500" />}
                           <span className={`font-bold ${isCorrect ? "text-green-700" : "text-slate-600"}`}>
-                            {isCorrect ? "정답!" : `아쉬워요! 정답: ${currentQuestion.correctAnswer}`}
+                            {isCorrect ? randomMessage(CORRECT_MESSAGES) : `아깝다! 정답: ${currentQuestion.correctAnswer}`}
                           </span>
                         </div>
                       </motion.div>
+                    )}
+
+                    {/* "모르겠어요" 버튼 - 타이핑 */}
+                    {!isAnswered && (
+                      <Button
+                        variant="outline"
+                        className="w-full mt-3 border-dashed border-amber-400 text-amber-600 hover:bg-amber-50"
+                        onClick={handleDontKnow}
+                      >
+                        🦁 모르겠어요 (괜찮아!)
+                      </Button>
                     )}
                   </div>
                 )}
@@ -1975,7 +1890,7 @@ export default function EnglishQuiz() {
         </AnimatePresence>
 
         {/* 다음 버튼 */}
-        {isAnswered && quizMode !== "speed-round" && (
+        {isAnswered && (
           <motion.div
             className="text-center"
             initial={{ opacity: 0, y: 20 }}
@@ -1987,9 +1902,7 @@ export default function EnglishQuiz() {
                 onClick={handleNext}
                 className={`bg-gradient-to-r ${theme.primary} text-white font-bold text-xl px-12 py-6`}
               >
-                {(lives <= 0 && !isCorrect) || (quizMode === "boss-battle" && (playerHP <= 0 || bossHP <= 0))
-                  ? "결과 보기 🎯"
-                  : currentIndex < questions.length - 1
+                {currentIndex < questions.length - 1
                   ? "다음 문제 ➡️"
                   : "결과 보기 🎉"}
               </Button>

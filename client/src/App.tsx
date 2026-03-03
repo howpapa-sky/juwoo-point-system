@@ -16,13 +16,6 @@ import Shop from "./pages/Shop";
 import AdminPanel from "./pages/AdminPanel";
 import Statistics from "./pages/Statistics";
 import EnglishLearning from "./pages/EnglishLearning";
-import EnglishHome from "./pages/EnglishHome";
-import EnglishAdventure from "./pages/EnglishAdventure";
-import EnglishReview from "./pages/EnglishReview";
-import WordGarden from "./pages/WordGarden";
-import EnglishStory from "./pages/EnglishStory";
-import PronunciationPractice from "./pages/PronunciationPractice";
-import ParentDashboard from "./pages/ParentDashboard";
 import FlashCard from "./pages/FlashCard";
 import EnglishQuiz from "./pages/EnglishQuiz";
 import PokemonQuiz from "./pages/PokemonQuiz";
@@ -107,49 +100,7 @@ function Router() {
       <Route path={"/english-learning"}>
         {() => (
           <AppLayout>
-            <EnglishHome />
-          </AppLayout>
-        )}
-      </Route>
-      <Route path={"/english-adventure"}>
-        {() => (
-          <AppLayout>
-            <EnglishAdventure />
-          </AppLayout>
-        )}
-      </Route>
-      <Route path={"/english-review"}>
-        {() => (
-          <AppLayout>
-            <EnglishReview />
-          </AppLayout>
-        )}
-      </Route>
-      <Route path={"/word-garden"}>
-        {() => (
-          <AppLayout>
-            <WordGarden />
-          </AppLayout>
-        )}
-      </Route>
-      <Route path={"/english-story/:storyId"}>
-        {() => (
-          <AppLayout>
-            <EnglishStory />
-          </AppLayout>
-        )}
-      </Route>
-      <Route path={"/pronunciation-practice"}>
-        {() => (
-          <AppLayout>
-            <PronunciationPractice />
-          </AppLayout>
-        )}
-      </Route>
-      <Route path={"/parent-dashboard"}>
-        {() => (
-          <AppLayout>
-            <ParentDashboard />
+            <EnglishLearning />
           </AppLayout>
         )}
       </Route>

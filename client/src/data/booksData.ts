@@ -3,6 +3,7 @@ import { dragonVillageStory5Pages } from "./dragonStory5";
 import { dragonVillageStory6Pages } from "./dragonStory6";
 import { dragonVillageStory7Pages } from "./dragonStory7";
 import { dragonVillageStory8Pages } from "./dragonStory8";
+import { givingTreeStoryPages } from "./givingTreeStory";
 
 // 포켓몬GO 고품질 e북 데이터
 export interface Book {
@@ -678,5 +679,18 @@ export const booksData: Book[] = [
     readTime: "30분",
     category: "동화",
     pages: dragonVillageStory8Pages,
+  },
+
+  // ========== 동화: 아낌없이 주는 나무 ==========
+  {
+    id: "giving-tree-story",
+    title: "아낌없이 주는 나무",
+    author: "아빠",
+    coverEmoji: "🌳",
+    description: "나무와 소년의 아름다운 우정 이야기. 진정한 사랑과 나눔의 의미를 배워요!",
+    difficulty: "보통",
+    readTime: "25분",
+    category: "동화",
+    pages: givingTreeStoryPages,
   },
 ];

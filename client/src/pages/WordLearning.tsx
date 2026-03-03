@@ -157,7 +157,7 @@ export default function WordLearning() {
         origin: { y: 0.6 },
       });
     } else {
-      toast.error(`오답이에요! 정답은 "${currentWord.korean}" 입니다.`);
+      toast(`아깝다! 정답은 "${currentWord.korean}"이야. 다음엔 맞출 수 있어! 💪`);
     }
   };
 
@@ -191,7 +191,7 @@ export default function WordLearning() {
         .eq('id', 1)
         .single();
 
-      const currentBalance = profile?.current_points || 0;
+      const currentBalance = profile?.current_points ?? 0;
       const points = 300; // 카테고리 완료 시 300P
       const newBalance = currentBalance + points;
 
@@ -297,7 +297,7 @@ export default function WordLearning() {
                 <div className="text-center p-4 bg-slate-50 dark:bg-slate-950 rounded-lg border-2 border-slate-200 dark:border-slate-800">
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <XCircle className="h-5 w-5 text-slate-500" />
-                    <span className="text-sm font-medium text-muted-foreground">오답</span>
+                    <span className="text-sm font-medium text-muted-foreground">다시 도전</span>
                   </div>
                   <div className="text-3xl font-bold text-slate-600">{words.length - correctCount}</div>
                 </div>
@@ -451,7 +451,7 @@ export default function WordLearning() {
                       <XCircle className="h-5 w-5 text-slate-500" />
                     )}
                     <span className="font-bold">
-                      {isCorrect ? '정답입니다!' : '오답입니다!'}
+                      {isCorrect ? '정답입니다!' : '아깝다! 다시 도전해보자!'}
                     </span>
                   </div>
                   {!isCorrect && (

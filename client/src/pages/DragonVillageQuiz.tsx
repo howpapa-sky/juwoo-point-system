@@ -1558,7 +1558,7 @@ const cardVariants = {
   hidden: { opacity: 0, y: 50, scale: 0.8 },
   visible: {
     opacity: 1, y: 0, scale: 1,
-    transition: { type: "spring", stiffness: 300, damping: 20 }
+    transition: { type: "spring" as const, stiffness: 300, damping: 20 }
   },
   exit: { opacity: 0, x: -100, transition: { duration: 0.2 } }
 };
@@ -2295,7 +2295,7 @@ export default function DragonVillageQuiz() {
                 )}
 
                 {/* 답변 영역 - 주관식 */}
-                {(currentQuestion.type === "short-answer" || currentQuestion.type === "fill-blank") && (
+                {currentQuestion.type === "short-answer" && (
                   <div className="space-y-4">
                     <div className="flex gap-3">
                       <Input

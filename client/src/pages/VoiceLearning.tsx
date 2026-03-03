@@ -116,7 +116,7 @@ export default function VoiceLearning() {
     if (correct) {
       toast.success(`정답입니다! "${currentWord.word}"`);
     } else {
-      toast.error(`틀렸습니다. 정답: "${currentWord.word}", 당신이 말한 것: "${userSaid}"`);
+      toast(`아깝다! 정답은 "${currentWord.word}"이야. 다시 해보자! 💪`);
     }
 
     // 다음 단어로 이동
@@ -229,7 +229,7 @@ export default function VoiceLearning() {
               </div>
               <div className="text-center p-4 bg-slate-100 rounded-lg">
                 <div className="text-3xl font-bold text-slate-600">{words.length - correctCount}</div>
-                <div className="text-sm text-gray-600 mt-1">오답</div>
+                <div className="text-sm text-gray-600 mt-1">다시 도전</div>
               </div>
             </div>
 

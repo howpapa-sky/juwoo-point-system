@@ -6,7 +6,7 @@ import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import { ArrowLeft, Receipt, X } from "lucide-react";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface Transaction {
   id: number;
@@ -26,52 +26,51 @@ export default function Transactions() {
   const [limit, setLimit] = useState(50);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
 
+  const fetchTransactions = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('point_transactions')
+        .select('id, amount, note, created_at')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      const formattedTransactions = (data || []).map((tx: any) => {
+        // 거래 카테고리 분류
+        const note = tx.note || "";
+        let category = null;
+        if (note.includes("금고 입금")) category = "금고 입금";
+        else if (note.includes("금고 출금")) category = "금고 출금";
+        else if (note.includes("이자")) category = "이자 수입";
+        else if (note.includes("씨앗 심기")) category = "씨앗 심기";
+        else if (note.includes("수확")) category = "씨앗 수확";
+        else if (note.includes("목표 저축")) category = "목표 저축";
+        else if (note.includes("취소")) category = "취소";
+
+        return {
+          id: tx.id,
+          amount: tx.amount,
+          note: tx.note,
+          created_at: tx.created_at,
+          rule_name: null,
+          rule_category: category,
+        };
+      });
+
+      setTransactions(formattedTransactions);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error fetching transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [limit]);
+
   useEffect(() => {
     if (!isAuthenticated) return;
-
-    const fetchTransactions = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('point_transactions')
-          .select('id, amount, note, created_at')
-          .order('created_at', { ascending: false })
-          .limit(limit);
-
-        if (error) throw error;
-
-        const formattedTransactions = (data || []).map((tx: any) => {
-          // 거래 카테고리 분류
-          const note = tx.note || "";
-          let category = null;
-          if (note.includes("금고 입금")) category = "금고 입금";
-          else if (note.includes("금고 출금")) category = "금고 출금";
-          else if (note.includes("이자")) category = "이자 수입";
-          else if (note.includes("씨앗 심기")) category = "씨앗 심기";
-          else if (note.includes("수확")) category = "씨앗 수확";
-          else if (note.includes("목표 저축")) category = "목표 저축";
-          else if (note.includes("취소")) category = "취소";
-
-          return {
-            id: tx.id,
-            amount: tx.amount,
-            note: tx.note,
-            created_at: tx.created_at,
-            rule_name: null,
-            rule_category: category,
-          };
-        });
-
-        setTransactions(formattedTransactions);
-      } catch (error: any) {
-        if (import.meta.env.DEV) console.error('Error fetching transactions:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTransactions();
-  }, [isAuthenticated, limit]);
+  }, [isAuthenticated, fetchTransactions]);
 
   const handleCancelTransaction = async (transactionId: number, amount: number) => {
     if (!confirm('이 거래를 취소하시겠습니까? 포인트가 자동으로 복원됩니다.')) {

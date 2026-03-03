@@ -19,6 +19,10 @@ import { englishWordsData, type EnglishWord, type WordCategory, type WordDifficu
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBadges } from "@/hooks/useBadges.js";
+import { useSRS } from '@/hooks/useSRS';
+import { useXP } from '@/hooks/useXP';
+import { usePronunciation } from '@/hooks/usePronunciation';
+import { SRS_BOX_META, CORRECT_MESSAGES, WRONG_MESSAGES, randomMessage } from '@/lib/englishConstants';
 
 // ============================================
 // 🎯 타입 정의
@@ -126,19 +130,7 @@ const fireConfetti = (type: "success" | "perfect" | "levelup") => {
   confetti(configs[type]);
 };
 
-// ============================================
-// 🔊 음성 재생 함수
-// ============================================
-const speakWord = (text: string, rate: number = 0.75) => {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = rate;
-    utterance.pitch = 1.1;
-    window.speechSynthesis.speak(utterance);
-  }
-};
+// 🔊 음성 재생: usePronunciation 훅의 speak() 사용 (컴포넌트 내부)
 
 // ============================================
 // 🎊 격려 메시지
@@ -173,7 +165,7 @@ const calculateLevel = (xp: number): { level: number; progress: number; nextXp: 
     if (xp >= levels[i]) level = i + 1;
     else break;
   }
-  const currentLevelXp = levels[level - 1] || 0;
+  const currentLevelXp = levels[level - 1] ?? 0;
   const nextLevelXp = levels[level] || levels[levels.length - 1];
   const progress = ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
   return { level, progress: Math.min(progress, 100), nextXp: nextLevelXp };
@@ -194,6 +186,14 @@ export default function FlashCard() {
 
   // 배지 시스템
   const { checkAndAwardBadges } = useBadges();
+
+  // SRS / XP / 발음 시스템
+  const { updateWordByName, addWords } = useSRS();
+  const { addXP, updateStreak } = useXP();
+  const { speak } = usePronunciation();
+
+  // SRS 박스 상태 (세션 중 추적)
+  const [wordSrsBoxes, setWordSrsBoxes] = useState<Record<string, number>>({});
 
   // 게임 상태
   const [phase, setPhase] = useState<GamePhase>("setup");
@@ -289,7 +289,7 @@ export default function FlashCard() {
   const startGame = () => {
     const shuffled = shuffleArray(filteredWords).slice(0, cardCount);
     if (shuffled.length === 0) {
-      toast.error("선택한 조건에 맞는 단어가 없어요!");
+      toast("선택한 조건에 맞는 단어가 없어요!", { icon: "📭" });
       return;
     }
 
@@ -307,6 +307,28 @@ export default function FlashCard() {
       xp: 0,
       stars: 0,
       perfectRounds: 0,
+    });
+
+    // SRS에 학습할 단어 등록 + 박스 상태 로드
+    const srsWords = shuffled.map(w => ({
+      word: w.word,
+      meaning: w.meaning,
+      pronunciation: w.pronunciation ?? undefined,
+      category: w.category,
+      difficulty: w.difficulty,
+    }));
+    addWords(srsWords).then(async () => {
+      // 등록 후 현재 박스 상태 조회
+      const { data } = await supabase
+        .from('english_word_srs')
+        .select('word, box')
+        .eq('juwoo_id', 1)
+        .in('word', shuffled.map(w => w.word));
+      if (data) {
+        const boxes: Record<string, number> = {};
+        data.forEach(row => { boxes[row.word] = row.box; });
+        setWordSrsBoxes(boxes);
+      }
     });
 
     if (mode === "classic") {
@@ -378,6 +400,13 @@ export default function FlashCard() {
 
       saveLearningProgress(currentWord.id, true);
 
+      // SRS 업데이트 (정답)
+      updateWordByName(currentWord.word, 'correct').then(result => {
+        if (result) {
+          setWordSrsBoxes(prev => ({ ...prev, [currentWord.word]: result.newBox }));
+        }
+      });
+
       setFloatingXp({ amount: xpGain, id: Date.now() });
       setTimeout(() => setFloatingXp(null), 1000);
 
@@ -390,7 +419,7 @@ export default function FlashCard() {
         toast.success(getRandomMessage("correct"));
       }
 
-      speakWord(currentWord.word);
+      speak(currentWord.word);
       setTimeout(() => nextCard(), 1500);
     } else {
       setUnknownWords(prev => [...prev, currentWord.id]);
@@ -401,6 +430,14 @@ export default function FlashCard() {
       }));
 
       saveLearningProgress(currentWord.id, false);
+
+      // SRS 업데이트 (오답)
+      updateWordByName(currentWord.word, 'wrong').then(result => {
+        if (result) {
+          setWordSrsBoxes(prev => ({ ...prev, [currentWord.word]: result.newBox }));
+        }
+      });
+
       toast(getRandomMessage("wrong"), { icon: "💪" });
 
       // 오답 시 정답 확인 후 좀 더 오래 보여주기
@@ -541,9 +578,16 @@ export default function FlashCard() {
           fireConfetti("success");
           toast.success("매칭 성공! 🎯");
 
-          // 단어 발음
+          // 단어 발음 + SRS 업데이트
           const word = words.find(w => w.id === first.wordId);
-          if (word) speakWord(word.word);
+          if (word) {
+            speak(word.word);
+            updateWordByName(word.word, 'correct').then(result => {
+              if (result) {
+                setWordSrsBoxes(prev => ({ ...prev, [word.word]: result.newBox }));
+              }
+            });
+          }
         }, 500);
       } else {
         // 매치 실패
@@ -598,7 +642,14 @@ export default function FlashCard() {
 
       fireConfetti("success");
       toast.success(`정답! +${xpGain} XP 🎉`);
-      speakWord(currentWord.word);
+      speak(currentWord.word);
+
+      // SRS 업데이트 (스펠링 정답)
+      updateWordByName(currentWord.word, 'correct').then(result => {
+        if (result) {
+          setWordSrsBoxes(prev => ({ ...prev, [currentWord.word]: result.newBox }));
+        }
+      });
 
       setTimeout(() => nextCard(), 1500);
     } else {
@@ -608,7 +659,15 @@ export default function FlashCard() {
         unknownCards: prev.unknownCards + 1,
         streak: 0,
       }));
-      toast.error("다음에 다시 도전해봐! 💪");
+
+      // SRS 업데이트 (스펠링 오답)
+      updateWordByName(currentWord.word, 'wrong').then(result => {
+        if (result) {
+          setWordSrsBoxes(prev => ({ ...prev, [currentWord.word]: result.newBox }));
+        }
+      });
+
+      toast(randomMessage(WRONG_MESSAGES), { icon: "💪" });
     }
   };
 
@@ -653,13 +712,27 @@ export default function FlashCard() {
 
       fireConfetti("success");
       toast.success("정답! 귀가 좋아요! 👂✨");
+
+      // SRS 업데이트 (듣기 정답)
+      updateWordByName(currentWord.word, 'correct').then(result => {
+        if (result) {
+          setWordSrsBoxes(prev => ({ ...prev, [currentWord.word]: result.newBox }));
+        }
+      });
     } else {
       setStats(prev => ({
         ...prev,
         unknownCards: prev.unknownCards + 1,
         streak: 0,
       }));
-      toast.error(`정답은 "${currentWord.meaning}"이었어요!`);
+      toast(randomMessage(WRONG_MESSAGES), { icon: "💪", description: `정답: ${currentWord.meaning}` });
+
+      // SRS 업데이트 (듣기 오답)
+      updateWordByName(currentWord.word, 'wrong').then(result => {
+        if (result) {
+          setWordSrsBoxes(prev => ({ ...prev, [currentWord.word]: result.newBox }));
+        }
+      });
     }
 
     setTimeout(() => nextCard(), 2000);
@@ -667,7 +740,7 @@ export default function FlashCard() {
 
   const playCurrentWord = () => {
     if (currentWord) {
-      speakWord(currentWord.word, 0.7);
+      speak(currentWord.word);
     }
   };
 
@@ -695,6 +768,13 @@ export default function FlashCard() {
 
     await awardPoints(totalPoints, isPerfect);
 
+    // XP 시스템: 학습한 단어 수만큼 XP 추가 + 스트릭 업데이트
+    const learnedCount = stats.knownCards + stats.unknownCards;
+    for (let i = 0; i < learnedCount; i++) {
+      await addXP('new_word_learned');
+    }
+    await updateStreak();
+
     // 배지 체크 (학습 완료 후)
     setTimeout(() => {
       checkAndAwardBadges();
@@ -714,7 +794,7 @@ export default function FlashCard() {
         .eq('id', 1)
         .single();
 
-      const currentBalance = profile?.current_points || 0;
+      const currentBalance = profile?.current_points ?? 0;
       const newBalance = currentBalance + points;
 
       await supabase.from('point_transactions').insert({
@@ -1267,9 +1347,16 @@ export default function FlashCard() {
                 <Badge className="bg-white/20 text-white border-0 text-sm px-3 py-1">
                   {theme.icon} {currentWord.category}
                 </Badge>
-                <Badge className="bg-white/20 text-white border-0 text-sm">
-                  {difficultyConfig[currentWord.difficulty].label} {"⭐".repeat(difficultyConfig[currentWord.difficulty].stars)}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {wordSrsBoxes[currentWord.word] != null && (
+                    <Badge className="bg-white/30 text-white border-0 text-sm px-2 py-1" title={SRS_BOX_META[wordSrsBoxes[currentWord.word]]?.description}>
+                      {SRS_BOX_META[wordSrsBoxes[currentWord.word]]?.icon} {SRS_BOX_META[wordSrsBoxes[currentWord.word]]?.label}
+                    </Badge>
+                  )}
+                  <Badge className="bg-white/20 text-white border-0 text-sm">
+                    {difficultyConfig[currentWord.difficulty].label} {"⭐".repeat(difficultyConfig[currentWord.difficulty].stars)}
+                  </Badge>
+                </div>
               </div>
               <CardContent className="flex flex-col items-center justify-center p-6 py-8">
                 <p className="text-sm text-muted-foreground mb-2">이 단어의 뜻은? 🤔</p>
@@ -1283,7 +1370,7 @@ export default function FlashCard() {
 
                 <Button
                   size="sm"
-                  onClick={() => speakWord(currentWord.word)}
+                  onClick={() => speak(currentWord.word)}
                   className={`bg-gradient-to-r ${theme.gradient} hover:opacity-90 text-white shadow-lg`}
                 >
                   <Volume2 className="h-4 w-4 mr-2" />
@@ -1437,9 +1524,16 @@ export default function FlashCard() {
           >
             <Card className={`border-4 ${theme.border} shadow-xl mb-6`}>
               <CardContent className="p-6 text-center">
-                <Badge className={`mb-4 bg-gradient-to-r ${theme.gradient} text-white border-0`}>
-                  {theme.icon} {currentWord.category}
-                </Badge>
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <Badge className={`bg-gradient-to-r ${theme.gradient} text-white border-0`}>
+                    {theme.icon} {currentWord.category}
+                  </Badge>
+                  {wordSrsBoxes[currentWord.word] != null && (
+                    <Badge variant="outline" className="text-sm" title={SRS_BOX_META[wordSrsBoxes[currentWord.word]]?.description}>
+                      {SRS_BOX_META[wordSrsBoxes[currentWord.word]]?.icon} {SRS_BOX_META[wordSrsBoxes[currentWord.word]]?.label}
+                    </Badge>
+                  )}
+                </div>
 
                 <h2 className="text-4xl md:text-5xl font-black mb-2 text-gray-800">
                   {currentWord.meaning}
@@ -1447,7 +1541,7 @@ export default function FlashCard() {
 
                 <Button
                   variant="ghost"
-                  onClick={() => speakWord(currentWord.word)}
+                  onClick={() => speak(currentWord.word)}
                   className="mb-4"
                 >
                   <Volume2 className="h-5 w-5 mr-2" />
@@ -1523,6 +1617,13 @@ export default function FlashCard() {
             <Card className="border-4 border-purple-300 shadow-xl mb-6">
               <CardContent className="p-6 text-center">
                 <div className="text-6xl mb-4">👂</div>
+                {wordSrsBoxes[currentWord.word] != null && (
+                  <div className="mb-2">
+                    <Badge variant="outline" className="text-sm" title={SRS_BOX_META[wordSrsBoxes[currentWord.word]]?.description}>
+                      {SRS_BOX_META[wordSrsBoxes[currentWord.word]]?.icon} {SRS_BOX_META[wordSrsBoxes[currentWord.word]]?.label}
+                    </Badge>
+                  </div>
+                )}
                 <h2 className="text-2xl font-bold mb-4">무슨 단어일까요?</h2>
 
                 <motion.div

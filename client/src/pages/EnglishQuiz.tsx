@@ -185,7 +185,7 @@ const cardVariants = {
   hidden: { opacity: 0, y: 50, scale: 0.8 },
   visible: {
     opacity: 1, y: 0, scale: 1,
-    transition: { type: "spring", stiffness: 300, damping: 20 }
+    transition: { type: "spring" as const, stiffness: 300, damping: 20 }
   },
   exit: { opacity: 0, x: -100, transition: { duration: 0.2 } }
 };
@@ -216,7 +216,7 @@ const streakVariants = {
   initial: { scale: 0, rotate: -180 },
   animate: {
     scale: 1, rotate: 0,
-    transition: { type: "spring", stiffness: 500, damping: 15 }
+    transition: { type: "spring" as const, stiffness: 500, damping: 15 }
   }
 };
 

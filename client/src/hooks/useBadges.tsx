@@ -657,7 +657,7 @@ export function useBadges() {
             });
 
             newBadges.push(badge);
-            setEarnedBadges(prev => new Set([...prev, badge.id]));
+            setEarnedBadges(prev => new Set([...Array.from(prev), badge.id]));
           }
         } catch (error) {
           if (import.meta.env.DEV) console.error(`배지 부여 실패 (${badge.name}):`, error);

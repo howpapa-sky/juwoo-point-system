@@ -129,7 +129,7 @@ const cardVariants = {
   hidden: { opacity: 0, y: 60, scale: 0.9 },
   visible: {
     opacity: 1, y: 0, scale: 1,
-    transition: { type: "spring", stiffness: 300, damping: 25 },
+    transition: { type: "spring" as const, stiffness: 300, damping: 25 },
   },
   exit: { opacity: 0, x: -200, scale: 0.8, transition: { duration: 0.3 } },
 };
@@ -138,7 +138,7 @@ const optionVariants = {
   hidden: { opacity: 0, x: -30 },
   visible: (i: number) => ({
     opacity: 1, x: 0,
-    transition: { delay: i * 0.1, type: "spring", stiffness: 300, damping: 25 },
+    transition: { delay: i * 0.1, type: "spring" as const, stiffness: 300, damping: 25 },
   }),
 };
 
@@ -146,7 +146,7 @@ const resultVariants = {
   hidden: { opacity: 0, scale: 0.5 },
   visible: {
     opacity: 1, scale: 1,
-    transition: { type: "spring", stiffness: 200, damping: 15 },
+    transition: { type: "spring" as const, stiffness: 200, damping: 15 },
   },
 };
 
@@ -793,7 +793,7 @@ export default function EbookQuiz() {
                               {progress?.best_score ? (
                                 <p className="text-xs text-amber-600 font-medium mt-0.5">
                                   ⭐ 최고 {progress.best_score}점
-                                  {progress.attempts && ` · ${progress.attempts}회 도전`}
+                                  {progress.total_attempts && ` · ${progress.total_attempts}회 도전`}
                                 </p>
                               ) : null}
                             </div>

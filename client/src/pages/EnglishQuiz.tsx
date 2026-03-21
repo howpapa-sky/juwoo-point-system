@@ -206,9 +206,27 @@ export default function EnglishQuiz() {
   }
 
   // ============================================
+  // 인증 로딩 중
+  // ============================================
+  if (authLoading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br ${theme.secondary}`}>
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-muted-foreground" style={{ fontSize: 16 }}>퀴즈 준비 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================
   // 로그인 체크
   // ============================================
-  if (authLoading || !isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br ${theme.secondary}`}>
         <motion.div

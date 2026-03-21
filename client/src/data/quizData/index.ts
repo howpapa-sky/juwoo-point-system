@@ -1,47 +1,10 @@
 // 퀴즈 데이터 통합 export
 export * from './types';
-export { pokemonGoGuideQuiz } from './pokemonGoGuideQuiz';
-export { typeMatchupQuiz } from './typeMatchupQuiz';
-export { dragonVillageQuiz } from './dragonVillageQuiz';
-export { dragonVillageStory1Quiz } from './dragonVillageStory1Quiz';
-export { dragonVillageStory2Quiz } from './dragonVillageStory2Quiz';
-export { dragonVillageStory3Quiz } from './dragonVillageStory3Quiz';
-export { dragonVillageStory4Quiz } from './dragonVillageStory4Quiz';
-export { dragonVillageStory5Quiz } from './dragonVillageStory5Quiz';
-export { dragonVillageStory6Quiz } from './dragonVillageStory6Quiz';
-export { dragonVillageStory7Quiz } from './dragonVillageStory7Quiz';
-export { dragonVillageStory8Quiz } from './dragonVillageStory8Quiz';
-export { givingTreeQuiz } from './givingTreeQuiz';
 
 import { QuizQuestion, QuizTier } from './types';
-import { pokemonGoGuideQuiz } from './pokemonGoGuideQuiz';
-import { typeMatchupQuiz } from './typeMatchupQuiz';
-import { dragonVillageQuiz } from './dragonVillageQuiz';
-import { dragonVillageStory1Quiz } from './dragonVillageStory1Quiz';
-import { dragonVillageStory2Quiz } from './dragonVillageStory2Quiz';
-import { dragonVillageStory3Quiz } from './dragonVillageStory3Quiz';
-import { dragonVillageStory4Quiz } from './dragonVillageStory4Quiz';
-import { dragonVillageStory5Quiz } from './dragonVillageStory5Quiz';
-import { dragonVillageStory6Quiz } from './dragonVillageStory6Quiz';
-import { dragonVillageStory7Quiz } from './dragonVillageStory7Quiz';
-import { dragonVillageStory8Quiz } from './dragonVillageStory8Quiz';
-import { givingTreeQuiz } from './givingTreeQuiz';
 
-// 모든 퀴즈 데이터
-const allQuizData: QuizQuestion[] = [
-  ...pokemonGoGuideQuiz,
-  ...typeMatchupQuiz,
-  ...dragonVillageQuiz,
-  ...dragonVillageStory1Quiz,
-  ...dragonVillageStory2Quiz,
-  ...dragonVillageStory3Quiz,
-  ...dragonVillageStory4Quiz,
-  ...dragonVillageStory5Quiz,
-  ...dragonVillageStory6Quiz,
-  ...dragonVillageStory7Quiz,
-  ...dragonVillageStory8Quiz,
-  ...givingTreeQuiz,
-];
+// 모든 퀴즈 데이터 (Phase 2에서 DB로 마이그레이션 예정)
+const allQuizData: QuizQuestion[] = [];
 
 // 책 ID로 퀴즈 가져오기
 export const getQuizzesByBookId = (bookId: string): QuizQuestion[] => {

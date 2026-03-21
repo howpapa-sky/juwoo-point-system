@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { booksData } from "@/data/booksData";
 import { getAllQuizzes, getQuizzesByBook, QuizQuestion, QuizTier, TIER_INFO } from "@/data/quizData";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -103,7 +102,9 @@ export default function AdminQuizzes() {
   const [previewQuiz, setPreviewQuiz] = useState<QuizQuestion | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
-  const booksWithQuiz = booksData.filter(b => getQuizzesByBook(b.id).length > 0);
+  // booksData removed in Phase 1 - derive book IDs from quiz data
+  const uniqueBookIds = Array.from(new Set(allQuizzes.map(q => q.bookId)));
+  const booksWithQuiz = uniqueBookIds.map(id => ({ id, title: id, coverEmoji: '📚' }));
 
   const filteredQuizzes = allQuizzes.filter((quiz) => {
     const matchesSearch = quiz.question.toLowerCase().includes(searchQuery.toLowerCase());
@@ -299,7 +300,7 @@ export default function AdminQuizzes() {
                 </TableRow>
               ) : (
                 filteredQuizzes.map((quiz) => {
-                  const book = booksData.find(b => b.id === quiz.bookId);
+                  const book = booksWithQuiz.find(b => b.id === quiz.bookId);
                   const tierInfo = TIERS.find(t => t.value === quiz.quizTier);
                   const typeInfo = QUESTION_TYPES.find(t => t.value === quiz.type);
 
@@ -397,7 +398,7 @@ export default function AdminQuizzes() {
                     <SelectValue placeholder="e북 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    {booksData.map((book) => (
+                    {booksWithQuiz.map((book) => (
                       <SelectItem key={book.id} value={book.id}>
                         {book.coverEmoji} {book.title}
                       </SelectItem>

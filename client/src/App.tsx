@@ -8,7 +8,6 @@ import { SupabaseAuthProvider } from "./contexts/SupabaseAuthContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-// AdminSettings moved to admin folder
 import Dashboard from "./pages/Dashboard";
 import PointsManage from "./pages/PointsManage";
 import Transactions from "./pages/Transactions";
@@ -18,11 +17,6 @@ import Statistics from "./pages/Statistics";
 import EnglishLearning from "./pages/EnglishLearning";
 import FlashCard from "./pages/FlashCard";
 import EnglishQuiz from "./pages/EnglishQuiz";
-import PokemonQuiz from "./pages/PokemonQuiz";
-import DragonVillageQuiz from "./pages/DragonVillageQuiz";
-import EbookLibrary from "./pages/EbookLibrary";
-import EbookReader from "./pages/EbookReader";
-import EbookQuiz from "./pages/EbookQuiz";
 import WordLearning from "./pages/WordLearning";
 import LearningStats from "./pages/LearningStats";
 import VoiceLearning from "./pages/VoiceLearning";
@@ -36,12 +30,15 @@ import GoalSaving from "./pages/GoalSaving";
 import InvestReport from "./pages/InvestReport";
 import SeedAlbum from "./pages/SeedAlbum";
 import AppLayout from "./components/AppLayout";
+import RoutineTimeline from "./pages/RoutineTimeline";
+import SleepBonus from "./pages/SleepBonus";
+import WorryBox from "./pages/WorryBox";
+import ParentDashboard from "./pages/ParentDashboard";
 // Admin CMS imports
 import AdminLayout from "./components/admin/AdminLayout";
 import { AdminDashboard, AdminPointRules, AdminShopItems, AdminEbooks, AdminQuizzes, AdminWords, AdminBadges, AdminSettings, AdminAnalytics } from "./pages/admin";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
@@ -89,7 +86,6 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      {/* Legacy admin settings route - redirects to new admin layout */}
       <Route path={"/statistics"}>
         {() => (
           <AppLayout>
@@ -139,38 +135,32 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      <Route path={"/pokemon-quiz"}>
+      {/* Phase 1: 루틴, 수면, 걱정상자, 부모 대시보드 */}
+      <Route path={"/routine"}>
         {() => (
           <AppLayout>
-            <PokemonQuiz />
+            <RoutineTimeline />
           </AppLayout>
         )}
       </Route>
-      <Route path={"/dragon-village-quiz"}>
+      <Route path={"/sleep"}>
         {() => (
           <AppLayout>
-            <DragonVillageQuiz />
+            <SleepBonus />
           </AppLayout>
         )}
       </Route>
-      <Route path={"/ebook-library"}>
+      <Route path={"/worry-box"}>
         {() => (
           <AppLayout>
-            <EbookLibrary />
+            <WorryBox />
           </AppLayout>
         )}
       </Route>
-      <Route path={"/ebook-reader/:bookId"}>
+      <Route path={"/parent"}>
         {() => (
           <AppLayout>
-            <EbookReader />
-          </AppLayout>
-        )}
-      </Route>
-      <Route path={"/ebook-quiz/:bookId"}>
-        {() => (
-          <AppLayout>
-            <EbookQuiz />
+            <ParentDashboard />
           </AppLayout>
         )}
       </Route>
@@ -315,18 +305,12 @@ function Router() {
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
       <SupabaseAuthProvider>
         <ThemeProvider
           defaultTheme="light"
-          // switchable
         >
           <TooltipProvider>
             <Toaster />

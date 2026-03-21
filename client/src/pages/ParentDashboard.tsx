@@ -1,9 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   ArrowLeft,
   BarChart3,
@@ -18,181 +21,244 @@ import {
   Target,
   Lightbulb,
   Flower2,
+  Check,
+  X,
+  AlertTriangle,
+  Minus,
 } from 'lucide-react';
-import { useXP, type EnglishProfile } from '@/hooks/useXP';
-import { useSRS } from '@/hooks/useSRS';
-import { useSessionLog } from '@/hooks/useSessionLog';
-import { useBadgeChecker } from '@/hooks/useBadgeChecker';
-import { ENGLISH_BADGES } from '@/data/englishBadges';
-import { getLevelFromXP, SRS_BOX_META } from '@/lib/englishConstants';
+import { supabase } from '@/lib/supabaseClient';
+import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
+import { adjustPoints } from '@/lib/pointsHelper';
+import { WORLDVIEW } from '@/lib/designTokens';
+import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
-interface SessionData {
+interface ApprovalItem {
   id: number;
-  session_type: string;
-  total_items: number | null;
-  correct_count: number | null;
-  dont_know_count: number | null;
-  guessing_count: number | null;
-  xp_earned: number | null;
-  coins_earned: number | null;
-  started_at: string;
-  completed_at: string | null;
+  request_type: string;
+  reference_id: number | null;
+  reference_table: string | null;
+  description: string;
+  worldview_message: string | null;
+  point_amount: number;
+  status: 'pending' | 'approved' | 'rejected';
+  requested_at: string;
+}
+
+interface StreakData {
+  streak_type: string;
+  current_count: number;
+  best_count: number;
 }
 
 export default function ParentDashboard() {
-  const { profile, loading: xpLoading } = useXP();
-  const { gardenStats, totalWords, loading: srsLoading } = useSRS();
-  const { getRecentSessions } = useSessionLog();
-  const { earnedBadges, loading: badgeLoading } = useBadgeChecker();
+  const { user } = useSupabaseAuth();
 
-  const [sessions, setSessions] = useState<SessionData[]>([]);
-  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [approvalQueue, setApprovalQueue] = useState<ApprovalItem[]>([]);
+  const [streaks, setStreaks] = useState<StreakData[]>([]);
+  const [weeklyStats, setWeeklyStats] = useState({ earned: 0, spent: 0, attempts: 0 });
+  const [reminders, setReminders] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState<number | null>(null);
+
+  // Deduction dialog
+  const [showDeductDialog, setShowDeductDialog] = useState(false);
+  const [deductAmount, setDeductAmount] = useState('');
+  const [deductReason, setDeductReason] = useState('');
+  const [deductReminder, setDeductReminder] = useState<string | null>(null);
+  const [reminderConfirmed, setReminderConfirmed] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+
+    const [queueRes, streakRes, txRes, reminderRes] = await Promise.all([
+      supabase
+        .from('approval_queue')
+        .select('*')
+        .eq('status', 'pending')
+        .order('requested_at', { ascending: false }),
+      supabase
+        .from('streaks')
+        .select('*'),
+      supabase
+        .from('point_transactions')
+        .select('amount')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
+      supabase
+        .from('parenting_reminders')
+        .select('message')
+        .eq('is_active', true),
+    ]);
+
+    setApprovalQueue(queueRes.data ?? []);
+    setStreaks(streakRes.data ?? []);
+
+    if (txRes.data) {
+      const earned = txRes.data.filter(t => (t.amount ?? 0) > 0).reduce((s, t) => s + (t.amount ?? 0), 0);
+      const spent = Math.abs(txRes.data.filter(t => (t.amount ?? 0) < 0).reduce((s, t) => s + (t.amount ?? 0), 0));
+      setWeeklyStats({ earned, spent, attempts: txRes.data.length });
+    }
+
+    setReminders((reminderRes.data ?? []).map(r => r.message));
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    async function loadSessions() {
-      setSessionsLoading(true);
-      const data = await getRecentSessions(7);
-      setSessions(data as SessionData[]);
-      setSessionsLoading(false);
+    fetchData();
+  }, [fetchData]);
+
+  // Realtime for new approval requests
+  useEffect(() => {
+    const channel = supabase
+      .channel('parent-approval-feed')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'approval_queue',
+          filter: 'status=eq.pending',
+        },
+        (payload) => {
+          const newItem = payload.new as ApprovalItem;
+          toast(`${newItem.description} — ${newItem.worldview_message ?? ''}`);
+          setApprovalQueue(prev => [newItem, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const handleApprove = async (item: ApprovalItem) => {
+    setProcessing(item.id);
+
+    // Update approval status
+    const { error: updateError } = await supabase
+      .from('approval_queue')
+      .update({
+        status: 'approved',
+        responded_at: new Date().toISOString(),
+        responded_by: user?.id ?? null,
+      })
+      .eq('id', item.id);
+
+    if (updateError) {
+      toast.error('승인 처리에 오류가 발생했어요');
+      setProcessing(null);
+      return;
     }
-    loadSessions();
-  }, [getRecentSessions]);
 
-  const loading = xpLoading || srsLoading || sessionsLoading || badgeLoading;
-
-  // Computed analytics
-  const analytics = useMemo(() => {
-    if (sessions.length === 0) {
-      return {
-        totalSessions: 0,
-        totalItems: 0,
-        totalCorrect: 0,
-        totalDontKnow: 0,
-        totalGuessing: 0,
-        accuracy: 0,
-        dontKnowRate: 0,
-        guessingRate: 0,
-        avgItemsPerSession: 0,
-        totalXPEarned: 0,
-        totalCoinsEarned: 0,
-        sessionTypes: {} as Record<string, number>,
-      };
+    // Update routine_completions if applicable
+    if (item.reference_table === 'routine_completions' && item.reference_id) {
+      await supabase
+        .from('routine_completions')
+        .update({
+          status: 'approved',
+          approved_by: user?.id ?? null,
+          approved_at: new Date().toISOString(),
+        })
+        .eq('id', item.reference_id);
     }
 
-    const totalSessions = sessions.length;
-    const totalItems = sessions.reduce((sum, s) => sum + (s.total_items ?? 0), 0);
-    const totalCorrect = sessions.reduce((sum, s) => sum + (s.correct_count ?? 0), 0);
-    const totalDontKnow = sessions.reduce((sum, s) => sum + (s.dont_know_count ?? 0), 0);
-    const totalGuessing = sessions.reduce((sum, s) => sum + (s.guessing_count ?? 0), 0);
-    const totalXPEarned = sessions.reduce((sum, s) => sum + (s.xp_earned ?? 0), 0);
-    const totalCoinsEarned = sessions.reduce((sum, s) => sum + (s.coins_earned ?? 0), 0);
+    // Award points
+    if (item.point_amount > 0) {
+      const result = await adjustPoints({
+        amount: item.point_amount,
+        note: item.description,
+      });
 
-    const accuracy = totalItems > 0 ? Math.round((totalCorrect / totalItems) * 100) : 0;
-    const dontKnowRate = totalItems > 0 ? Math.round((totalDontKnow / totalItems) * 100) : 0;
-    const guessingRate = totalItems > 0 ? Math.round((totalGuessing / totalItems) * 100) : 0;
-    const avgItemsPerSession = totalSessions > 0 ? Math.round(totalItems / totalSessions) : 0;
+      if (!result.success) {
+        toast.error(result.error ?? '포인트 적립 오류');
+      }
+    }
 
-    const sessionTypes: Record<string, number> = {};
-    sessions.forEach((s) => {
-      sessionTypes[s.session_type] = (sessionTypes[s.session_type] ?? 0) + 1;
+    setApprovalQueue(prev => prev.filter(q => q.id !== item.id));
+    confetti({ particleCount: 30, spread: 60 });
+    toast.success(`"${item.description}" 승인 완료! 주우가 스스로 요청했어요!`);
+    setProcessing(null);
+  };
+
+  const handleReject = async (item: ApprovalItem) => {
+    setProcessing(item.id);
+
+    await supabase
+      .from('approval_queue')
+      .update({
+        status: 'rejected',
+        responded_at: new Date().toISOString(),
+        responded_by: user?.id ?? null,
+      })
+      .eq('id', item.id);
+
+    if (item.reference_table === 'routine_completions' && item.reference_id) {
+      await supabase
+        .from('routine_completions')
+        .update({ status: 'rejected' })
+        .eq('id', item.reference_id);
+    }
+
+    setApprovalQueue(prev => prev.filter(q => q.id !== item.id));
+    toast('다시 해보자!');
+    setProcessing(null);
+  };
+
+  const openDeductDialog = () => {
+    // Show random reminder
+    if (reminders.length > 0) {
+      setDeductReminder(reminders[Math.floor(Math.random() * reminders.length)]);
+    }
+    setReminderConfirmed(false);
+    setDeductAmount('');
+    setDeductReason('');
+    setShowDeductDialog(true);
+  };
+
+  const handleDeduct = async () => {
+    const amount = parseInt(deductAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('유효한 금액을 입력해주세요');
+      return;
+    }
+    if (!deductReason.trim()) {
+      toast.error('사유를 입력해주세요');
+      return;
+    }
+
+    const result = await adjustPoints({
+      amount: -amount,
+      note: `에너지 소모: ${deductReason}`,
     });
 
-    return {
-      totalSessions,
-      totalItems,
-      totalCorrect,
-      totalDontKnow,
-      totalGuessing,
-      accuracy,
-      dontKnowRate,
-      guessingRate,
-      avgItemsPerSession,
-      totalXPEarned,
-      totalCoinsEarned,
-      sessionTypes,
-    };
-  }, [sessions]);
-
-  // Insights
-  const insights = useMemo(() => {
-    const list: { icon: React.ReactNode; text: string; color: string }[] = [];
-
-    const streak = profile?.current_streak ?? 0;
-    if (streak >= 7) {
-      list.push({
-        icon: <Flame className="h-5 w-5" />,
-        text: `${streak}일 연속 학습 중이에요! 대단한 끈기예요!`,
-        color: 'text-orange-600 bg-orange-50',
+    if (result.success) {
+      // Log in approval queue for tracking
+      await supabase.from('approval_queue').insert({
+        request_type: 'deduction',
+        description: `에너지 소모: ${deductReason}`,
+        worldview_message: '에너지 소모',
+        point_amount: -amount,
+        status: 'approved',
+        responded_by: user?.id ?? null,
+        responded_at: new Date().toISOString(),
+        deduction_reason: deductReason,
       });
-    } else if (streak >= 3) {
-      list.push({
-        icon: <Flame className="h-5 w-5" />,
-        text: `${streak}일 연속 학습 중이에요!`,
-        color: 'text-orange-600 bg-orange-50',
-      });
+
+      toast.success(`${amount.toLocaleString()} 에너지 소모 처리 완료`);
+      setShowDeductDialog(false);
+    } else {
+      toast.error(result.error ?? '차감 오류');
     }
+  };
 
-    if (analytics.dontKnowRate >= 30) {
-      list.push({
-        icon: <Heart className="h-5 w-5" />,
-        text: '주우가 모르는 것을 솔직하게 표현하고 있어요! 이건 정말 좋은 학습 태도예요.',
-        color: 'text-pink-600 bg-pink-50',
-      });
-    } else if (analytics.dontKnowRate >= 10) {
-      list.push({
-        icon: <Heart className="h-5 w-5" />,
-        text: '적절하게 "모르겠어요"를 사용하고 있어요.',
-        color: 'text-pink-600 bg-pink-50',
-      });
-    }
-
-    if (analytics.accuracy >= 80) {
-      list.push({
-        icon: <Target className="h-5 w-5" />,
-        text: `정답률이 ${analytics.accuracy}%로 매우 높아요! 잘 이해하고 있어요.`,
-        color: 'text-green-600 bg-green-50',
-      });
-    } else if (analytics.accuracy >= 50) {
-      list.push({
-        icon: <Target className="h-5 w-5" />,
-        text: `정답률이 ${analytics.accuracy}%예요. 꾸준히 성장하고 있어요.`,
-        color: 'text-blue-600 bg-blue-50',
-      });
-    }
-
-    if (analytics.guessingRate <= 5 && analytics.totalItems > 10) {
-      list.push({
-        icon: <Shield className="h-5 w-5" />,
-        text: '찍기를 거의 하지 않아요. 문제를 꼼꼼히 읽고 있어요!',
-        color: 'text-indigo-600 bg-indigo-50',
-      });
-    } else if (analytics.guessingRate > 15) {
-      list.push({
-        icon: <Clock className="h-5 w-5" />,
-        text: '가끔 빨리 답을 고르는 경향이 있어요. 천천히 읽어볼 수 있도록 격려해주세요.',
-        color: 'text-slate-600 bg-slate-50',
-      });
-    }
-
-    const masteredCount = (gardenStats[4] ?? 0) + (gardenStats[5] ?? 0);
-    if (masteredCount >= 10) {
-      list.push({
-        icon: <Flower2 className="h-5 w-5" />,
-        text: `단어 정원에 ${masteredCount}개의 꽃과 별이 있어요! SRS 복습이 효과를 보고 있어요.`,
-        color: 'text-emerald-600 bg-emerald-50',
-      });
-    }
-
-    if (list.length === 0) {
-      list.push({
-        icon: <Lightbulb className="h-5 w-5" />,
-        text: '아직 데이터가 충분하지 않아요. 학습을 계속하면 더 정확한 분석을 제공할 수 있어요.',
-        color: 'text-amber-600 bg-amber-50',
-      });
-    }
-
-    return list;
-  }, [profile, analytics, gardenStats]);
+  const streakLabels: Record<string, string> = {
+    routine_morning: '아침 루틴',
+    routine_evening: '저녁 루틴',
+    sleep: '수면',
+    reading: '독서',
+    exercise: '운동',
+  };
 
   if (loading) {
     return (
@@ -207,18 +273,14 @@ export default function ParentDashboard() {
     );
   }
 
-  const currentLevel = profile ? getLevelFromXP(profile.total_xp) : null;
-  const badgeCount = earnedBadges.length;
-  const totalBadges = ENGLISH_BADGES.length;
-
   return (
     <div className="min-h-screen pb-24 md:pb-8 bg-slate-50">
       <div className="px-4 pt-4 space-y-5 max-w-2xl mx-auto">
         {/* 뒤로가기 */}
-        <Link href="/english-learning">
+        <Link href="/">
           <Button variant="ghost" size="sm" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
-            영어 학습
+            홈으로
           </Button>
         </Link>
 
@@ -228,188 +290,159 @@ export default function ParentDashboard() {
           animate={{ y: 0, opacity: 1 }}
           className="text-center"
         >
-          <h1 className="text-3xl font-black text-slate-800 mb-1">부모님 대시보드</h1>
-          <p className="text-slate-500">주우의 학습 분석과 인사이트</p>
+          <h1 className="text-3xl font-black text-slate-800 mb-1">카이 대시보드</h1>
+          <p className="text-slate-500">승인 대기열 + 성장 분석 + 양육 팁</p>
         </motion.div>
 
-        {/* XP / 레벨 / 스트릭 */}
+        {/* 1. 승인 대기열 */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="border-0 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl rounded-2xl">
-            <CardContent className="p-5">
-              <div className="grid grid-cols-4 gap-3 text-center">
-                <div>
-                  <Star className="h-5 w-5 mx-auto mb-1 text-amber-300" />
-                  <div className="text-2xl font-black">Lv.{currentLevel?.level ?? 1}</div>
-                  <p className="text-xs text-white/70">{currentLevel?.title ?? ''}</p>
-                </div>
-                <div>
-                  <BarChart3 className="h-5 w-5 mx-auto mb-1 text-cyan-300" />
-                  <div className="text-2xl font-black">{profile?.total_xp ?? 0}</div>
-                  <p className="text-xs text-white/70">총 XP</p>
-                </div>
-                <div>
-                  <Flame className="h-5 w-5 mx-auto mb-1 text-orange-300" />
-                  <div className="text-2xl font-black">{profile?.current_streak ?? 0}</div>
-                  <p className="text-xs text-white/70">연속 학습</p>
-                </div>
-                <div>
-                  <Award className="h-5 w-5 mx-auto mb-1 text-yellow-300" />
-                  <div className="text-2xl font-black">{profile?.longest_streak ?? 0}</div>
-                  <p className="text-xs text-white/70">최고 기록</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <Clock className="h-5 w-5 text-amber-500" />
+            승인 대기열 ({approvalQueue.length})
+          </h2>
+
+          {approvalQueue.length === 0 ? (
+            <Card className="border-0 shadow-sm rounded-xl">
+              <CardContent className="p-5 text-center">
+                <p className="text-slate-400" style={{ fontSize: 16 }}>
+                  대기 중인 요청이 없어요
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {approvalQueue.map((item) => (
+                <Card key={item.id} className="border-0 shadow-sm rounded-xl">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-800" style={{ fontSize: 16 }}>
+                          {item.description}
+                        </p>
+                        {item.worldview_message && (
+                          <p className="text-sm text-indigo-500">{item.worldview_message}</p>
+                        )}
+                        <p className="text-xs text-slate-400 mt-1">
+                          주우가 스스로 요청했어요!
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        {item.point_amount > 0 && (
+                          <p className="font-bold text-green-600 mb-1">
+                            +{item.point_amount.toLocaleString()}
+                          </p>
+                        )}
+                        <div className="flex gap-1.5">
+                          <Button
+                            size="sm"
+                            className="bg-green-500 hover:bg-green-600 text-white"
+                            style={{ minHeight: 40 }}
+                            disabled={processing === item.id}
+                            onClick={() => handleApprove(item)}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-gray-300 text-gray-500"
+                            style={{ minHeight: 40 }}
+                            disabled={processing === item.id}
+                            onClick={() => handleReject(item)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </motion.div>
 
-        {/* 인사이트 */}
+        {/* 2. 이번 주 성장 포인트 */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
           <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-amber-500" />
-            학습 인사이트
+            <BarChart3 className="h-5 w-5 text-indigo-500" />
+            이번 주 성장
           </h2>
-          <div className="space-y-2">
-            {insights.map((insight, idx) => (
-              <Card key={idx} className="border-0 shadow-sm rounded-xl">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg flex-shrink-0 ${insight.color}`}>
-                      {insight.icon}
-                    </div>
-                    <p className="text-sm text-slate-700 leading-relaxed">{insight.text}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="grid grid-cols-3 gap-3">
+            <Card className="border-0 shadow-sm rounded-xl">
+              <CardContent className="p-4 text-center">
+                <p className="text-sm text-slate-500">시도 횟수</p>
+                <div className="text-2xl font-black text-indigo-600">{weeklyStats.attempts}번</div>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-sm rounded-xl">
+              <CardContent className="p-4 text-center">
+                <p className="text-sm text-slate-500">충전 에너지</p>
+                <div className="text-2xl font-black text-green-600">{weeklyStats.earned.toLocaleString()}</div>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-sm rounded-xl">
+              <CardContent className="p-4 text-center">
+                <p className="text-sm text-slate-500">소모 에너지</p>
+                <div className="text-2xl font-black text-gray-500">{weeklyStats.spent.toLocaleString()}</div>
+              </CardContent>
+            </Card>
           </div>
         </motion.div>
 
-        {/* 주간 학습 요약 */}
+        {/* 3. 차감 (Track C) */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
           <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-indigo-500" />
-            주간 학습 요약
+            <AlertTriangle className="h-5 w-5 text-gray-500" />
+            에너지 소모 (차감)
           </h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Card className="border-0 shadow-sm rounded-xl">
-              <CardContent className="p-4">
-                <p className="text-sm text-slate-500">학습 세션</p>
-                <div className="text-3xl font-black text-slate-800">{analytics.totalSessions}회</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm rounded-xl">
-              <CardContent className="p-4">
-                <p className="text-sm text-slate-500">학습 문항</p>
-                <div className="text-3xl font-black text-slate-800">{analytics.totalItems}개</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm rounded-xl">
-              <CardContent className="p-4">
-                <p className="text-sm text-slate-500">획득 XP</p>
-                <div className="text-3xl font-black text-indigo-600">{analytics.totalXPEarned}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm rounded-xl">
-              <CardContent className="p-4">
-                <p className="text-sm text-slate-500">획득 코인</p>
-                <div className="text-3xl font-black text-amber-600">{analytics.totalCoinsEarned}</div>
-              </CardContent>
-            </Card>
-          </div>
+          <Button
+            variant="outline"
+            className="w-full border-gray-300 text-gray-600"
+            style={{ minHeight: 48, fontSize: 16 }}
+            onClick={openDeductDialog}
+          >
+            <Minus className="h-4 w-4 mr-2" />
+            차감 입력
+          </Button>
         </motion.div>
 
-        {/* 행동 분석 */}
+        {/* 4. 스트릭 현황 */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
           <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <Brain className="h-5 w-5 text-purple-500" />
-            행동 분석
-          </h2>
-          <Card className="border-0 shadow-sm rounded-xl">
-            <CardContent className="p-4 space-y-4">
-              {/* 정답률 */}
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-600">정답률</span>
-                  <span className="font-bold text-slate-800">{analytics.accuracy}%</span>
-                </div>
-                <Progress value={analytics.accuracy} className="h-2 [&>div]:bg-green-500" />
-              </div>
-
-              {/* 모르겠어요 사용률 */}
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-600">&quot;모르겠어요&quot; 사용률 (솔직함 지표)</span>
-                  <span className="font-bold text-pink-600">{analytics.dontKnowRate}%</span>
-                </div>
-                <Progress value={analytics.dontKnowRate} className="h-2 [&>div]:bg-pink-400" />
-                <p className="text-xs text-slate-400 mt-1">
-                  높을수록 솔직하게 학습하고 있다는 의미예요
-                </p>
-              </div>
-
-              {/* 찍기 감지율 */}
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-600">찍기 감지율</span>
-                  <span className="font-bold text-slate-800">{analytics.guessingRate}%</span>
-                </div>
-                <Progress value={analytics.guessingRate} className="h-2 [&>div]:bg-slate-400" />
-                <p className="text-xs text-slate-400 mt-1">
-                  낮을수록 문제를 꼼꼼히 읽고 있다는 의미예요
-                </p>
-              </div>
-
-              {/* 평균 문항 수 */}
-              <div className="pt-2 border-t">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-600">세션당 평균 문항</span>
-                  <span className="font-bold text-slate-800">{analytics.avgItemsPerSession}개</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* 단어 정원 */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <Flower2 className="h-5 w-5 text-green-500" />
-            SRS 단어 정원 현황
+            <Flame className="h-5 w-5 text-orange-500" />
+            {WORLDVIEW.streak} 현황
           </h2>
           <Card className="border-0 shadow-sm rounded-xl">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-slate-600">전체 {totalWords}개 단어</span>
-                <span className="text-sm font-bold text-green-600">
-                  마스터 {(gardenStats[4] ?? 0) + (gardenStats[5] ?? 0)}개
-                </span>
-              </div>
-              <div className="grid grid-cols-5 gap-2">
-                {[1, 2, 3, 4, 5].map((box) => (
-                  <div key={box} className="text-center">
-                    <div className="text-2xl mb-1">{SRS_BOX_META[box].icon}</div>
-                    <div className="text-lg font-black text-slate-800">{gardenStats[box] ?? 0}</div>
-                    <div className="text-xs text-slate-500">{SRS_BOX_META[box].label}</div>
+              <div className="grid grid-cols-2 gap-3">
+                {streaks.map((s) => (
+                  <div key={s.streak_type} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
+                    <Flame className={`h-5 w-5 ${s.current_count > 0 ? 'text-orange-500' : 'text-gray-300'}`} />
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">
+                        {streakLabels[s.streak_type] ?? s.streak_type}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        현재 {s.current_count}일 / 최고 {s.best_count}일
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -417,86 +450,104 @@ export default function ParentDashboard() {
           </Card>
         </motion.div>
 
-        {/* 배지 진행 */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <Award className="h-5 w-5 text-amber-500" />
-            배지 수집
-          </h2>
-          <Card className="border-0 shadow-sm rounded-xl">
-            <CardContent className="p-4">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-slate-600">획득한 배지</span>
-                <span className="font-bold text-amber-600">{badgeCount} / {totalBadges}</span>
-              </div>
-              <Progress value={totalBadges > 0 ? Math.round((badgeCount / totalBadges) * 100) : 0} className="h-3 [&>div]:bg-amber-400 mb-3" />
-
-              {badgeCount > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {earnedBadges.slice(0, 10).map((badge) => {
-                    const def = ENGLISH_BADGES.find((b) => b.id === badge.badge_id);
-                    if (!def) return null;
-                    return (
-                      <div
-                        key={badge.badge_id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-full"
-                        title={def.description}
-                      >
-                        <span className="text-lg">{def.icon}</span>
-                        <span className="text-xs font-bold text-amber-700">{def.name}</span>
-                      </div>
-                    );
-                  })}
-                  {badgeCount > 10 && (
-                    <span className="text-xs text-slate-400 self-center">+{badgeCount - 10}개 더</span>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-slate-400">아직 획득한 배지가 없어요</p>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* 세션 유형별 */}
-        {Object.keys(analytics.sessionTypes).length > 0 && (
+        {/* 5. 양육 팁 */}
+        {reminders.length > 0 && (
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.7 }}
+            transition={{ delay: 0.5 }}
           >
             <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-blue-500" />
-              학습 유형 분포
+              <Lightbulb className="h-5 w-5 text-amber-500" />
+              양육 팁
             </h2>
-            <Card className="border-0 shadow-sm rounded-xl">
+            <Card className="border-0 shadow-sm rounded-xl bg-amber-50">
               <CardContent className="p-4">
-                <div className="space-y-2">
-                  {Object.entries(analytics.sessionTypes).map(([type, count]) => {
-                    const labels: Record<string, string> = {
-                      review: '복습',
-                      quiz: '퀴즈',
-                      pronunciation: '발음 연습',
-                      story: '스토리',
-                      flashcard: '플래시카드',
-                    };
-                    return (
-                      <div key={type} className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">{labels[type] ?? type}</span>
-                        <span className="font-bold text-slate-800">{count}회</span>
-                      </div>
-                    );
-                  })}
+                <div className="flex items-start gap-3">
+                  <Heart className="h-5 w-5 text-pink-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-slate-700 leading-relaxed">
+                    {reminders[Math.floor(Math.random() * reminders.length)]}
+                  </p>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
         )}
       </div>
+
+      {/* 차감 Dialog */}
+      <Dialog open={showDeductDialog} onOpenChange={setShowDeductDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-gray-500" />
+              에너지 소모
+            </DialogTitle>
+            <DialogDescription>
+              꼭 필요한 차감인지 한번 더 생각해주세요.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* 리마인더 */}
+          {deductReminder && !reminderConfirmed && (
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <div className="flex items-start gap-3">
+                <Heart className="h-5 w-5 text-pink-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-slate-700 leading-relaxed mb-3">
+                    {deductReminder}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setReminderConfirmed(true)}
+                  >
+                    확인했어요, 계속할게요
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(!deductReminder || reminderConfirmed) && (
+            <div className="space-y-4 py-2">
+              <div>
+                <Label className="text-base font-semibold">차감 금액</Label>
+                <Input
+                  type="number"
+                  placeholder="1000"
+                  value={deductAmount}
+                  onChange={(e) => setDeductAmount(e.target.value)}
+                  className="mt-2 text-lg"
+                />
+              </div>
+              <div>
+                <Label className="text-base font-semibold">사유</Label>
+                <Input
+                  placeholder="예: 떼쓰기"
+                  value={deductReason}
+                  onChange={(e) => setDeductReason(e.target.value)}
+                  className="mt-2"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeductDialog(false)}>
+              취소
+            </Button>
+            {(!deductReminder || reminderConfirmed) && (
+              <Button
+                onClick={handleDeduct}
+                className="bg-gray-600 hover:bg-gray-700 text-white"
+              >
+                차감 실행
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

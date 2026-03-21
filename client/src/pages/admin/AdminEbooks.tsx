@@ -1,7 +1,19 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { booksData, Book } from "@/data/booksData";
 import { hasQuizForBook, getQuizzesByBook } from "@/data/quizData";
+
+// Book interface (booksData removed in Phase 1)
+interface Book {
+  id: string;
+  title: string;
+  author: string;
+  coverEmoji: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  readTime: string;
+  pages: string[];
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,7 +99,7 @@ const defaultBook: EditingBook = {
 };
 
 export default function AdminEbooks() {
-  const [books, setBooks] = useState<Book[]>(booksData);
+  const [books, setBooks] = useState<Book[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -149,7 +161,7 @@ export default function AdminEbooks() {
 
     // In a real implementation, this would save to database
     toast.success(editingBook.id ? "e북이 수정되었습니다" : "새 e북이 추가되었습니다");
-    toast.info("참고: 현재는 booksData.ts 파일을 직접 수정해야 합니다");
+    toast.info("참고: 현재는 DB 연동이 필요합니다");
     setDialogOpen(false);
     setEditingBook(null);
   };

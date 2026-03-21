@@ -14,9 +14,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
+import { adjustPoints } from "@/lib/pointsHelper";
+import InvestTutorial, { shouldShowTutorial } from "@/components/invest/InvestTutorial";
+import { FlyingCoin, MultiCoinBurst } from "@/components/invest/CoinAnimation";
 import {
   GROWTH_DAYS,
   GROWTH_LABELS,
@@ -217,6 +220,19 @@ interface Seed {
   diary_reflection: string | null;
 }
 
+// 외부 귀인 메시지 (손실 시) — HA1 예기불안 8점(평균 2.3배)인 주우에게
+// 손실의 원인을 외부(날씨)로 돌리면 자기비난 감소 (Weiner 귀인 이론)
+const LOSS_MESSAGES = [
+  "날씨가 안 좋아서 적게 열렸어요 🌧️",
+  "바람이 너무 세서 조금 힘들었어요 💨",
+  "구름이 많아서 햇빛이 부족했어요 ⛅",
+  "비가 많이 와서 물을 너무 많이 먹었어요 🌧️",
+];
+
+function getRandomLossMessage(): string {
+  return LOSS_MESSAGES[Math.floor(Math.random() * LOSS_MESSAGES.length)];
+}
+
 // 투자 일기 선택지
 const DIARY_OPTIONS = [
   "확실한 게 좋아서",
@@ -261,6 +277,79 @@ export default function SeedFarm() {
   } | null>(null);
   const [harvestReflection, setHarvestReflection] = useState("");
   const [showHarvestAnimation, setShowHarvestAnimation] = useState(false);
+
+  // 자동 수확 결과 목록
+  const [autoHarvestResults, setAutoHarvestResults] = useState<
+    Array<{
+      seed: Seed;
+      harvestedAmount: number;
+      profit: number;
+      lossMessage?: string;
+    }>
+  >([]);
+  const autoHarvestCheckedRef = useRef(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [showPlantAnimation, setShowPlantAnimation] = useState(false);
+  const [showHarvestBurst, setShowHarvestBurst] = useState(false);
+
+  // 수확 자동 체크
+  const checkAutoHarvest = async () => {
+    if (autoHarvestCheckedRef.current) return;
+    autoHarvestCheckedRef.current = true;
+
+    const { data: readySeeds } = await supabase
+      .from("seeds")
+      .select("*")
+      .eq("juwoo_id", 1)
+      .eq("status", "growing")
+      .lte("harvest_date", new Date().toISOString());
+
+    if (!readySeeds || readySeeds.length === 0) return;
+
+    const results: typeof autoHarvestResults = [];
+
+    for (const seed of readySeeds) {
+      const weather = getTodayWeather();
+      const baseMultiplier = getResultMultiplier(seed.seed_type);
+      const weatherBonus = getWeatherBonus(seed.seed_type);
+      const minGuarantee = MIN_GUARANTEE[seed.seed_type] ?? 0.1;
+      const multiplier = Math.max(minGuarantee, baseMultiplier + weatherBonus);
+      const harvestedAmount = Math.max(1, Math.floor(seed.invested_amount * multiplier));
+      const profit = harvestedAmount - seed.invested_amount;
+
+      // DB 업데이트
+      await supabase
+        .from("seeds")
+        .update({
+          status: "harvested",
+          result_multiplier: multiplier,
+          harvested_amount: harvestedAmount,
+        })
+        .eq("id", seed.id);
+
+      // 포인트 적립 (adjustPoints 사용)
+      const profitText = profit >= 0 ? `+${profit}` : `${profit}`;
+      await adjustPoints({
+        amount: harvestedAmount,
+        note: `🌱 씨앗 수확: ${getSeedIcon(seed.seed_type)} ${harvestedAmount}코인 (${profitText})`,
+      });
+
+      results.push({
+        seed,
+        harvestedAmount,
+        profit,
+        lossMessage: profit < 0 ? getRandomLossMessage() : undefined,
+      });
+    }
+
+    if (results.length > 0) {
+      setAutoHarvestResults(results);
+      const totalProfit = results.reduce((sum, r) => sum + r.profit, 0);
+      if (totalProfit > 0) {
+        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      }
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -352,7 +441,14 @@ export default function SeedFarm() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    fetchData();
+    if (shouldShowTutorial()) {
+      setShowTutorial(true);
+    }
+    const init = async () => {
+      await checkAutoHarvest();
+      await fetchData();
+    };
+    init();
   }, [isAuthenticated]);
 
   // 씨앗 심기
@@ -403,6 +499,10 @@ export default function SeedFarm() {
         note: `🌱 씨앗 심기: ${selectedSeedType.icon} ${selectedSeedType.name} ${amount}코인`,
         created_by: 1,
       });
+
+      // 코인 이동 애니메이션
+      setShowPlantAnimation(true);
+      setTimeout(() => setShowPlantAnimation(false), 1000);
 
       toast.success(`${selectedSeedType.icon} ${selectedSeedType.name}을 심었어요!`, {
         description: `${growthDays}일 뒤에 수확할 수 있어요!`,
@@ -488,6 +588,8 @@ export default function SeedFarm() {
 
         // 이익이면 축하 효과
         if (profit > 0) {
+          setShowHarvestBurst(true);
+          setTimeout(() => setShowHarvestBurst(false), 1500);
           confetti({
             particleCount: 100,
             spread: 70,
@@ -581,6 +683,109 @@ export default function SeedFarm() {
           </div>
         </div>
         <p className="text-slate-500 mt-6 font-medium">씨앗밭을 준비하는 중...</p>
+      </div>
+    );
+  }
+
+  // ============================================
+  // 튜토리얼
+  // ============================================
+  if (showTutorial) {
+    return <InvestTutorial onClose={() => setShowTutorial(false)} />;
+  }
+
+  // ============================================
+  // 자동 수확 결과 화면
+  // ============================================
+  if (autoHarvestResults.length > 0) {
+    const totalHarvested = autoHarvestResults.reduce((sum, r) => sum + r.harvestedAmount, 0);
+    const totalProfit = autoHarvestResults.reduce((sum, r) => sum + r.profit, 0);
+    const hasProfit = totalProfit >= 0;
+
+    return (
+      <div className="min-h-screen pb-24 md:pb-8">
+        <div className="px-4 pt-8 space-y-4 max-w-lg mx-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center"
+          >
+            <p className="text-5xl mb-4">{hasProfit ? "🎉" : "😊"}</p>
+            <h1 className="text-2xl font-black text-slate-800 mb-2">
+              씨앗이 다 자랐어요!
+            </h1>
+            <p className="text-slate-600">
+              {autoHarvestResults.length}개의 씨앗을 자동으로 수확했어요
+            </p>
+          </motion.div>
+
+          <div className="space-y-3">
+            {autoHarvestResults.map((result, index) => (
+              <motion.div
+                key={result.seed.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.15 }}
+              >
+                <Card
+                  className={`border-0 ${result.profit >= 0 ? "bg-emerald-50" : "bg-slate-50"} rounded-2xl`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{getSeedIcon(result.seed.seed_type)}</span>
+                        <span className="font-bold text-slate-800">
+                          {getSeedName(result.seed.seed_type)}
+                        </span>
+                      </div>
+                      <span
+                        className={`font-bold ${result.profit >= 0 ? "text-emerald-600" : "text-slate-500"}`}
+                      >
+                        {result.profit >= 0 ? `+${result.profit}` : result.profit}코인
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-500">
+                      {result.seed.invested_amount}코인 → {result.harvestedAmount}코인
+                    </p>
+                    {result.lossMessage && (
+                      <p className="text-sm text-slate-500 mt-1">{result.lossMessage}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: autoHarvestResults.length * 0.15 + 0.2 }}
+          >
+            <Card
+              className={`border-0 ${hasProfit ? "bg-gradient-to-r from-emerald-500 to-green-600" : "bg-gradient-to-r from-slate-500 to-slate-600"} text-white rounded-2xl`}
+            >
+              <CardContent className="p-4 text-center">
+                <p className="text-white/70 text-sm">총 수확</p>
+                <p className="text-3xl font-black">{totalHarvested.toLocaleString()}코인</p>
+                <p className="text-white/80 text-sm mt-1">
+                  {hasProfit
+                    ? `씨앗이 잘 자랐어요! +${totalProfit}코인 이득!`
+                    : "다음에는 더 좋은 날씨가 올 거예요!"}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <Button
+            className="w-full h-14 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold text-lg rounded-2xl shadow-lg"
+            onClick={() => {
+              setAutoHarvestResults([]);
+              fetchData();
+            }}
+          >
+            확인했어요! 🌱
+          </Button>
+        </div>
       </div>
     );
   }
@@ -697,9 +902,14 @@ export default function SeedFarm() {
                 )}
 
                 {!isProfit && (
-                  <p className="mt-2 text-sm text-slate-500">
-                    💡 팁: 여러 종류 씨앗을 섞어서 심으면 더 안전해요!
-                  </p>
+                  <div className="mt-3 p-3 bg-slate-100 rounded-xl">
+                    <p className="text-sm text-slate-600 font-medium">
+                      {getRandomLossMessage()}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      💡 팁: 여러 종류 씨앗을 섞어서 심으면 더 안전해요!
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -1278,6 +1488,8 @@ export default function SeedFarm() {
   // ============================================
   return (
     <div className="min-h-screen pb-24 md:pb-8">
+      <FlyingCoin show={showPlantAnimation} direction="to-seed" />
+      <MultiCoinBurst show={showHarvestBurst} count={6} />
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-emerald-400/30 to-green-400/30 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 -left-16 w-48 h-48 bg-gradient-to-br from-teal-400/20 to-emerald-400/20 rounded-full blur-3xl" />
@@ -1298,20 +1510,60 @@ export default function SeedFarm() {
           </div>
         </div>
 
-        {/* 오늘의 날씨 */}
+        {/* 오늘의 날씨 카드 — 강화 UI */}
         {(() => {
           const weather = getTodayWeather();
+          const weatherEffects: Record<string, { text: string; textColor: string; bgColor: string }> = {
+            sunny: { text: "씨앗이 잘 자라는 날!", textColor: "text-emerald-600", bgColor: "bg-gradient-to-r from-amber-50 to-yellow-50" },
+            cloudy: { text: "보통 날이에요", textColor: "text-slate-500", bgColor: "bg-gradient-to-r from-slate-50 to-gray-50" },
+            rainy: { text: "나무는 좋지만 클로버는 힘들어요", textColor: "text-blue-600", bgColor: "bg-gradient-to-r from-blue-50 to-cyan-50" },
+            windy: { text: "클로버는 좋지만 나무는 힘들어요", textColor: "text-blue-600", bgColor: "bg-gradient-to-r from-sky-50 to-blue-50" },
+          };
+          const effect = weatherEffects[weather.type] ?? weatherEffects.cloudy;
+
           return (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <div className="flex items-center gap-2 px-4 py-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm">
-                <span className="text-2xl">{weather.icon}</span>
-                <div>
-                  <p className="text-sm font-bold text-slate-700">
-                    오늘의 씨앗밭 날씨: {weather.name}
-                  </p>
-                  <p className="text-xs text-slate-500">{weather.description}</p>
-                </div>
-              </div>
+              <Card className={`border-0 ${effect.bgColor} rounded-2xl shadow-sm`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <motion.span
+                      className="text-4xl"
+                      animate={{ y: [0, -3, 0] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {weather.icon}
+                    </motion.span>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-slate-700">
+                        오늘 씨앗 농장의 기후는 {weather.icon} {weather.name}이에요!
+                      </p>
+                      <p className={`text-sm font-medium mt-0.5 ${effect.textColor}`}>
+                        {effect.text}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">{weather.description}</p>
+                    </div>
+                  </div>
+                  {/* 씨앗별 영향 */}
+                  {weather.type !== "cloudy" && (
+                    <div className="flex gap-2 mt-3">
+                      {Object.entries(weather.seedBonus)
+                        .filter(([, bonus]) => bonus !== 0)
+                        .map(([seed, bonus]) => (
+                          <span
+                            key={seed}
+                            className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                              bonus > 0
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-slate-100 text-slate-500"
+                            }`}
+                          >
+                            {getSeedIcon(seed)} {bonus > 0 ? `+${Math.round(bonus * 100)}%` : `${Math.round(bonus * 100)}%`}
+                          </span>
+                        ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </motion.div>
           );
         })()}

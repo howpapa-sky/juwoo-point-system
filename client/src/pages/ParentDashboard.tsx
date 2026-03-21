@@ -21,6 +21,7 @@ import {
   Target,
   Lightbulb,
   Flower2,
+  Sprout,
   Check,
   X,
   AlertTriangle,
@@ -32,6 +33,17 @@ import { adjustPoints } from '@/lib/pointsHelper';
 import { WORLDVIEW } from '@/lib/designTokens';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
+
+interface InvestmentSummary {
+  activeSeeds: Array<{
+    seed_type: string;
+    invested_amount: number;
+    harvest_date: string;
+  }>;
+  savingsBalance: number;
+  weeklyInterest: number;
+  weeklyPlanted: number;
+}
 
 interface ParentMission {
   id: number;
@@ -71,6 +83,12 @@ export default function ParentDashboard() {
   const [weeklyStats, setWeeklyStats] = useState({ earned: 0, spent: 0, attempts: 0 });
   const [reminders, setReminders] = useState<string[]>([]);
   const [missions, setMissions] = useState<ParentMission[]>([]);
+  const [investSummary, setInvestSummary] = useState<InvestmentSummary>({
+    activeSeeds: [],
+    savingsBalance: 0,
+    weeklyInterest: 0,
+    weeklyPlanted: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<number | null>(null);
   const [missionProcessing, setMissionProcessing] = useState<number | null>(null);
@@ -85,7 +103,7 @@ export default function ParentDashboard() {
   const fetchData = useCallback(async () => {
     setLoading(true);
 
-    const [queueRes, streakRes, txRes, reminderRes, missionRes] = await Promise.all([
+    const [queueRes, streakRes, txRes, reminderRes, missionRes, seedsRes, savingsRes] = await Promise.all([
       supabase
         .from('approval_queue')
         .select('*')
@@ -96,7 +114,7 @@ export default function ParentDashboard() {
         .select('*'),
       supabase
         .from('point_transactions')
-        .select('amount')
+        .select('amount, note')
         .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
       supabase
         .from('parenting_reminders')
@@ -106,6 +124,16 @@ export default function ParentDashboard() {
         .from('parent_missions')
         .select('*')
         .order('week_number', { ascending: true }),
+      supabase
+        .from('seeds')
+        .select('seed_type, invested_amount, harvest_date')
+        .eq('juwoo_id', 1)
+        .in('status', ['growing', 'ready']),
+      supabase
+        .from('savings_account')
+        .select('balance')
+        .eq('juwoo_id', 1)
+        .single(),
     ]);
 
     setApprovalQueue(queueRes.data ?? []);
@@ -116,6 +144,21 @@ export default function ParentDashboard() {
       const earned = txRes.data.filter(t => (t.amount ?? 0) > 0).reduce((s, t) => s + (t.amount ?? 0), 0);
       const spent = Math.abs(txRes.data.filter(t => (t.amount ?? 0) < 0).reduce((s, t) => s + (t.amount ?? 0), 0));
       setWeeklyStats({ earned, spent, attempts: txRes.data.length });
+
+      // 투자 관련 주간 통계
+      const weeklyInterest = txRes.data
+        .filter(t => (t as any).note?.includes('이자'))
+        .reduce((s, t) => s + (t.amount ?? 0), 0);
+      const weeklyPlanted = txRes.data
+        .filter(t => (t as any).note?.includes('씨앗 심기'))
+        .reduce((s, t) => s + Math.abs(t.amount ?? 0), 0);
+
+      setInvestSummary({
+        activeSeeds: seedsRes.data ?? [],
+        savingsBalance: savingsRes.data?.balance ?? 0,
+        weeklyInterest,
+        weeklyPlanted,
+      });
     }
 
     setReminders((reminderRes.data ?? []).map(r => r.message));
@@ -455,7 +498,97 @@ export default function ParentDashboard() {
           </div>
         </motion.div>
 
-        {/* 2.5 아빠와 함께 미션 */}
+        {/* 2.5 투자 현황 */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.22 }}
+        >
+          <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <Sprout className="h-5 w-5 text-emerald-500" />
+            투자 현황
+          </h2>
+          <Card className="border-0 shadow-sm rounded-xl">
+            <CardContent className="p-4 space-y-3">
+              {/* 금고 잔액 */}
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🏦</span>
+                  <span className="text-sm font-medium text-slate-700">금고 잔액</span>
+                </div>
+                <span className="font-bold text-blue-600">
+                  {investSummary.savingsBalance.toLocaleString()}코인
+                </span>
+              </div>
+
+              {/* 이번 주 이자 */}
+              <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">💰</span>
+                  <span className="text-sm font-medium text-slate-700">이번 주 이자</span>
+                </div>
+                <span className="font-bold text-emerald-600">
+                  +{investSummary.weeklyInterest.toLocaleString()}코인
+                </span>
+              </div>
+
+              {/* 심어진 씨앗 */}
+              {investSummary.activeSeeds.length > 0 ? (
+                <div>
+                  <p className="text-sm font-medium text-slate-600 mb-2">
+                    자라고 있는 씨앗 ({investSummary.activeSeeds.length}개)
+                  </p>
+                  <div className="space-y-1.5">
+                    {investSummary.activeSeeds.map((seed, i) => {
+                      const seedIcons: Record<string, string> = {
+                        sunflower: "🌻", tree: "🌳", clover: "🍀",
+                        rose: "🌹", bamboo: "🎋", rainbow: "🌈",
+                      };
+                      const harvestDate = new Date(seed.harvest_date);
+                      const daysLeft = Math.max(0, Math.ceil(
+                        (harvestDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+                      ));
+                      return (
+                        <div key={i} className="flex items-center justify-between text-sm p-2 bg-slate-50 rounded-lg">
+                          <span>
+                            {seedIcons[seed.seed_type] ?? "🌱"} {seed.invested_amount}코인
+                          </span>
+                          <span className="text-slate-500">
+                            {daysLeft > 0
+                              ? `D-${daysLeft} (${harvestDate.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })})`
+                              : "수확 가능!"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400 text-center py-2">
+                  현재 심어진 씨앗이 없어요
+                </p>
+              )}
+
+              {/* 주간 리포트 요약 */}
+              {investSummary.weeklyPlanted > 0 && (
+                <div className="p-3 bg-amber-50 rounded-lg">
+                  <p className="text-sm text-amber-700">
+                    📊 주우가 이번 주 {investSummary.weeklyPlanted.toLocaleString()}코인을 씨앗밭에 심었어요
+                  </p>
+                </div>
+              )}
+
+              {/* 임상 보고서 연동 */}
+              <div className="p-3 bg-violet-50 rounded-lg border border-violet-100">
+                <p className="text-xs text-violet-600 leading-relaxed">
+                  💡 돈과 에너지의 통제 모델링 — 아버님이 자신의 욕구를 조절하고 절제하는 모습을 보여주는 것만으로도 큰 교육이 됩니다.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* 2.6 아빠와 함께 미션 */}
         {missions.length > 0 && (
           <motion.div
             initial={{ y: 20, opacity: 0 }}

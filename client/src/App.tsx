@@ -29,6 +29,7 @@ import SeedFarm from "./pages/SeedFarm";
 import GoalSaving from "./pages/GoalSaving";
 import InvestReport from "./pages/InvestReport";
 import SeedAlbum from "./pages/SeedAlbum";
+import MistakeFriends from "./pages/MistakeFriends";
 import AppLayout from "./components/AppLayout";
 import RoutineTimeline from "./pages/RoutineTimeline";
 import SleepBonus from "./pages/SleepBonus";
@@ -132,6 +133,13 @@ function Router() {
         {() => (
           <AppLayout>
             <VoiceLearning />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path={"/mistake-friends"}>
+        {() => (
+          <AppLayout>
+            <MistakeFriends />
           </AppLayout>
         )}
       </Route>

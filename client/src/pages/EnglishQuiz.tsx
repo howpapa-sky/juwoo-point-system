@@ -1,8 +1,8 @@
 // ============================================
-// 영어 단어 퀴즈 — 듀오링고급 퀄리티 (리팩토링 완료)
-// 2025줄 모놀리스 → 슬림 오케스트레이터
+// 영어 단어 퀴즈 — Phase 2 강화
+// StopLookSpeak + 실수 친구 연동 + 연습/시험 모드 + 실수 목표
 // ============================================
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +11,9 @@ import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
+import { supabase } from '@/lib/supabaseClient';
 import type { QuizMode, ThemeKey, GameState } from '@/lib/quizConstants';
 import { QUIZ_THEMES } from '@/lib/quizConstants';
 import { generateQuestions } from '@/lib/quizEngine';
@@ -21,11 +23,16 @@ import type { QuizQuestion } from '@/lib/quizEngine';
 import { useQuizSound } from '@/hooks/useQuizSound';
 import { useQuizSession } from '@/hooks/useQuizSession';
 import { useDailyStreak } from '@/hooks/useDailyStreak';
+import { useMistakeFriends } from '@/hooks/useMistakeFriends';
+import { useMistakeGoal } from '@/hooks/useMistakeGoal';
 
 import QuizMenu from '@/components/quiz/QuizMenu';
 import QuizSessionManager, { type SessionResult } from '@/components/quiz/QuizSessionManager';
 import QuizResult from '@/components/quiz/QuizResult';
 import QuizSettings, { type QuizSettingsState, defaultSettings } from '@/components/quiz/QuizSettings';
+import StopLookSpeak from '@/components/quiz/StopLookSpeak';
+import MistakeGoalBanner from '@/components/quiz/MistakeGoalBanner';
+import { awardLearningPoints, calculateStars, getStarPoints } from '@/lib/learningPointsHelper';
 
 export default function EnglishQuiz() {
   const { user, loading: authLoading } = useSupabaseAuth();
@@ -40,7 +47,15 @@ export default function EnglishQuiz() {
   const [settings, setSettings] = useState<QuizSettingsState>(defaultSettings);
   const [sessionResult, setSessionResult] = useState<SessionResult | null>(null);
 
-  // XP/레벨 상태 (로컬 — DB 연동은 useQuizSession에서)
+  // Phase 2: StopLookSpeak
+  const [showStopLookSpeak, setShowStopLookSpeak] = useState(false);
+  const [stopLookSpeakType, setStopLookSpeakType] = useState<'session_start' | 'speed_warning'>('session_start');
+  const pendingStartRef = useRef<{ mode: QuizMode; difficulty: WordDifficulty | 'all'; category: WordCategory | 'all' } | null>(null);
+
+  // Phase 2: 연습/시험 모드
+  const [isPracticeMode, setIsPracticeMode] = useState(true); // 기본: 연습 모드
+
+  // XP/레벨 상태
   const [userLevel, setUserLevel] = useState(1);
   const [currentXP, setCurrentXP] = useState(0);
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -50,21 +65,49 @@ export default function EnglishQuiz() {
   const { playSound, speakWord } = useQuizSound();
   const { awardPoints } = useQuizSession();
   const { currentStreak: dailyStreak, completeToday } = useDailyStreak();
+  const { recordMistake } = useMistakeFriends();
+  const { todayGoal, loadOrCreateTodayGoal, incrementMistake } = useMistakeGoal();
+
+  // 실수 목표 로드
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadOrCreateTodayGoal();
+    }
+  }, [isAuthenticated, loadOrCreateTodayGoal]);
 
   const theme = QUIZ_THEMES[currentTheme];
 
-  // 게임 시작
-  const handleStart = useCallback((mode: QuizMode, difficulty: WordDifficulty | 'all', category: WordCategory | 'all') => {
+  // 게임 시작 (StopLookSpeak 후)
+  const actuallyStart = useCallback(() => {
+    const pending = pendingStartRef.current;
+    if (!pending) return;
+
     const count = settings.questionCount;
-    const qs = generateQuestions(mode, difficulty, category, count);
-    setQuizMode(mode);
+    const qs = generateQuestions(pending.mode, pending.difficulty, pending.category, count);
+    setQuizMode(pending.mode);
     setQuestions(qs);
     setSessionResult(null);
     setShowLevelUp(false);
     setNewBadge(null);
     setGameState('playing');
+    pendingStartRef.current = null;
+  }, [settings.questionCount]);
+
+  // 게임 시작 요청 → StopLookSpeak 표시
+  const handleStart = useCallback((mode: QuizMode, difficulty: WordDifficulty | 'all', category: WordCategory | 'all') => {
+    pendingStartRef.current = { mode, difficulty, category };
+    setStopLookSpeakType('session_start');
+    setShowStopLookSpeak(true);
     playSound('click');
-  }, [settings.questionCount, playSound]);
+  }, [playSound]);
+
+  // StopLookSpeak 완료
+  const handleStopLookSpeakReady = useCallback(() => {
+    setShowStopLookSpeak(false);
+    if (stopLookSpeakType === 'session_start') {
+      actuallyStart();
+    }
+  }, [stopLookSpeakType, actuallyStart]);
 
   // 세션 완료 처리
   const handleSessionComplete = useCallback(async (result: SessionResult) => {
@@ -85,24 +128,66 @@ export default function EnglishQuiz() {
     // 일일 스트릭 완료
     await completeToday();
 
-    // 포인트 지급
-    const points = await awardPoints(
-      quizMode,
-      result.correctCount,
-      result.totalQuestions,
-      result.maxStreak,
-      result.speedCount,
-      result.bossHP,
-      result.bossName,
-    );
+    // 실수 친구 등록 (오답 단어)
+    let mistakeFriendsMet = 0;
+    for (const wrongWord of result.wrongWords) {
+      const friend = await recordMistake(wrongWord.word, wrongWord.meaning);
+      if (friend) mistakeFriendsMet++;
 
-    if (points > 0) {
-      toast.success(`🎉 ${points.toLocaleString()} 포인트 획득!`);
+      // 실수 목표 증가
+      const goalResult = await incrementMistake();
+      if (goalResult?.goalMet) {
+        confetti({ particleCount: 30, spread: 40, origin: { y: 0.7 } });
+        toast.success('실수 목표 달성! 잘했어! 🎉');
+        // 실수 목표 달성 포인트
+        await awardLearningPoints({
+          category: 'mistake_goal',
+          basePoints: 100,
+          note: '실수 목표 달성',
+        });
+      }
+    }
+
+    // 별 계산 + 포인트 적립
+    const stars = calculateStars(result.correctCount, result.totalQuestions);
+    const basePoints = getStarPoints(stars);
+
+    const pointResult = await awardLearningPoints({
+      category: 'practice',
+      basePoints,
+      note: `퀴즈 완료 (${quizMode}, 별 ${stars}개, ${result.correctCount}/${result.totalQuestions})`,
+    });
+
+    if (pointResult.awarded > 0) {
+      toast.success(`🎉 ${pointResult.awarded.toLocaleString()} 포인트 획득!`);
+    }
+    if (pointResult.capped) {
+      toast.info('오늘 연습 포인트 상한에 도달했어요!');
+    }
+
+    // 세션 기록
+    try {
+      await supabase.from('english_sessions').insert({
+        session_type: 'practice',
+        mode: isPracticeMode ? 'practice' : 'test',
+        words_total: result.totalQuestions,
+        words_correct: result.correctCount,
+        words_wrong: result.wrongWords.length,
+        stars,
+        points_earned: pointResult.awarded,
+        mistake_friends_met: mistakeFriendsMet,
+      });
+    } catch (err) {
+      console.error('세션 기록 에러:', err);
+    }
+
+    if (mistakeFriendsMet > 0) {
+      toast(`새 실수 친구 ${mistakeFriendsMet}명과 만났어!`, { icon: '🤝' });
     }
 
     playSound('complete');
     setGameState('result');
-  }, [currentXP, userLevel, quizMode, completeToday, awardPoints, playSound]);
+  }, [currentXP, userLevel, quizMode, isPracticeMode, completeToday, recordMistake, incrementMistake, playSound]);
 
   // 메뉴로 돌아가기
   const handleRestart = useCallback(() => {
@@ -112,6 +197,13 @@ export default function EnglishQuiz() {
     setShowLevelUp(false);
     setNewBadge(null);
   }, []);
+
+  // ============================================
+  // StopLookSpeak 오버레이
+  // ============================================
+  if (showStopLookSpeak) {
+    return <StopLookSpeak type={stopLookSpeakType} onReady={handleStopLookSpeakReady} />;
+  }
 
   // ============================================
   // 로그인 체크
@@ -126,11 +218,7 @@ export default function EnglishQuiz() {
         >
           <Card className={`max-w-md w-full border-4 ${theme.card} shadow-2xl`}>
             <CardContent className="p-8 text-center">
-              <motion.div
-                className="text-7xl mb-6"
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 1 }}
-              >
+              <motion.div className="text-7xl mb-6" animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1 }}>
                 📚
               </motion.div>
               <h2 className="text-2xl font-bold mb-4">로그인이 필요합니다</h2>
@@ -154,11 +242,7 @@ export default function EnglishQuiz() {
     return (
       <div className={`min-h-screen bg-gradient-to-br ${theme.secondary}`}>
         <div className="container max-w-4xl py-8 px-4">
-          <QuizSettings
-            settings={settings}
-            onSettingsChange={setSettings}
-            onBack={() => setShowSettings(false)}
-          />
+          <QuizSettings settings={settings} onSettingsChange={setSettings} onBack={() => setShowSettings(false)} />
         </div>
       </div>
     );
@@ -196,14 +280,29 @@ export default function EnglishQuiz() {
   // ============================================
   if (gameState === 'playing' && questions.length > 0) {
     return (
-      <QuizSessionManager
-        theme={currentTheme}
-        mode={quizMode}
-        questions={questions}
-        onComplete={handleSessionComplete}
-        onExit={handleRestart}
-        showHints={settings.hintsEnabled}
-      />
+      <div>
+        {/* 실수 목표 배너 */}
+        <div className={`bg-gradient-to-br ${theme.secondary} px-4 pt-4`}>
+          <div className="container max-w-4xl">
+            <MistakeGoalBanner goal={todayGoal} />
+            {isPracticeMode && (
+              <div className="text-center mb-2">
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                  🎯 연습 모드 — 틀려도 되는 시간이야!
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        <QuizSessionManager
+          theme={currentTheme}
+          mode={quizMode}
+          questions={questions}
+          onComplete={handleSessionComplete}
+          onExit={handleRestart}
+          showHints={settings.hintsEnabled}
+        />
+      </div>
     );
   }
 
@@ -212,20 +311,44 @@ export default function EnglishQuiz() {
   // ============================================
   return (
     <div>
-      {/* 뒤로가기 */}
       <div className={`bg-gradient-to-br ${theme.secondary}`}>
         <div className="container max-w-4xl pt-8 px-4">
-          <motion.div
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-          >
+          <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
             <Link href="/english-learning">
               <Button variant="ghost" size="sm" className="gap-2 hover:bg-white/50">
-                <ArrowLeft className="h-4 w-4" />
-                영어 학습
+                <ArrowLeft className="h-4 w-4" />영어 학습
               </Button>
             </Link>
           </motion.div>
+
+          {/* 연습/시험 모드 토글 */}
+          <div className="flex items-center justify-center gap-2 mt-4 mb-2">
+            <button
+              onClick={() => setIsPracticeMode(true)}
+              className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                isPracticeMode
+                  ? 'bg-blue-500 text-white shadow-md'
+                  : 'bg-white/60 text-slate-600'
+              }`}
+            >
+              🎯 연습 모드
+            </button>
+            <button
+              onClick={() => setIsPracticeMode(false)}
+              className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                !isPracticeMode
+                  ? 'bg-purple-500 text-white shadow-md'
+                  : 'bg-white/60 text-slate-600'
+              }`}
+            >
+              📝 시험 모드
+            </button>
+          </div>
+          {isPracticeMode && (
+            <p className="text-center text-sm text-slate-500 mb-4">
+              틀려도 괜찮아! 힌트도 쓸 수 있어요.
+            </p>
+          )}
         </div>
       </div>
 

@@ -185,7 +185,7 @@ export default function EnglishHome() {
           </div>
           {/* XP 프로그레스 */}
           <div className="max-w-xs mx-auto">
-            <div className="flex justify-between text-xs text-slate-500 mb-1">
+            <div className="flex justify-between text-sm text-slate-500 mb-1">
               <span>XP {totalXP}</span>
               <span>{progressPercent}%</span>
             </div>

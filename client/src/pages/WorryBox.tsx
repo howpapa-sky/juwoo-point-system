@@ -233,7 +233,7 @@ export default function WorryBox() {
                         >
                           {worry.content}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-sm text-gray-400 mt-1">
                           {formatDate(worry.created_at)}
                         </p>
                       </div>
@@ -289,7 +289,7 @@ export default function WorryBox() {
                     <p className="text-sm text-gray-500 line-clamp-1 flex-1">
                       {worry.content}
                     </p>
-                    <span className="text-xs text-green-500 flex-shrink-0">해결!</span>
+                    <span className="text-sm text-green-500 flex-shrink-0">해결!</span>
                   </div>
                 </CardContent>
               </Card>

@@ -191,7 +191,7 @@ export default function Transactions() {
                             {tx.note || tx.rule_name || "포인트 변동"}
                           </p>
                           {tx.rule_category && (
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${
                               tx.rule_category.includes("금고") ? "bg-blue-100 text-blue-700" :
                               tx.rule_category.includes("이자") ? "bg-blue-100 text-blue-700" :
                               tx.rule_category.includes("씨앗") ? "bg-emerald-100 text-emerald-700" :

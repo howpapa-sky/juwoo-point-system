@@ -278,11 +278,11 @@ export default function AdminPanel() {
                           <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-100">
                             <div className="flex-1">
                               <p className="font-medium text-sm">{rule.rule_name}</p>
-                              <p className="text-xs text-muted-foreground">{rule.category}</p>
+                              <p className="text-sm text-muted-foreground">{rule.category}</p>
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-bold text-green-600">{rule.count}회</p>
-                              <p className="text-xs text-muted-foreground">+{rule.total_amount.toLocaleString()}</p>
+                              <p className="text-sm text-muted-foreground">+{rule.total_amount.toLocaleString()}</p>
                             </div>
                           </div>
                         ))
@@ -301,11 +301,11 @@ export default function AdminPanel() {
                           <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-red-50 border border-red-100">
                             <div className="flex-1">
                               <p className="font-medium text-sm">{rule.rule_name}</p>
-                              <p className="text-xs text-muted-foreground">{rule.category}</p>
+                              <p className="text-sm text-muted-foreground">{rule.category}</p>
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-bold text-red-600">{rule.count}회</p>
-                              <p className="text-xs text-muted-foreground">-{rule.total_amount.toLocaleString()}</p>
+                              <p className="text-sm text-muted-foreground">-{rule.total_amount.toLocaleString()}</p>
                             </div>
                           </div>
                         ))
@@ -337,7 +337,7 @@ export default function AdminPanel() {
                       >
                         <div className="flex-1">
                           <p className="font-medium text-sm">{tx.note || tx.rule_name || '포인트 변동'}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-sm text-muted-foreground">
                             {new Date(tx.created_at).toLocaleString('ko-KR', {
                               month: 'short',
                               day: 'numeric',

@@ -41,7 +41,7 @@ export default function MistakeGoalBanner({ goal }: Props) {
           </span>
         </div>
         {!goal_met && actual_mistakes > 0 && (
-          <p className="text-xs text-blue-500 mt-1">
+          <p className="text-sm text-blue-500 mt-1">
             실수는 배움의 일부야! 걱정하지 마!
           </p>
         )}

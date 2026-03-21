@@ -163,7 +163,7 @@ export function ClassicQuizCard({
                     <Lightbulb className="h-3 w-3" />{word.tip}
                   </p>
                 )}
-                <p className="text-xs text-gray-400 mt-1 italic">
+                <p className="text-sm text-gray-400 mt-1 italic">
                   "{word.example}" - {word.exampleKorean}
                 </p>
               </CardContent>

@@ -358,13 +358,13 @@ export default function GoalSaving() {
                       </div>
 
                       {percent >= 90 && percent < 100 && (
-                        <p className="text-xs text-amber-600 font-medium mb-2 flex items-center gap-1">
+                        <p className="text-sm text-amber-600 font-medium mb-2 flex items-center gap-1">
                           <Sparkles className="h-3 w-3" />
                           거의 다 모았어! 조금만 더!
                         </p>
                       )}
 
-                      <p className="text-xs text-slate-500 mb-3">
+                      <p className="text-sm text-slate-500 mb-3">
                         남은 금액: {remaining.toLocaleString()} 코인
                       </p>
 
@@ -442,7 +442,7 @@ export default function GoalSaving() {
                           <p className="text-sm font-semibold text-slate-700">
                             {goal.title}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-sm text-slate-500">
                             {goal.achieved_at
                               ? new Date(goal.achieved_at).toLocaleDateString("ko-KR", {
                                   month: "short",

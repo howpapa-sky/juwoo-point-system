@@ -118,7 +118,7 @@ export default function FlashCard() {
                   >
                     <div className={`mb-2 ${session.mode === m.id ? 'text-white' : 'text-gray-600'}`}>{m.icon}</div>
                     <div className="font-bold text-sm">{m.label}</div>
-                    <div className={`text-xs ${session.mode === m.id ? 'text-white/80' : 'text-gray-400'}`}>{m.desc}</div>
+                    <div className={`text-sm ${session.mode === m.id ? 'text-white/80' : 'text-gray-400'}`}>{m.desc}</div>
                   </motion.button>
                 ))}
               </div>
@@ -183,7 +183,7 @@ export default function FlashCard() {
                       }`}
                     >
                       <div className="font-bold text-sm">{d.label}</div>
-                      <div className="text-xs text-gray-500">{d.desc}</div>
+                      <div className="text-sm text-gray-500">{d.desc}</div>
                     </motion.button>
                   ))}
                 </div>
@@ -206,7 +206,7 @@ export default function FlashCard() {
                       }`}
                     >
                       <div className="font-black text-2xl text-center">{count}</div>
-                      <div className="text-xs text-gray-500 text-center">장</div>
+                      <div className="text-sm text-gray-500 text-center">장</div>
                     </motion.button>
                   ))}
                 </div>

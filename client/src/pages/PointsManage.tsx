@@ -343,7 +343,7 @@ export default function PointsManage() {
                       <Coins className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground font-medium">{WORLDVIEW.points}</div>
+                      <div className="text-sm text-muted-foreground font-medium">{WORLDVIEW.points}</div>
                       <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                         {currentPoints.toLocaleString()}
                       </div>
@@ -438,7 +438,7 @@ export default function PointsManage() {
                           {rule.description && (
                             <p className="text-sm text-muted-foreground line-clamp-2">{rule.description}</p>
                           )}
-                          <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md">
+                          <span className="inline-block mt-2 px-2 py-1 text-sm font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md">
                             {rule.category}
                           </span>
                         </div>
@@ -488,7 +488,7 @@ export default function PointsManage() {
                           {rule.description && (
                             <p className="text-sm text-muted-foreground line-clamp-2">{rule.description}</p>
                           )}
-                          <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 rounded-md">
+                          <span className="inline-block mt-2 px-2 py-1 text-sm font-medium bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 rounded-md">
                             {rule.category}
                           </span>
                         </div>

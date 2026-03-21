@@ -26,11 +26,11 @@ export default function QuizProgressBar({ currentIndex, totalQuestions, category
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {difficulty && (
-            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${difficultyStyle.bg} ${difficultyStyle.text}`}>
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium ${difficultyStyle.bg} ${difficultyStyle.text}`}>
               {difficultyStyle.label}
             </span>
           )}
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
             {modeLabel}
           </span>
         </div>

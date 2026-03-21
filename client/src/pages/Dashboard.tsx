@@ -341,7 +341,7 @@ export default function Dashboard() {
                     <Coins className="h-8 w-8" />
                   </div>
                   <div>
-                    <p className="text-white/60 text-xs font-medium mb-0.5">보유 포인트</p>
+                    <p className="text-white/60 text-sm font-medium mb-0.5">보유 포인트</p>
                     <p className="text-4xl font-black tracking-tight">{balance.toLocaleString()}<span className="text-lg ml-1">P</span></p>
                   </div>
                 </div>
@@ -351,14 +351,14 @@ export default function Dashboard() {
                   <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-sm">
                     <div className="flex items-center gap-1.5 mb-1">
                       <TrendingUp className="h-3.5 w-3.5 text-emerald-300" />
-                      <span className="text-white/70 text-xs">이번 주 적립</span>
+                      <span className="text-white/70 text-sm">이번 주 적립</span>
                     </div>
                     <p className="text-xl font-bold text-emerald-300">+{stats.totalEarned.toLocaleString()}</p>
                   </div>
                   <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-sm">
                     <div className="flex items-center gap-1.5 mb-1">
                       <TrendingDown className="h-3.5 w-3.5 text-rose-300" />
-                      <span className="text-white/70 text-xs">이번 주 사용</span>
+                      <span className="text-white/70 text-sm">이번 주 사용</span>
                     </div>
                     <p className="text-xl font-bold text-rose-300">-{stats.totalSpent.toLocaleString()}</p>
                   </div>
@@ -381,27 +381,27 @@ export default function Dashboard() {
                     Lv.{currentLevel.level} {currentLevel.name}
                   </h3>
                   {nextLevel && (
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <span className="text-sm text-slate-400 flex items-center gap-1">
                       <Target className="h-3 w-3" />
                       다음: {nextLevel.icon} {nextLevel.name}
                     </span>
                   )}
                 </div>
                 <div className="mt-2">
-                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                  <div className="flex items-center justify-between text-sm text-slate-500 mb-1">
                     <span>{balance.toLocaleString()}P</span>
                     <span>{nextLevel ? nextLevel.minPoints.toLocaleString() + 'P' : 'MAX'}</span>
                   </div>
                   <Progress value={levelProgress} className="h-2.5" />
                 </div>
                 {nextLevel && (
-                  <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
+                  <p className="text-sm text-slate-500 mt-1.5 flex items-center gap-1">
                     <Sparkles className="h-3 w-3 text-amber-500" />
                     <span>다음 레벨까지 <strong className="text-violet-600">{pointsToNextLevel.toLocaleString()}P</strong></span>
                   </p>
                 )}
                 {!nextLevel && (
-                  <p className="text-xs font-bold text-amber-600 mt-1.5 flex items-center gap-1">
+                  <p className="text-sm font-bold text-amber-600 mt-1.5 flex items-center gap-1">
                     <Crown className="h-3 w-3" />
                     최고 레벨 달성!
                   </p>
@@ -438,11 +438,11 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <p className="font-bold text-sm">오늘의 미션</p>
-                    <p className="text-white/90 text-xs">퀴즈 풀고 포인트 GET!</p>
+                    <p className="text-white/90 text-sm">퀴즈 풀고 포인트 GET!</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-sm">+500P</span>
+                  <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-bold backdrop-blur-sm">+500P</span>
                   <ChevronRight className="h-5 w-5" />
                 </div>
               </div>
@@ -459,7 +459,7 @@ export default function Dashboard() {
                 <h3 className="font-bold text-slate-700 text-sm">내 자산 현황</h3>
               </div>
               <Link href="/wallet">
-                <Button variant="ghost" size="sm" className="h-7 px-2 gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg text-xs font-semibold">
+                <Button variant="ghost" size="sm" className="h-12 px-2 gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg text-base font-semibold">
                   지갑 열기
                   <ChevronRight className="h-3 w-3" />
                 </Button>
@@ -469,27 +469,27 @@ export default function Dashboard() {
               <Link href="/wallet">
                 <div className="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer text-center">
                   <Wallet className="h-4 w-4 text-amber-500 mx-auto mb-1" />
-                  <p className="text-[10px] text-slate-500">지갑</p>
+                  <p className="text-sm text-slate-500">지갑</p>
                   <p className="text-sm font-bold text-amber-600">{balance.toLocaleString()}</p>
                 </div>
               </Link>
               <Link href="/savings">
                 <div className="p-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer text-center">
                   <Landmark className="h-4 w-4 text-blue-500 mx-auto mb-1" />
-                  <p className="text-[10px] text-slate-500">금고</p>
+                  <p className="text-sm text-slate-500">금고</p>
                   <p className="text-sm font-bold text-blue-600">{savingsBalance.toLocaleString()}</p>
                 </div>
               </Link>
               <Link href="/seed-farm">
                 <div className="p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 transition-colors cursor-pointer text-center">
                   <Sprout className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
-                  <p className="text-[10px] text-slate-500">씨앗밭</p>
+                  <p className="text-sm text-slate-500">씨앗밭</p>
                   <p className="text-sm font-bold text-emerald-600">{investmentBalance.toLocaleString()}</p>
                 </div>
               </Link>
             </div>
             <div className="mt-2 p-2 bg-slate-50 rounded-lg text-center">
-              <p className="text-xs text-slate-500">
+              <p className="text-sm text-slate-500">
                 전체 자산: <strong className="text-slate-700">{(balance + savingsBalance + investmentBalance).toLocaleString()}P</strong>
               </p>
             </div>
@@ -508,7 +508,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="font-bold text-sm">씨앗이 다 자랐어요!</p>
-                      <p className="text-white/90 text-xs">{readySeeds}개 수확 가능</p>
+                      <p className="text-white/90 text-sm">{readySeeds}개 수확 가능</p>
                     </div>
                   </div>
                   <ChevronRight className="h-5 w-5" />
@@ -561,7 +561,7 @@ export default function Dashboard() {
                     <item.icon className="h-7 w-7 text-white" />
                   </div>
                   <h3 className="font-bold text-slate-800 text-sm">{item.label}</h3>
-                  <p className="text-xs text-slate-500">{item.desc}</p>
+                  <p className="text-sm text-slate-500">{item.desc}</p>
                 </CardContent>
               </Card>
             </Link>
@@ -578,11 +578,11 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <CardTitle className="text-base">최근 활동</CardTitle>
-                  <CardDescription className="text-xs">포인트 변동 내역</CardDescription>
+                  <CardDescription className="text-sm">포인트 변동 내역</CardDescription>
                 </div>
               </div>
               <Link href="/transactions">
-                <Button variant="ghost" size="sm" className="h-8 px-3 gap-1 text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-xl text-xs font-semibold">
+                <Button variant="ghost" size="sm" className="h-12 px-3 gap-1 text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-xl text-base font-semibold">
                   전체
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
@@ -616,7 +616,7 @@ export default function Dashboard() {
                         <p className="font-semibold text-slate-800 text-sm">
                           {tx.note || tx.rule_name || "포인트 변동"}
                         </p>
-                        <p className="text-xs text-slate-400 flex items-center gap-1">
+                        <p className="text-sm text-slate-400 flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {new Date(tx.created_at).toLocaleDateString("ko-KR", {
                             month: "short",
@@ -639,7 +639,7 @@ export default function Dashboard() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-7 w-7 rounded-lg"
+                          className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 h-12 w-12 rounded-lg"
                           onClick={() => handleCancel(tx.id)}
                         >
                           <X className="h-3.5 w-3.5" />
@@ -655,7 +655,7 @@ export default function Dashboard() {
                   <Zap className="h-6 w-6 text-slate-400" />
                 </div>
                 <p className="font-semibold text-slate-600 mb-1">아직 활동이 없어요</p>
-                <p className="text-xs text-slate-400">좋은 행동으로 포인트를 모아보세요!</p>
+                <p className="text-sm text-slate-400">좋은 행동으로 포인트를 모아보세요!</p>
               </div>
             )}
           </CardContent>

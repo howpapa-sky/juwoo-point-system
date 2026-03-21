@@ -242,7 +242,7 @@ export default function InvestReport() {
                         bar.percent > 0 && (
                           <div
                             key={bar.label}
-                            className={`${bar.color} flex items-center justify-center text-white text-xs font-bold transition-all`}
+                            className={`${bar.color} flex items-center justify-center text-white text-sm font-bold transition-all`}
                             style={{ width: `${bar.percent}%` }}
                           >
                             {bar.percent}%
@@ -264,7 +264,7 @@ export default function InvestReport() {
                         <span className="font-bold text-orange-600">
                           {report.spent.toLocaleString()}코인
                         </span>
-                        <span className="text-xs text-slate-500 ml-1">({report.spendPercent}%)</span>
+                        <span className="text-sm text-slate-500 ml-1">({report.spendPercent}%)</span>
                       </div>
                     </div>
 
@@ -279,7 +279,7 @@ export default function InvestReport() {
                         <span className="font-bold text-blue-600">
                           {report.savedToVault.toLocaleString()}코인
                         </span>
-                        <span className="text-xs text-slate-500 ml-1">({report.savePercent}%)</span>
+                        <span className="text-sm text-slate-500 ml-1">({report.savePercent}%)</span>
                       </div>
                     </div>
 
@@ -294,7 +294,7 @@ export default function InvestReport() {
                         <span className="font-bold text-emerald-600">
                           {report.investedToSeed.toLocaleString()}코인
                         </span>
-                        <span className="text-xs text-slate-500 ml-1">({report.investPercent}%)</span>
+                        <span className="text-sm text-slate-500 ml-1">({report.investPercent}%)</span>
                       </div>
                     </div>
                   </div>
@@ -321,7 +321,7 @@ export default function InvestReport() {
                 <div className="p-3 rounded-xl bg-blue-50">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Landmark className="h-3.5 w-3.5 text-blue-500" />
-                    <span className="text-xs text-slate-500">금고 이자</span>
+                    <span className="text-sm text-slate-500">금고 이자</span>
                   </div>
                   <p className="text-lg font-bold text-blue-600">
                     +{report.interestEarned.toLocaleString()}
@@ -330,7 +330,7 @@ export default function InvestReport() {
                 <div className="p-3 rounded-xl bg-emerald-50">
                   <div className="flex items-center gap-1.5 mb-1">
                     <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                    <span className="text-xs text-slate-500">씨앗 수확</span>
+                    <span className="text-sm text-slate-500">씨앗 수확</span>
                   </div>
                   <p className="text-lg font-bold text-emerald-600">
                     +{report.harvestReturned.toLocaleString()}
@@ -378,7 +378,7 @@ export default function InvestReport() {
                     <span className="text-lg">🏦</span>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-slate-700">금고에 넣었다면</p>
-                      <p className="text-xs text-blue-600 font-bold">
+                      <p className="text-sm text-blue-600 font-bold">
                         매주 이자 +{report.counterfactualSavings}코인씩!
                       </p>
                     </div>
@@ -387,7 +387,7 @@ export default function InvestReport() {
                     <span className="text-lg">🌻</span>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-slate-700">해바라기에 심었다면</p>
-                      <p className="text-xs text-emerald-600 font-bold">
+                      <p className="text-sm text-emerald-600 font-bold">
                         +{report.counterfactualInvestment}코인 돌아왔을 거예요!
                       </p>
                     </div>

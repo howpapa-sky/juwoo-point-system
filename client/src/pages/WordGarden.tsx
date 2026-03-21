@@ -129,7 +129,7 @@ export default function WordGarden() {
                           <span className={`text-2xl font-black ${colors.text}`}>{count}</span>
                         </div>
                         <Progress value={percent} className={`h-3 ${colors.progressBg}`} />
-                        <p className="text-xs text-slate-400 mt-1">{percent}%</p>
+                        <p className="text-sm text-slate-400 mt-1">{percent}%</p>
                       </div>
                     </div>
                   </CardContent>

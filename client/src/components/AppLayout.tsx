@@ -195,7 +195,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             {userRole === "admin" && (
               <>
                 <div className="pt-4 pb-2">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-4">
+                  <p className="text-sm font-bold text-slate-400 uppercase tracking-wider px-4">
                     관리자
                   </p>
                 </div>
@@ -259,7 +259,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
                   {APP_TITLE}
                 </h1>
-                <p className="text-xs text-slate-500">포인트 시스템</p>
+                <p className="text-sm text-slate-500">포인트 시스템</p>
               </div>
             </div>
           </Link>
@@ -306,7 +306,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           {userRole === "admin" && (
             <>
               <div className="pt-6 pb-2">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-4">
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-wider px-4">
                   관리자
                 </p>
               </div>
@@ -373,7 +373,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     />
                   </div>
                   <span
-                    className={`text-[10px] mt-1 font-medium transition-colors ${
+                    className={`text-sm mt-1 font-medium transition-colors ${
                       isActive
                         ? "text-violet-600 dark:text-violet-400"
                         : "text-slate-500 dark:text-slate-400"

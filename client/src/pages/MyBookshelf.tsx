@@ -291,17 +291,17 @@ export default function MyBookshelf() {
                         {book.title}
                       </h3>
                       {book.author && (
-                        <p className="text-xs text-slate-400 mb-2 truncate">
+                        <p className="text-sm text-slate-400 mb-2 truncate">
                           {book.author}
                         </p>
                       )}
-                      <p className="text-[10px] text-slate-400">
+                      <p className="text-sm text-slate-400">
                         {new Date(book.registered_at).toLocaleDateString('ko-KR')}
                       </p>
                       {isCompleted && (
                         <div className="flex items-center justify-center gap-1 mt-2 text-amber-600">
                           <Check className="h-3.5 w-3.5" />
-                          <span className="text-xs font-bold">탐사 완료!</span>
+                          <span className="text-sm font-bold">탐사 완료!</span>
                         </div>
                       )}
                     </CardContent>

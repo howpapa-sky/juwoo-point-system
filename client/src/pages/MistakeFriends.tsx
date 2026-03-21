@@ -320,7 +320,7 @@ function FriendCard({
               <p className="text-sm font-bold text-amber-600 mt-1 truncate">{friend.friend_name}</p>
             ) : onName ? (
               <button
-                className="text-xs text-blue-500 mt-1 underline"
+                className="text-sm text-blue-500 mt-1 underline"
                 onClick={(e) => {
                   e.stopPropagation();
                   onName();
@@ -331,14 +331,14 @@ function FriendCard({
             ) : null}
             <p className="text-base font-black text-slate-800 mt-1">{friend.word}</p>
             <p className="text-sm text-slate-500">{friend.meaning}</p>
-            <div className="flex items-center justify-center gap-1 mt-2 text-xs text-slate-400">
+            <div className="flex items-center justify-center gap-1 mt-2 text-sm text-slate-400">
               <Heart className="h-3 w-3" />
               <span>만난 횟수: {friend.encounter_count}번</span>
             </div>
             {isMastered && (
               <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 rounded-full">
                 <Sparkles className="h-3 w-3 text-yellow-600" />
-                <span className="text-xs font-bold text-yellow-700">우주어 마스터!</span>
+                <span className="text-sm font-bold text-yellow-700">우주어 마스터!</span>
               </div>
             )}
           </div>

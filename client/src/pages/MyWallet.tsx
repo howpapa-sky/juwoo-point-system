@@ -300,7 +300,7 @@ export default function MyWallet() {
                       <h3 className="font-bold text-slate-800 text-base mb-1">
                         {choice.title}
                       </h3>
-                      <p className="text-[11px] text-slate-500 leading-tight">
+                      <p className="text-sm text-slate-500 leading-tight">
                         {choice.subtitle}
                       </p>
                     </CardContent>
@@ -330,7 +330,7 @@ export default function MyWallet() {
                       <span className="text-xl">🏦</span>
                       <div>
                         <p className="font-semibold text-slate-800 text-sm">금고</p>
-                        <p className="text-xs text-slate-500">매주 이자 +3%</p>
+                        <p className="text-sm text-slate-500">매주 이자 +3%</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -348,7 +348,7 @@ export default function MyWallet() {
                       <span className="text-xl">🌱</span>
                       <div>
                         <p className="font-semibold text-slate-800 text-sm">씨앗밭</p>
-                        <p className="text-xs text-slate-500">투자 중인 코인</p>
+                        <p className="text-sm text-slate-500">투자 중인 코인</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -379,7 +379,7 @@ export default function MyWallet() {
                 <div className="p-3 rounded-xl bg-emerald-50">
                   <div className="flex items-center gap-1.5 mb-1">
                     <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                    <span className="text-xs text-slate-500">번 코인</span>
+                    <span className="text-sm text-slate-500">번 코인</span>
                   </div>
                   <p className="text-lg font-bold text-emerald-600">
                     +{summary.monthlyEarned.toLocaleString()}
@@ -388,7 +388,7 @@ export default function MyWallet() {
                 <div className="p-3 rounded-xl bg-orange-50">
                   <div className="flex items-center gap-1.5 mb-1">
                     <ShoppingBag className="h-3.5 w-3.5 text-orange-500" />
-                    <span className="text-xs text-slate-500">쓴 코인</span>
+                    <span className="text-sm text-slate-500">쓴 코인</span>
                   </div>
                   <p className="text-lg font-bold text-orange-600">
                     -{summary.monthlySpent.toLocaleString()}
@@ -397,7 +397,7 @@ export default function MyWallet() {
                 <div className="p-3 rounded-xl bg-blue-50">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Landmark className="h-3.5 w-3.5 text-blue-500" />
-                    <span className="text-xs text-slate-500">이자 수입</span>
+                    <span className="text-sm text-slate-500">이자 수입</span>
                   </div>
                   <p className="text-lg font-bold text-blue-600">
                     +{summary.monthlyInterest.toLocaleString()}
@@ -406,7 +406,7 @@ export default function MyWallet() {
                 <div className="p-3 rounded-xl bg-emerald-50">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Sprout className="h-3.5 w-3.5 text-emerald-500" />
-                    <span className="text-xs text-slate-500">투자 수익</span>
+                    <span className="text-sm text-slate-500">투자 수익</span>
                   </div>
                   <p className="text-lg font-bold text-emerald-600">
                     +{summary.monthlyInvestReturn.toLocaleString()}
@@ -430,7 +430,7 @@ export default function MyWallet() {
                   <span className="text-2xl">🎯</span>
                   <div>
                     <p className="font-bold text-slate-800 text-sm">목표 모으기</p>
-                    <p className="text-xs text-slate-500">목표를 세우고 모아요</p>
+                    <p className="text-sm text-slate-500">목표를 세우고 모아요</p>
                   </div>
                 </CardContent>
               </Card>
@@ -441,7 +441,7 @@ export default function MyWallet() {
                   <span className="text-2xl">📊</span>
                   <div>
                     <p className="font-bold text-slate-800 text-sm">투자 리포트</p>
-                    <p className="text-xs text-slate-500">주간 돈 이야기</p>
+                    <p className="text-sm text-slate-500">주간 돈 이야기</p>
                   </div>
                 </CardContent>
               </Card>

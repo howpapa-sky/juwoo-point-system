@@ -249,7 +249,7 @@ export default function Goals() {
                               </span>
                             </div>
                             <Progress value={Math.min(progressPercent, 100)} className="h-2" />
-                            <p className="text-xs text-muted-foreground text-right">
+                            <p className="text-sm text-muted-foreground text-right">
                               {progressPercent.toFixed(1)}%
                             </p>
                           </div>

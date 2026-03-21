@@ -339,7 +339,7 @@ export default function ReadingLog() {
                   onClick={() => setSelectedBookId(book.id)}
                 >
                   <div className="text-2xl mb-1">{book.cover_emoji}</div>
-                  <p className="text-xs font-bold text-slate-700 line-clamp-2">
+                  <p className="text-sm font-bold text-slate-700 line-clamp-2">
                     {book.title}
                   </p>
                 </button>
@@ -465,7 +465,7 @@ export default function ReadingLog() {
               <p className="font-bold text-slate-800" style={{ fontSize: 16 }}>
                 이 책 완독했어요!
               </p>
-              <p className="text-xs text-slate-500">완독 보너스 +500 포인트</p>
+              <p className="text-sm text-slate-500">완독 보너스 +500 포인트</p>
             </div>
           </button>
         </motion.div>
@@ -527,7 +527,7 @@ export default function ReadingLog() {
                           <p className="font-bold text-indigo-600">
                             +{log.points_earned.toLocaleString()}
                           </p>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-sm text-slate-400">
                             {log.status === 'pending'
                               ? '승인 대기'
                               : log.status === 'approved'

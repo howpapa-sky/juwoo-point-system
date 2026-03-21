@@ -354,7 +354,7 @@ export default function Shop() {
                             <p className="font-bold text-slate-800">
                               {purchase.note?.replace('상점 구매: ', '').replace('수기 구매: ', '').replace('수기 입력: ', '') ?? '구매'}
                             </p>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-sm text-slate-400">
                               {new Date(purchase.created_at).toLocaleDateString("ko-KR", {
                                 year: 'numeric',
                                 month: 'short',
@@ -472,7 +472,7 @@ export default function Shop() {
                 <p className="font-black text-xl text-slate-800">{selectedItem.name}</p>
               </motion.div>
               <div className="p-4 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white text-center">
-                <p className="text-white/70 text-xs mb-0.5">결제할 포인트</p>
+                <p className="text-white/70 text-sm mb-0.5">결제할 포인트</p>
                 <p className="text-4xl font-black">
                   {selectedItem.cost.toLocaleString()}
                   <span className="text-lg ml-1">P</span>

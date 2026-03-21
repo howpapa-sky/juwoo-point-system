@@ -112,13 +112,13 @@ export default function QuizMenu({ theme, streak, onStart, onThemeChange, onSett
                       }`}
                     >
                       {mode.isNew && (
-                        <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-xs font-bold rounded-full">
+                        <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-yellow-400 text-yellow-900 text-sm font-bold rounded-full">
                           NEW
                         </span>
                       )}
                       <div className={`text-${mode.color}-500 mb-2`}>{mode.icon}</div>
                       <div className="font-bold">{mode.name}</div>
-                      <p className="text-xs text-muted-foreground">{mode.desc}</p>
+                      <p className="text-sm text-muted-foreground">{mode.desc}</p>
                     </motion.button>
                   ))}
                 </div>

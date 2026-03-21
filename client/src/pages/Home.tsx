@@ -21,6 +21,8 @@ import {
   Package,
   Moon,
   Sprout,
+  Dumbbell,
+  Star,
 } from "lucide-react";
 
 export default function Home() {
@@ -28,12 +30,13 @@ export default function Home() {
   const isAuthenticated = !!user;
   const [balance, setBalance] = useState<number | null>(null);
   const [streaks, setStreaks] = useState<Record<string, number>>({});
+  const [currentMission, setCurrentMission] = useState<{ title: string; is_completed: boolean } | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const fetchData = async () => {
-      const [profileRes, streakRes] = await Promise.all([
+      const [profileRes, streakRes, missionRes] = await Promise.all([
         supabase
           .from("juwoo_profile")
           .select("current_points")
@@ -42,6 +45,12 @@ export default function Home() {
         supabase
           .from("streaks")
           .select("streak_type, current_count"),
+        supabase
+          .from("parent_missions")
+          .select("title, is_completed")
+          .eq("is_completed", false)
+          .order("week_number", { ascending: true })
+          .limit(1),
       ]);
 
       setBalance(profileRes.data?.current_points ?? 0);
@@ -52,6 +61,10 @@ export default function Home() {
           streakMap[s.streak_type] = s.current_count ?? 0;
         }
         setStreaks(streakMap);
+      }
+
+      if (missionRes.data && missionRes.data.length > 0) {
+        setCurrentMission(missionRes.data[0]);
       }
     };
 
@@ -215,9 +228,11 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
             {[
               { href: "/dashboard", icon: Sparkles, label: "대시보드", iconBg: "bg-indigo-50", iconColor: "text-indigo-600", desc: `${WORLDVIEW.points}` },
-              { href: "/worry-box", icon: Package, label: "걱정상자", iconBg: "bg-amber-50", iconColor: "text-amber-600", desc: "걱정 넣기" },
+              { href: "/my-bookshelf", icon: BookOpen, label: WORLDVIEW.reading, iconBg: "bg-indigo-50", iconColor: "text-indigo-600", desc: "나의 책장" },
+              { href: "/exercise-log", icon: Dumbbell, label: WORLDVIEW.exercise, iconBg: "bg-emerald-50", iconColor: "text-emerald-600", desc: "체력 훈련" },
               { href: "/shop", icon: Gift, label: WORLDVIEW.shop, iconBg: "bg-pink-50", iconColor: "text-pink-600", desc: "보상 구매" },
               { href: "/wallet", icon: Coins, label: "내 지갑", iconBg: "bg-orange-50", iconColor: "text-orange-600", desc: "잔액 확인" },
+              { href: "/worry-box", icon: Package, label: "걱정상자", iconBg: "bg-amber-50", iconColor: "text-amber-600", desc: "걱정 넣기" },
               { href: "/sleep", icon: Moon, label: "충전 모드", iconBg: "bg-indigo-50", iconColor: "text-indigo-600", desc: "수면 보너스" },
               { href: "/goals", icon: Target, label: "목표", iconBg: "bg-amber-50", iconColor: "text-amber-600", desc: "목표 달성" },
               { href: "/badges", icon: Award, label: WORLDVIEW.badge, iconBg: "bg-yellow-50", iconColor: "text-yellow-600", desc: "획득 훈장" },
@@ -240,6 +255,26 @@ export default function Home() {
               </Link>
             ))}
           </div>
+
+          {/* 아빠와 함께 미션 배너 */}
+          {currentMission && !currentMission.is_completed && (
+            <Card className="border border-amber-200 bg-amber-50 overflow-hidden mb-4">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Star className="h-5 w-5 text-amber-500" />
+                      <span className="font-bold text-gray-900">아빠와 함께 미션</span>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      {currentMission.title} — 아빠와 함께 해보자!
+                    </p>
+                  </div>
+                  <div className="text-3xl opacity-50">🤝</div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* 하단 배너 — 연한 인디고 배경 */}
           <Card className="border border-indigo-100 bg-indigo-50 overflow-hidden">

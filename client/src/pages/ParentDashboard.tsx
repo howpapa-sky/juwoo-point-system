@@ -33,6 +33,18 @@ import { WORLDVIEW } from '@/lib/designTokens';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 
+interface ParentMission {
+  id: number;
+  mission_type: string;
+  title: string;
+  description: string;
+  worldview_label: string | null;
+  bonus_points: number;
+  is_completed: boolean;
+  completed_at: string | null;
+  week_number: number | null;
+}
+
 interface ApprovalItem {
   id: number;
   request_type: string;
@@ -58,8 +70,10 @@ export default function ParentDashboard() {
   const [streaks, setStreaks] = useState<StreakData[]>([]);
   const [weeklyStats, setWeeklyStats] = useState({ earned: 0, spent: 0, attempts: 0 });
   const [reminders, setReminders] = useState<string[]>([]);
+  const [missions, setMissions] = useState<ParentMission[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<number | null>(null);
+  const [missionProcessing, setMissionProcessing] = useState<number | null>(null);
 
   // Deduction dialog
   const [showDeductDialog, setShowDeductDialog] = useState(false);
@@ -71,7 +85,7 @@ export default function ParentDashboard() {
   const fetchData = useCallback(async () => {
     setLoading(true);
 
-    const [queueRes, streakRes, txRes, reminderRes] = await Promise.all([
+    const [queueRes, streakRes, txRes, reminderRes, missionRes] = await Promise.all([
       supabase
         .from('approval_queue')
         .select('*')
@@ -88,10 +102,15 @@ export default function ParentDashboard() {
         .from('parenting_reminders')
         .select('message')
         .eq('is_active', true),
+      supabase
+        .from('parent_missions')
+        .select('*')
+        .order('week_number', { ascending: true }),
     ]);
 
     setApprovalQueue(queueRes.data ?? []);
     setStreaks(streakRes.data ?? []);
+    setMissions(missionRes.data ?? []);
 
     if (txRes.data) {
       const earned = txRes.data.filter(t => (t.amount ?? 0) > 0).reduce((s, t) => s + (t.amount ?? 0), 0);
@@ -151,15 +170,17 @@ export default function ParentDashboard() {
       return;
     }
 
-    // Update routine_completions if applicable
-    if (item.reference_table === 'routine_completions' && item.reference_id) {
+    // Update reference table if applicable
+    if (item.reference_table && item.reference_id) {
+      const updatePayload: Record<string, unknown> = {
+        status: 'approved',
+        approved_by: user?.id ?? null,
+        approved_at: new Date().toISOString(),
+      };
+
       await supabase
-        .from('routine_completions')
-        .update({
-          status: 'approved',
-          approved_by: user?.id ?? null,
-          approved_at: new Date().toISOString(),
-        })
+        .from(item.reference_table)
+        .update(updatePayload)
         .eq('id', item.reference_id);
     }
 
@@ -193,9 +214,9 @@ export default function ParentDashboard() {
       })
       .eq('id', item.id);
 
-    if (item.reference_table === 'routine_completions' && item.reference_id) {
+    if (item.reference_table && item.reference_id) {
       await supabase
-        .from('routine_completions')
+        .from(item.reference_table)
         .update({ status: 'rejected' })
         .eq('id', item.reference_id);
     }
@@ -203,6 +224,42 @@ export default function ParentDashboard() {
     setApprovalQueue(prev => prev.filter(q => q.id !== item.id));
     toast('다시 해보자!');
     setProcessing(null);
+  };
+
+  const handleCompleteMission = async (mission: ParentMission) => {
+    setMissionProcessing(mission.id);
+
+    const { error } = await supabase
+      .from('parent_missions')
+      .update({
+        is_completed: true,
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', mission.id);
+
+    if (error) {
+      toast.error('미션 완료 처리에 오류가 발생했어요');
+      setMissionProcessing(null);
+      return;
+    }
+
+    // Award bonus points
+    const result = await adjustPoints({
+      amount: mission.bonus_points,
+      note: `아빠와 함께 미션: ${mission.title}`,
+    });
+
+    if (result.success) {
+      confetti({ particleCount: 80, spread: 100 });
+      toast.success(`탐험대 합동 미션 완료! +${mission.bonus_points.toLocaleString()} 에너지!`);
+    }
+
+    setMissionProcessing(null);
+    setMissions((prev) =>
+      prev.map((m) =>
+        m.id === mission.id ? { ...m, is_completed: true, completed_at: new Date().toISOString() } : m
+      )
+    );
   };
 
   const openDeductDialog = () => {
@@ -397,6 +454,67 @@ export default function ParentDashboard() {
             </Card>
           </div>
         </motion.div>
+
+        {/* 2.5 아빠와 함께 미션 */}
+        {missions.length > 0 && (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.25 }}
+          >
+            <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
+              <Star className="h-5 w-5 text-amber-500" />
+              아빠와 함께 미션
+            </h2>
+            <div className="space-y-2">
+              {missions.map((mission) => (
+                <Card key={mission.id} className={`border-0 shadow-sm rounded-xl ${mission.is_completed ? 'bg-amber-50' : ''}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        mission.is_completed ? 'bg-amber-100' : 'bg-slate-100'
+                      }`}>
+                        <span className="text-lg">
+                          {mission.mission_type === 'exercise' ? '💪' : mission.mission_type === 'reading' ? '📖' : '🌟'}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-800" style={{ fontSize: 16 }}>
+                          {mission.title}
+                        </p>
+                        <p className="text-sm text-slate-500">{mission.description}</p>
+                        {mission.worldview_label && (
+                          <p className="text-xs text-indigo-500 mt-0.5">{mission.worldview_label}</p>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-sm font-bold text-amber-600 mb-1">
+                          +{mission.bonus_points.toLocaleString()}
+                        </p>
+                        {mission.is_completed ? (
+                          <div className="flex items-center gap-1 text-amber-600">
+                            <Check className="h-4 w-4" />
+                            <span className="text-xs font-bold">완료!</span>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="bg-amber-500 hover:bg-amber-600 text-white"
+                            style={{ minHeight: 36 }}
+                            disabled={missionProcessing === mission.id}
+                            onClick={() => handleCompleteMission(mission)}
+                          >
+                            완료
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* 3. 차감 (Track C) */}
         <motion.div

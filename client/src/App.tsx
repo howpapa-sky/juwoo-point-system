@@ -35,6 +35,9 @@ import RoutineTimeline from "./pages/RoutineTimeline";
 import SleepBonus from "./pages/SleepBonus";
 import WorryBox from "./pages/WorryBox";
 import ParentDashboard from "./pages/ParentDashboard";
+import MyBookshelf from "./pages/MyBookshelf";
+import ReadingLog from "./pages/ReadingLog";
+import ExerciseLog from "./pages/ExerciseLog";
 // Admin CMS imports
 import AdminLayout from "./components/admin/AdminLayout";
 import { AdminDashboard, AdminPointRules, AdminShopItems, AdminEbooks, AdminQuizzes, AdminWords, AdminBadges, AdminSettings, AdminAnalytics } from "./pages/admin";
@@ -169,6 +172,28 @@ function Router() {
         {() => (
           <AppLayout>
             <ParentDashboard />
+          </AppLayout>
+        )}
+      </Route>
+      {/* Phase 3: 독서, 운동 */}
+      <Route path="/my-bookshelf">
+        {() => (
+          <AppLayout>
+            <MyBookshelf />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/reading-log">
+        {() => (
+          <AppLayout>
+            <ReadingLog />
+          </AppLayout>
+        )}
+      </Route>
+      <Route path="/exercise-log">
+        {() => (
+          <AppLayout>
+            <ExerciseLog />
           </AppLayout>
         )}
       </Route>

@@ -9,10 +9,11 @@ import { Link } from "wouter";
 import {
   ArrowLeft, Trophy, Star, Lock, Crown, Sparkles, Flame,
   Target, BookOpen, Zap, Medal, Award, Gift, CheckCircle,
-  TrendingUp, Calendar, Brain, ChevronRight
+  TrendingUp, Calendar, Brain, ChevronRight, Dumbbell
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBadges, BADGE_DEFINITIONS, RARITY_CONFIG, type BadgeCategory, type BadgeRarity, type UserStats } from "@/hooks/useBadges.js";
+import { useActivityBadges, type ActivityBadge } from "@/hooks/useActivityBadges";
 
 // ============================================
 // 배지 진행률 계산
@@ -340,15 +341,18 @@ export default function Badges() {
   const isAuthenticated = !!user;
 
   const { badges, earnedBadges, loading, stats, checkAndAwardBadges, loadUserStats } = useBadges();
+  const { badges: activityBadges, loading: activityLoading, loadBadges: loadActivityBadges, checkAllBadges: checkAllActivityBadges } = useActivityBadges();
 
   const [selectedCategory, setSelectedCategory] = useState<BadgeCategory | 'all'>('all');
   const [showEarned, setShowEarned] = useState<'all' | 'earned' | 'locked'>('all');
   const [selectedBadge, setSelectedBadge] = useState<typeof BADGE_DEFINITIONS[0] | null>(null);
+  const [activeTab, setActiveTab] = useState<'learning' | 'activity'>('learning');
 
   // 배지 체크 (페이지 진입 시)
   useEffect(() => {
     if (isAuthenticated) {
       checkAndAwardBadges();
+      loadActivityBadges();
     }
   }, [isAuthenticated]);
 
@@ -471,6 +475,148 @@ export default function Badges() {
           </p>
         </motion.div>
 
+        {/* 탭 */}
+        <div className="flex gap-2 mb-4">
+          <Button
+            variant={activeTab === 'learning' ? 'default' : 'outline'}
+            className={`flex-1 rounded-full ${activeTab === 'learning' ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-0' : 'bg-white/80'}`}
+            style={{ minHeight: 48 }}
+            onClick={() => setActiveTab('learning')}
+          >
+            <Brain className="h-4 w-4 mr-1" />
+            학습 배지
+          </Button>
+          <Button
+            variant={activeTab === 'activity' ? 'default' : 'outline'}
+            className={`flex-1 rounded-full ${activeTab === 'activity' ? 'bg-gradient-to-r from-indigo-500 to-emerald-500 border-0' : 'bg-white/80'}`}
+            style={{ minHeight: 48 }}
+            onClick={() => setActiveTab('activity')}
+          >
+            <BookOpen className="h-4 w-4 mr-1" />
+            독서/운동
+          </Button>
+        </div>
+
+        {/* 독서/운동 배지 탭 */}
+        {activeTab === 'activity' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            {/* 독서 배지 */}
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-indigo-600" />
+                독서 배지
+              </h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {activityBadges
+                  .filter((b) => b.badge_type === 'reading')
+                  .map((badge, index) => (
+                    <motion.div
+                      key={badge.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Card
+                        className={`relative overflow-hidden transition-all ${
+                          badge.is_earned
+                            ? 'border-2 border-indigo-400 shadow-lg shadow-indigo-100'
+                            : 'border-2 border-gray-200 opacity-70'
+                        }`}
+                      >
+                        {!badge.is_earned && (
+                          <div className="absolute top-2 left-2 z-10">
+                            <Lock className="h-4 w-4 text-gray-400" />
+                          </div>
+                        )}
+                        <CardContent className="p-3 flex flex-col items-center text-center">
+                          <div className={`text-4xl mb-2 ${!badge.is_earned && 'grayscale opacity-50'}`}>
+                            {badge.emoji}
+                          </div>
+                          <h3 className={`font-bold text-xs mb-0.5 ${badge.is_earned ? 'text-indigo-600' : 'text-gray-400'}`}>
+                            {badge.name}
+                          </h3>
+                          <p className="text-[10px] text-muted-foreground">{badge.description}</p>
+                          {badge.is_earned && (
+                            <div className="flex items-center gap-1 text-green-600 mt-1">
+                              <CheckCircle className="h-3 w-3" />
+                              <span className="text-[10px] font-bold">획득!</span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+              </div>
+            </div>
+
+            {/* 운동 배지 */}
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <Dumbbell className="h-5 w-5 text-emerald-600" />
+                운동 배지
+              </h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {activityBadges
+                  .filter((b) => b.badge_type === 'exercise')
+                  .map((badge, index) => (
+                    <motion.div
+                      key={badge.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Card
+                        className={`relative overflow-hidden transition-all ${
+                          badge.is_earned
+                            ? 'border-2 border-emerald-400 shadow-lg shadow-emerald-100'
+                            : 'border-2 border-gray-200 opacity-70'
+                        }`}
+                      >
+                        {!badge.is_earned && (
+                          <div className="absolute top-2 left-2 z-10">
+                            <Lock className="h-4 w-4 text-gray-400" />
+                          </div>
+                        )}
+                        <CardContent className="p-3 flex flex-col items-center text-center">
+                          <div className={`text-4xl mb-2 ${!badge.is_earned && 'grayscale opacity-50'}`}>
+                            {badge.emoji}
+                          </div>
+                          <h3 className={`font-bold text-xs mb-0.5 ${badge.is_earned ? 'text-emerald-600' : 'text-gray-400'}`}>
+                            {badge.name}
+                          </h3>
+                          <p className="text-[10px] text-muted-foreground">{badge.description}</p>
+                          {badge.is_earned && (
+                            <div className="flex items-center gap-1 text-green-600 mt-1">
+                              <CheckCircle className="h-3 w-3" />
+                              <span className="text-[10px] font-bold">획득!</span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+              </div>
+            </div>
+
+            {activityBadges.length === 0 && !activityLoading && (
+              <Card className="py-8 border-0 bg-white/80">
+                <CardContent className="text-center">
+                  <div className="text-5xl mb-4">📚</div>
+                  <p className="text-muted-foreground font-medium" style={{ fontSize: 16 }}>
+                    독서와 운동을 시작하면 배지를 얻을 수 있어요!
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </motion.div>
+        )}
+
+        {activeTab !== 'activity' && (
+        <>
         {/* 전체 진행률 카드 */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -701,6 +847,8 @@ export default function Badges() {
               </CardContent>
             </Card>
           </motion.div>
+        )}
+        </>
         )}
       </div>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,8 +36,31 @@ export default function SleepBonus() {
   const [selectedTime, setSelectedTime] = useState<TimeOption | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [alreadyRecorded, setAlreadyRecorded] = useState(false);
 
   const todayDate = getKSTDate();
+
+  // 오늘 이미 기록했는지 확인
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: existing } = await supabase
+          .from('sleep_records')
+          .select('id')
+          .eq('record_date', todayDate)
+          .single();
+
+        if (existing) {
+          setAlreadyRecorded(true);
+        }
+      } catch {
+        // 기록 없음 — 정상
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [todayDate]);
 
   const handleSubmit = async () => {
     if (!selectedTime || submitting) return;
@@ -101,6 +124,21 @@ export default function SleepBonus() {
     setSubmitted(true);
     setSubmitting(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-indigo-900 to-purple-900">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-4 border-indigo-400 border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-indigo-200" style={{ fontSize: 16 }}>불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (

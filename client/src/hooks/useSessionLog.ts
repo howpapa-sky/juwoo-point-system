@@ -48,7 +48,7 @@ export function useSessionLog() {
       if (error) throw error;
       return data?.id ?? null;
     } catch (err) {
-      console.error('Session start error:', err);
+      if (import.meta.env.DEV) console.error('Session start error:', err);
       return null;
     }
   }, []);
@@ -75,7 +75,7 @@ export function useSessionLog() {
 
       if (error) throw error;
     } catch (err) {
-      console.error('Answer log error:', err);
+      if (import.meta.env.DEV) console.error('Answer log error:', err);
     }
   }, []);
 
@@ -101,7 +101,7 @@ export function useSessionLog() {
 
       if (error) throw error;
     } catch (err) {
-      console.error('Session end error:', err);
+      if (import.meta.env.DEV) console.error('Session end error:', err);
     }
   }, []);
 
@@ -122,7 +122,7 @@ export function useSessionLog() {
       if (error) throw error;
       return data ?? [];
     } catch (err) {
-      console.error('Recent sessions error:', err);
+      if (import.meta.env.DEV) console.error('Recent sessions error:', err);
       return [];
     }
   }, []);
@@ -139,7 +139,7 @@ export function useSessionLog() {
       if (error) throw error;
       return data ?? [];
     } catch (err) {
-      console.error('Session answers error:', err);
+      if (import.meta.env.DEV) console.error('Session answers error:', err);
       return [];
     }
   }, []);

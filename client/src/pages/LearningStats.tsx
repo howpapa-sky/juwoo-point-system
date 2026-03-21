@@ -4,15 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import {
-  Calendar, TrendingUp, Target, Award, ArrowLeft, Star, Flame,
-  Trophy, Crown, Zap, BookOpen, Brain, Sparkles, Medal,
-  CheckCircle, XCircle, Clock, BarChart3, Users
+  Calendar, Target, Award, ArrowLeft, Flame,
+  Trophy, Crown, BookOpen, Brain, Sparkles,
+  BarChart3, Users
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { englishWordsData, type WordCategory } from "@/data/englishWordsData";
-import { motion, AnimatePresence } from "framer-motion";
+import { englishWordsData } from "@/data/englishWordsData";
+import { motion } from "framer-motion";
 import { useXP } from "@/hooks/useXP";
 import { useSRS } from "@/hooks/useSRS";
 import { SRS_BOX_META } from "@/lib/englishConstants";
@@ -78,6 +78,7 @@ interface DailyStat {
 export default function LearningStats() {
   const [progressData, setProgressData] = useState<LearningProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { profile, levelProgress } = useXP();
   const { gardenStats, totalWords: srsWordCount } = useSRS();
 
@@ -97,8 +98,9 @@ export default function LearningStats() {
         .order('last_reviewed_at', { ascending: false });
 
       setProgressData(data || []);
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to load stats:', error);
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('Failed to load stats:', err);
+      setError('잠깐, 데이터를 불러오지 못했어요');
     } finally {
       setLoading(false);
     }
@@ -240,6 +242,21 @@ export default function LearningStats() {
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full"
         />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <div className="text-center px-4">
+          <div className="text-5xl mb-4">😥</div>
+          <h2 className="text-xl font-bold mb-2">{error}</h2>
+          <p className="text-muted-foreground mb-4">잠시 후 다시 시도해 주세요.</p>
+          <Button onClick={() => { setError(null); setLoading(true); loadStats(); }} className="bg-gradient-to-r from-purple-500 to-pink-500">
+            다시 시도
+          </Button>
+        </div>
       </div>
     );
   }

@@ -32,7 +32,7 @@ export function useStoryProgress() {
       if (error) throw error;
       return data;
     } catch (err) {
-      console.error('Story progress load error:', err);
+      if (import.meta.env.DEV) console.error('Story progress load error:', err);
       return null;
     } finally {
       setLoading(false);
@@ -67,7 +67,7 @@ export function useStoryProgress() {
 
       if (error) throw error;
     } catch (err) {
-      console.error('Story progress save error:', err);
+      if (import.meta.env.DEV) console.error('Story progress save error:', err);
     }
   }, []);
 
@@ -83,7 +83,7 @@ export function useStoryProgress() {
       if (error) throw error;
       return (data ?? []).map((row) => row.story_id);
     } catch (err) {
-      console.error('Completed stories error:', err);
+      if (import.meta.env.DEV) console.error('Completed stories error:', err);
       return [];
     }
   }, []);

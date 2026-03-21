@@ -32,7 +32,7 @@ export function useUnitProgress() {
       if (error) throw error;
       setProgress(data ?? []);
     } catch (err) {
-      console.error('Unit progress load error:', err);
+      if (import.meta.env.DEV) console.error('Unit progress load error:', err);
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ export function useUnitProgress() {
       if (error) throw error;
       await loadProgress();
     } catch (err) {
-      console.error('Unit activate error:', err);
+      if (import.meta.env.DEV) console.error('Unit activate error:', err);
     }
   }, [loadProgress]);
 
@@ -106,7 +106,7 @@ export function useUnitProgress() {
       if (error) throw error;
       await loadProgress();
     } catch (err) {
-      console.error('Unit complete error:', err);
+      if (import.meta.env.DEV) console.error('Unit complete error:', err);
     }
   }, [loadProgress]);
 
@@ -124,7 +124,7 @@ export function useUnitProgress() {
 
       if (error) throw error;
     } catch (err) {
-      console.error('Mastery update error:', err);
+      if (import.meta.env.DEV) console.error('Mastery update error:', err);
     }
   }, []);
 

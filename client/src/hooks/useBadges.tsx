@@ -583,8 +583,10 @@ export function useBadges() {
         totalPointsEarned: totalEarned,
         wordsLearned,
         wordsMastered,
-        quizzesTaken: 0, // TODO: 퀴즈 테이블에서 조회
-        perfectQuizzes: 0, // TODO: 퀴즈 테이블에서 조회
+        // TODO(Phase 5): quiz_attempt_history 테이블에서 실제 데이터 조회
+        // 현재는 배지 해금에 영향 없음 (퀴즈 관련 배지 미활성화 상태)
+        quizzesTaken: 0,
+        perfectQuizzes: 0,
         streak,
         maxStreak,
         daysActive,

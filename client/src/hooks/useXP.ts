@@ -67,7 +67,7 @@ export function useXP() {
         setProfile(data);
       }
     } catch (err) {
-      console.error('XP profile load error:', err);
+      if (import.meta.env.DEV) console.error('XP profile load error:', err);
     } finally {
       setLoading(false);
     }
@@ -106,7 +106,7 @@ export function useXP() {
 
       return { xpGained: xp, leveledUp, newLevel: leveledUp ? newLevel : undefined };
     } catch (err) {
-      console.error('XP add error:', err);
+      if (import.meta.env.DEV) console.error('XP add error:', err);
       return { xpGained: 0, leveledUp: false };
     }
   }, []);
@@ -152,7 +152,7 @@ export function useXP() {
       profileRef.current = updated;
       setProfile(updated);
     } catch (err) {
-      console.error('Streak update error:', err);
+      if (import.meta.env.DEV) console.error('Streak update error:', err);
     }
   }, []);
 
@@ -176,7 +176,7 @@ export function useXP() {
       profileRef.current = updated;
       setProfile(updated);
     } catch (err) {
-      console.error('Stat update error:', err);
+      if (import.meta.env.DEV) console.error('Stat update error:', err);
     }
   }, []);
 

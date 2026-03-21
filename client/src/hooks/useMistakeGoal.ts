@@ -57,7 +57,7 @@ export function useMistakeGoal() {
       setTodayGoal(created);
       return created;
     } catch (err) {
-      console.error('실수 목표 로드 에러:', err);
+      if (import.meta.env.DEV) console.error('실수 목표 로드 에러:', err);
       return null;
     } finally {
       setLoading(false);
@@ -90,7 +90,7 @@ export function useMistakeGoal() {
       setTodayGoal(updated);
       return { goalMet };
     } catch (err) {
-      console.error('실수 목표 업데이트 에러:', err);
+      if (import.meta.env.DEV) console.error('실수 목표 업데이트 에러:', err);
       return null;
     }
   }, [todayGoal, loadOrCreateTodayGoal]);

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { SAVINGS_INTEREST_RATE } from "@/lib/investmentConstants";
+import { FlyingCoin, ShimmerEffect } from "@/components/invest/CoinAnimation";
 import { Link } from "wouter";
 import {
   ArrowLeft,
@@ -16,7 +17,7 @@ import {
   Info,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SavingsData {
@@ -47,6 +48,83 @@ export default function Savings() {
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [interestJustPaid, setInterestJustPaid] = useState<number | null>(null);
+  const [displayBalance, setDisplayBalance] = useState<number | null>(null);
+  const interestCheckedRef = useRef(false);
+  const [showDepositAnim, setShowDepositAnim] = useState(false);
+  const [showWithdrawAnim, setShowWithdrawAnim] = useState(false);
+
+  // 이자 자동 계산
+  const calculatePendingInterest = async () => {
+    if (interestCheckedRef.current) return;
+    interestCheckedRef.current = true;
+
+    const { data: account, error } = await supabase
+      .from("savings_account")
+      .select("*")
+      .eq("juwoo_id", 1)
+      .single();
+
+    if (error || !account || (account.balance ?? 0) <= 0) return;
+
+    const lastDate = new Date(account.last_interest_date ?? account.created_at);
+    const now = new Date();
+    const weeksPassed = Math.floor(
+      (now.getTime() - lastDate.getTime()) / (7 * 24 * 60 * 60 * 1000)
+    );
+
+    if (weeksPassed <= 0) return;
+
+    const rate = account.interest_rate ?? 0.03;
+    let balance = account.balance ?? 0;
+    const startBalance = balance;
+    let totalInterest = 0;
+
+    for (let i = 0; i < weeksPassed; i++) {
+      const interest = Math.floor(balance * rate);
+      if (interest <= 0) break;
+
+      const { error: histError } = await supabase.from("interest_history").insert({
+        savings_id: account.id,
+        balance_before: balance,
+        interest_amount: interest,
+        balance_after: balance + interest,
+      });
+      if (histError) break;
+
+      totalInterest += interest;
+      balance += interest;
+    }
+
+    if (totalInterest > 0) {
+      await supabase
+        .from("savings_account")
+        .update({
+          balance,
+          last_interest_date: now.toISOString(),
+        })
+        .eq("id", account.id);
+
+      setInterestJustPaid(totalInterest);
+      setDisplayBalance(startBalance);
+
+      // 카운트업 애니메이션
+      const steps = 20;
+      const increment = totalInterest / steps;
+      for (let i = 1; i <= steps; i++) {
+        setTimeout(() => {
+          setDisplayBalance(Math.floor(startBalance + increment * i));
+          if (i === steps) {
+            setDisplayBalance(null); // 실제 데이터로 전환
+          }
+        }, i * 40);
+      }
+
+      toast.success("금고에 이자가 쌓였어요!", {
+        description: `${weeksPassed}주 동안 +${totalInterest}코인 이자가 붙었어요!`,
+      });
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -100,7 +178,11 @@ export default function Savings() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    fetchData();
+    const init = async () => {
+      await calculatePendingInterest();
+      await fetchData();
+    };
+    init();
   }, [isAuthenticated]);
 
   const getNextSunday = () => {
@@ -150,6 +232,9 @@ export default function Savings() {
         note: `🏦 금고 입금 ${amount}코인`,
         created_by: 1,
       });
+
+      setShowDepositAnim(true);
+      setTimeout(() => setShowDepositAnim(false), 1000);
 
       toast.success(`금고에 ${amount}코인을 넣었어요!`, {
         description: "매주 일요일에 이자가 붙어요!",
@@ -204,6 +289,9 @@ export default function Savings() {
         created_by: 1,
       });
 
+      setShowWithdrawAnim(true);
+      setTimeout(() => setShowWithdrawAnim(false), 1000);
+
       toast.success(`금고에서 ${amount}코인을 꺼냈어요!`);
 
       setShowWithdrawModal(false);
@@ -256,6 +344,8 @@ export default function Savings() {
 
   return (
     <div className="min-h-screen pb-24 md:pb-8">
+      <FlyingCoin show={showDepositAnim} direction="to-vault" />
+      <FlyingCoin show={showWithdrawAnim} direction="from-vault" />
       {/* 배경 */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-blue-400/30 to-indigo-400/30 rounded-full blur-3xl" />
@@ -277,6 +367,36 @@ export default function Savings() {
           </div>
         </div>
 
+        {/* 이자 지급 알림 */}
+        <AnimatePresence>
+          {interestJustPaid !== null && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="relative"
+            >
+              <ShimmerEffect show={true}>
+                <Card className="border-0 bg-gradient-to-r from-emerald-400 to-teal-500 text-white rounded-2xl overflow-hidden">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <motion.span
+                      animate={{ rotate: [0, 15, -15, 0] }}
+                      transition={{ duration: 0.5, repeat: 2 }}
+                      className="text-3xl"
+                    >
+                      ✨
+                    </motion.span>
+                    <div>
+                      <p className="font-bold text-lg">금고에 이자가 쌓였어요!</p>
+                      <p className="text-white/80 text-sm">+{interestJustPaid}코인 이자 적립</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </ShimmerEffect>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* 금고 잔액 카드 */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="border-0 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 text-white overflow-hidden shadow-2xl shadow-blue-500/30 rounded-3xl">
@@ -287,7 +407,7 @@ export default function Savings() {
                 <p className="text-white/70 text-sm font-medium mb-1">금고 잔액</p>
                 <div className="flex items-end gap-2 mb-4">
                   <p className="text-4xl font-black tracking-tight">
-                    {savings?.balance.toLocaleString() || 0}
+                    {(displayBalance ?? savings?.balance ?? 0).toLocaleString()}
                     <span className="text-lg ml-1">코인</span>
                   </p>
                 </div>

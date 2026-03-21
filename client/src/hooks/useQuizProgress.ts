@@ -126,9 +126,9 @@ export function useQuizProgress(bookId: string) {
           book_id: bookId,
           quiz_tier: tier,
           is_unlocked: true,
-          is_completed: passed || (currentProgress?.is_completed || false),
-          best_score: isNewBestScore ? score : (currentProgress?.best_score || 0),
-          total_attempts: (currentProgress?.total_attempts || 0) + 1,
+          is_completed: passed || (currentProgress?.is_completed ?? false),
+          best_score: isNewBestScore ? score : (currentProgress?.best_score ?? 0),
+          total_attempts: (currentProgress?.total_attempts ?? 0) + 1,
           last_attempt_at: new Date().toISOString(),
           completed_at: passed ? new Date().toISOString() : currentProgress?.completed_at,
           updated_at: new Date().toISOString(),
@@ -190,20 +190,20 @@ export function useQuizProgress(bookId: string) {
   const isTierUnlocked = useCallback((tier: QuizTier): boolean => {
     if (tier === 'basic') {
       // 기초 퀴즈는 e북 완독 시 해금 (이 훅에서는 항상 true로 가정, 별도 체크 필요)
-      return progressByTier.basic?.is_unlocked || false;
+      return progressByTier.basic?.is_unlocked ?? false;
     }
     if (tier === 'intermediate') {
-      return progressByTier.intermediate?.is_unlocked || false;
+      return progressByTier.intermediate?.is_unlocked ?? false;
     }
     if (tier === 'master') {
-      return progressByTier.master?.is_unlocked || false;
+      return progressByTier.master?.is_unlocked ?? false;
     }
     return false;
   }, [progressByTier]);
 
   // 티어 완료 상태 확인
   const isTierCompleted = useCallback((tier: QuizTier): boolean => {
-    return progressByTier[tier]?.is_completed || false;
+    return progressByTier[tier]?.is_completed ?? false;
   }, [progressByTier]);
 
   return {
@@ -234,7 +234,7 @@ export async function awardQuizPoints(
       .eq('id', 1)
       .single();
 
-    const currentBalance = profile?.current_points || 0;
+    const currentBalance = profile?.current_points ?? 0;
     const newBalance = currentBalance + score;
 
     // 2. 트랜잭션 기록

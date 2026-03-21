@@ -297,13 +297,17 @@ export default function SeedFarm() {
     if (autoHarvestCheckedRef.current) return;
     autoHarvestCheckedRef.current = true;
 
-    const { data: readySeeds } = await supabase
+    const { data: readySeeds, error: readyError } = await supabase
       .from("seeds")
       .select("*")
       .eq("juwoo_id", 1)
       .eq("status", "growing")
       .lte("harvest_date", new Date().toISOString());
 
+    if (readyError) {
+      if (import.meta.env.DEV) console.error('수확 대상 조회 실패:', readyError);
+      return;
+    }
     if (!readySeeds || readySeeds.length === 0) return;
 
     const results: typeof autoHarvestResults = [];
@@ -318,7 +322,7 @@ export default function SeedFarm() {
       const profit = harvestedAmount - seed.invested_amount;
 
       // DB 업데이트
-      await supabase
+      const { error: updateError } = await supabase
         .from("seeds")
         .update({
           status: "harvested",
@@ -326,6 +330,10 @@ export default function SeedFarm() {
           harvested_amount: harvestedAmount,
         })
         .eq("id", seed.id);
+      if (updateError) {
+        if (import.meta.env.DEV) console.error('씨앗 수확 업데이트 실패:', updateError);
+        continue;
+      }
 
       // 포인트 적립 (adjustPoints 사용)
       const profitText = profit >= 0 ? `+${profit}` : `${profit}`;
@@ -354,20 +362,30 @@ export default function SeedFarm() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("juwoo_profile")
         .select("current_points")
         .eq("id", 1)
         .single();
-      setWalletBalance(profileData?.current_points || 0);
+      if (profileError) {
+        if (import.meta.env.DEV) console.error('프로필 조회 실패:', profileError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
+      setWalletBalance(profileData?.current_points ?? 0);
 
       // 자라는 중인 씨앗
-      const { data: growingSeeds } = await supabase
+      const { data: growingSeeds, error: growingError } = await supabase
         .from("seeds")
         .select("*")
         .eq("juwoo_id", 1)
         .in("status", ["growing", "ready"])
         .order("planted_date", { ascending: false });
+      if (growingError) {
+        if (import.meta.env.DEV) console.error('성장 중 씨앗 조회 실패:', growingError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
       // 수확 가능한 씨앗 체크 (harvest_date가 지남)
       const now = new Date();
@@ -384,28 +402,34 @@ export default function SeedFarm() {
           seed.status === "ready" &&
           growingSeeds?.find((s: Seed) => s.id === seed.id)?.status === "growing"
         ) {
-          await supabase.from("seeds").update({ status: "ready" }).eq("id", seed.id);
+          const { error: readyUpdateError } = await supabase.from("seeds").update({ status: "ready" }).eq("id", seed.id);
+          if (readyUpdateError) {
+            if (import.meta.env.DEV) console.error('씨앗 상태 업데이트 실패:', readyUpdateError);
+          }
         }
       }
 
       setActiveSeeds(updatedSeeds);
 
       // 수확 완료 기록
-      const { data: harvestedSeeds } = await supabase
+      const { data: harvestedSeeds, error: harvestedError } = await supabase
         .from("seeds")
         .select("*")
         .eq("juwoo_id", 1)
         .eq("status", "harvested")
         .order("harvest_date", { ascending: false })
         .limit(20);
+      if (harvestedError) {
+        if (import.meta.env.DEV) console.error('수확 기록 조회 실패:', harvestedError);
+      }
 
-      setHarvestHistory(harvestedSeeds || []);
+      setHarvestHistory(harvestedSeeds ?? []);
 
       // 숨겨진 씨앗 해금 체크
-      const allSeedsData = [...updatedSeeds, ...(harvestedSeeds || [])];
-      const totalInvested = allSeedsData.reduce((sum, s) => sum + (s.invested_amount || 0), 0);
-      const totalProfit = (harvestedSeeds || []).reduce(
-        (sum: number, s: Seed) => sum + ((s.harvested_amount || 0) - s.invested_amount),
+      const allSeedsData = [...updatedSeeds, ...(harvestedSeeds ?? [])];
+      const totalInvested = allSeedsData.reduce((sum, s) => sum + (s.invested_amount ?? 0), 0);
+      const totalProfit = (harvestedSeeds ?? []).reduce(
+        (sum: number, s: Seed) => sum + ((s.harvested_amount ?? 0) - s.invested_amount),
         0
       );
 
@@ -467,13 +491,13 @@ export default function SeedFarm() {
     try {
       const now = new Date();
       const harvestDate = new Date(now);
-      const growthDays = GROWTH_DAYS[selectedSeedType.type] || 14;
+      const growthDays = GROWTH_DAYS[selectedSeedType.type] ?? 14;
       harvestDate.setDate(harvestDate.getDate() + growthDays);
 
       const diary = diaryEntry === "custom" ? customDiary : diaryEntry;
 
       // 씨앗 생성
-      await supabase.from("seeds").insert({
+      const { error: seedError } = await supabase.from("seeds").insert({
         juwoo_id: 1,
         seed_type: selectedSeedType.type,
         invested_amount: amount,
@@ -482,16 +506,26 @@ export default function SeedFarm() {
         status: "growing",
         diary_entry: diary || null,
       });
+      if (seedError) {
+        if (import.meta.env.DEV) console.error('씨앗 생성 실패:', seedError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
       // 지갑에서 차감
       const newBalance = walletBalance - amount;
-      await supabase
+      const { error: walletError } = await supabase
         .from("juwoo_profile")
         .update({ current_points: newBalance })
         .eq("id", 1);
+      if (walletError) {
+        if (import.meta.env.DEV) console.error('지갑 차감 실패:', walletError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
       // 거래 내역
-      await supabase.from("point_transactions").insert({
+      const { error: txError } = await supabase.from("point_transactions").insert({
         juwoo_id: 1,
         rule_id: null,
         amount: -amount,
@@ -499,6 +533,9 @@ export default function SeedFarm() {
         note: `🌱 씨앗 심기: ${selectedSeedType.icon} ${selectedSeedType.name} ${amount}코인`,
         created_by: 1,
       });
+      if (txError) {
+        if (import.meta.env.DEV) console.error('거래 내역 기록 실패:', txError);
+      }
 
       // 코인 이동 애니메이션
       setShowPlantAnimation(true);
@@ -530,7 +567,7 @@ export default function SeedFarm() {
     const weather = getTodayWeather();
     const baseMultiplier = getResultMultiplier(seed.seed_type);
     const weatherBonus = getWeatherBonus(seed.seed_type);
-    const minGuarantee = MIN_GUARANTEE[seed.seed_type] || 0.1;
+    const minGuarantee = MIN_GUARANTEE[seed.seed_type] ?? 0.1;
     const multiplier = Math.max(minGuarantee, baseMultiplier + weatherBonus);
     const harvestedAmount = Math.max(1, Math.floor(seed.invested_amount * multiplier));
 
@@ -538,7 +575,7 @@ export default function SeedFarm() {
     setTimeout(async () => {
       try {
         // DB 업데이트
-        await supabase
+        const { error: seedUpdateError } = await supabase
           .from("seeds")
           .update({
             status: "harvested",
@@ -546,26 +583,44 @@ export default function SeedFarm() {
             harvested_amount: harvestedAmount,
           })
           .eq("id", seed.id);
+        if (seedUpdateError) {
+          if (import.meta.env.DEV) console.error('씨앗 수확 업데이트 실패:', seedUpdateError);
+          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          setShowHarvestAnimation(false);
+          return;
+        }
 
         // 지갑에 추가
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from("juwoo_profile")
           .select("current_points")
           .eq("id", 1)
           .single();
+        if (profileError) {
+          if (import.meta.env.DEV) console.error('프로필 조회 실패:', profileError);
+          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          setShowHarvestAnimation(false);
+          return;
+        }
 
-        const currentBalance = profileData?.current_points || 0;
+        const currentBalance = profileData?.current_points ?? 0;
         const newBalance = currentBalance + harvestedAmount;
 
-        await supabase
+        const { error: walletUpdateError } = await supabase
           .from("juwoo_profile")
           .update({ current_points: newBalance })
           .eq("id", 1);
+        if (walletUpdateError) {
+          if (import.meta.env.DEV) console.error('지갑 업데이트 실패:', walletUpdateError);
+          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          setShowHarvestAnimation(false);
+          return;
+        }
 
         // 거래 내역
         const profit = harvestedAmount - seed.invested_amount;
         const profitText = profit >= 0 ? `+${profit}` : `${profit}`;
-        await supabase.from("point_transactions").insert({
+        const { error: txError } = await supabase.from("point_transactions").insert({
           juwoo_id: 1,
           rule_id: null,
           amount: harvestedAmount,
@@ -573,6 +628,9 @@ export default function SeedFarm() {
           note: `🌱 씨앗 수확: ${getSeedIcon(seed.seed_type)} ${harvestedAmount}코인 (${profitText})`,
           created_by: 1,
         });
+        if (txError) {
+          if (import.meta.env.DEV) console.error('거래 내역 기록 실패:', txError);
+        }
 
         setHarvestResult({
           seed,
@@ -609,11 +667,16 @@ export default function SeedFarm() {
     if (!harvestResult) return;
     try {
       if (harvestReflection) {
-        await supabase
+        const { error: reflectionError } = await supabase
           .from("seeds")
           .update({ diary_reflection: harvestReflection })
           .eq("id", harvestResult.seed.id);
-        toast.success("투자 일기를 저장했어요!");
+        if (reflectionError) {
+          if (import.meta.env.DEV) console.error('투자 일기 저장 실패:', reflectionError);
+          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        } else {
+          toast.success("투자 일기를 저장했어요!");
+        }
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error("Error saving reflection:", error);
@@ -1083,8 +1146,8 @@ export default function SeedFarm() {
   // ============================================
   if (step === "amount" && selectedSeedType) {
     const amount = parseInt(plantAmount) || 0;
-    const bestCase = Math.floor(amount * (MAX_MULTIPLIER[selectedSeedType.type] || 1.1));
-    const worstCase = Math.floor(amount * (MIN_GUARANTEE[selectedSeedType.type] || 1.0));
+    const bestCase = Math.floor(amount * (MAX_MULTIPLIER[selectedSeedType.type] ?? 1.1));
+    const worstCase = Math.floor(amount * (MIN_GUARANTEE[selectedSeedType.type] ?? 1.0));
 
     return (
       <div className="min-h-screen pb-24 md:pb-8">
@@ -1287,9 +1350,9 @@ export default function SeedFarm() {
         // 각 씨앗별로 개별 레코드 생성
         for (const [seedType, amount] of entries) {
           const harvestDate = new Date(now);
-          harvestDate.setDate(harvestDate.getDate() + (GROWTH_DAYS[seedType] || 14));
+          harvestDate.setDate(harvestDate.getDate() + (GROWTH_DAYS[seedType] ?? 14));
 
-          await supabase.from("seeds").insert({
+          const { error: seedInsertError } = await supabase.from("seeds").insert({
             juwoo_id: 1,
             seed_type: seedType,
             invested_amount: amount,
@@ -1298,21 +1361,31 @@ export default function SeedFarm() {
             status: "growing",
             diary_entry: "묶음 심기",
           });
+          if (seedInsertError) {
+            if (import.meta.env.DEV) console.error('묶음 씨앗 생성 실패:', seedInsertError);
+            toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+            return;
+          }
         }
 
         // 지갑 차감 (유효 항목 합계만)
         const newBalance = walletBalance - validTotal;
-        await supabase
+        const { error: walletError } = await supabase
           .from("juwoo_profile")
           .update({ current_points: newBalance })
           .eq("id", 1);
+        if (walletError) {
+          if (import.meta.env.DEV) console.error('지갑 차감 실패:', walletError);
+          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          return;
+        }
 
         // 거래 내역
         const seedNames = entries.map(([type]) => {
           const seed = SEED_TYPES.find((s) => s.type === type);
           return seed ? `${seed.icon}${seed.name}` : type;
         });
-        await supabase.from("point_transactions").insert({
+        const { error: txError } = await supabase.from("point_transactions").insert({
           juwoo_id: 1,
           rule_id: null,
           amount: -validTotal,
@@ -1320,6 +1393,9 @@ export default function SeedFarm() {
           note: `🌈 묶음 심기: ${seedNames.join(", ")} (${validTotal}코인)`,
           created_by: 1,
         });
+        if (txError) {
+          if (import.meta.env.DEV) console.error('거래 내역 기록 실패:', txError);
+        }
 
         toast.success("묶음 심기 완료!", {
           description: `${entries.length}종류의 씨앗을 심었어요!`,
@@ -1339,10 +1415,10 @@ export default function SeedFarm() {
     // 예측 범위 계산
     const bundleMin = Object.entries(bundleAllocations)
       .filter(([, v]) => v >= 10)
-      .reduce((sum, [type, amt]) => sum + Math.floor(amt * (MIN_GUARANTEE[type] || 1.0)), 0);
+      .reduce((sum, [type, amt]) => sum + Math.floor(amt * (MIN_GUARANTEE[type] ?? 1.0)), 0);
     const bundleMax = Object.entries(bundleAllocations)
       .filter(([, v]) => v >= 10)
-      .reduce((sum, [type, amt]) => sum + Math.floor(amt * (MAX_MULTIPLIER[type] || 1.1)), 0);
+      .reduce((sum, [type, amt]) => sum + Math.floor(amt * (MAX_MULTIPLIER[type] ?? 1.1)), 0);
 
     return (
       <div className="min-h-screen pb-24 md:pb-8">
@@ -1614,7 +1690,7 @@ export default function SeedFarm() {
                               예상 수확:{" "}
                               {seedType?.type === "sunflower"
                                 ? `${Math.floor(seed.invested_amount * 1.1)}코인 확정`
-                                : `${Math.floor(seed.invested_amount * (MIN_GUARANTEE[seedType?.type || "tree"] || 0.85))}~${Math.floor(seed.invested_amount * (MAX_MULTIPLIER[seedType?.type || "tree"] || 1.4))}코인`}
+                                : `${Math.floor(seed.invested_amount * (MIN_GUARANTEE[seedType?.type ?? "tree"] ?? 0.85))}~${Math.floor(seed.invested_amount * (MAX_MULTIPLIER[seedType?.type ?? "tree"] ?? 1.4))}코인`}
                             </span>
                           </div>
                           <Progress value={progress} className="h-2.5" />
@@ -1693,7 +1769,7 @@ export default function SeedFarm() {
               {harvestHistory.length > 0 ? (
                 <div className="space-y-2">
                   {harvestHistory.map((seed) => {
-                    const profit = (seed.harvested_amount || 0) - seed.invested_amount;
+                    const profit = (seed.harvested_amount ?? 0) - seed.invested_amount;
                     const isProfit = profit >= 0;
                     return (
                       <div

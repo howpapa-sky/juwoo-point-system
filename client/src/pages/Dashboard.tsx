@@ -117,7 +117,7 @@ export default function Dashboard() {
           .single();
 
         if (profileError) throw profileError;
-        setBalance(profileData?.current_points || 0);
+        setBalance(profileData?.current_points ?? 0);
 
         // 금고 잔액
         const { data: savingsData } = await supabase
@@ -125,7 +125,7 @@ export default function Dashboard() {
           .select("balance")
           .eq("juwoo_id", 1)
           .single();
-        setSavingsBalance(savingsData?.balance || 0);
+        setSavingsBalance(savingsData?.balance ?? 0);
 
         // 씨앗밭 투자액
         const { data: seedsData } = await supabase
@@ -302,7 +302,7 @@ export default function Dashboard() {
             <span className="text-slate-500 font-medium">안녕하세요!</span>
           </div>
           <h1 className="text-3xl font-black text-slate-800">
-            {user?.user_metadata?.name || user?.email?.split("@")[0] || "주우"}님
+            {user?.user_metadata?.name ?? user?.email?.split("@")[0] ?? "주우"}님
           </h1>
         </div>
 

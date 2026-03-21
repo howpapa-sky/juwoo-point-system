@@ -105,5 +105,5 @@ export function getTodayWeather(): Weather {
 
 export function getWeatherBonus(seedType: string): number {
   const weather = getTodayWeather();
-  return weather.seedBonus[seedType] || 0;
+  return weather.seedBonus[seedType] ?? 0;
 }

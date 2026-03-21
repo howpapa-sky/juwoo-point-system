@@ -131,7 +131,7 @@ export default function AdminAnalytics() {
     const categoryMap = new Map<string, { name: string; earned: number; spent: number; count: number }>();
     transactions.forEach(t => {
       let category = '기타';
-      const note = t.note?.toLowerCase() || '';
+      const note = t.note?.toLowerCase() ?? '';
       if (note.includes('퀴즈') || note.includes('quiz')) category = '퀴즈';
       else if (note.includes('플래시') || note.includes('단어') || note.includes('학습')) category = '학습';
       else if (note.includes('책') || note.includes('읽기')) category = '읽기';
@@ -213,8 +213,8 @@ export default function AdminAnalytics() {
 
     const totalWords = learningProgress.length;
     const masteredWords = learningProgress.filter(p => p.mastery_level >= 3).length;
-    const totalReviews = learningProgress.reduce((sum, p) => sum + (p.review_count || 0), 0);
-    const totalCorrect = learningProgress.reduce((sum, p) => sum + (p.correct_count || 0), 0);
+    const totalReviews = learningProgress.reduce((sum, p) => sum + (p.review_count ?? 0), 0);
+    const totalCorrect = learningProgress.reduce((sum, p) => sum + (p.correct_count ?? 0), 0);
     const accuracy = totalReviews > 0 ? Math.round((totalCorrect / totalReviews) * 100) : 0;
 
     // 마스터리 분포
@@ -227,9 +227,9 @@ export default function AdminAnalytics() {
 
     // 퀴즈 통계
     const completedQuizzes = quizProgress.filter(q => q.is_completed).length;
-    const totalAttempts = quizProgress.reduce((sum, q) => sum + (q.total_attempts || 0), 0);
+    const totalAttempts = quizProgress.reduce((sum, q) => sum + (q.total_attempts ?? 0), 0);
     const avgScore = quizProgress.length > 0
-      ? Math.round(quizProgress.reduce((sum, q) => sum + (q.best_score || 0), 0) / quizProgress.length)
+      ? Math.round(quizProgress.reduce((sum, q) => sum + (q.best_score ?? 0), 0) / quizProgress.length)
       : 0;
 
     const quizByTier = [
@@ -263,7 +263,7 @@ export default function AdminAnalytics() {
     // 배지 카테고리별
     const badgesByCategory = badges.reduce((acc: Record<string, number>, b: any) => {
       const category = b.badges?.category || '기타';
-      acc[category] = (acc[category] || 0) + 1;
+      acc[category] = (acc[category] ?? 0) + 1;
       return acc;
     }, {});
 
@@ -291,14 +291,14 @@ export default function AdminAnalytics() {
     const { purchases } = data;
 
     const totalPurchases = purchases.length;
-    const totalSpent = purchases.reduce((sum, p) => sum + (p.point_cost || 0), 0);
+    const totalSpent = purchases.reduce((sum, p) => sum + (p.point_cost ?? 0), 0);
     const completedPurchases = purchases.filter(p => p.status === 'completed').length;
 
     // 카테고리별 구매
     const categoryMap = new Map<string, number>();
     purchases.forEach((p: any) => {
       const category = p.shop_items?.category || '기타';
-      categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
+      categoryMap.set(category, (categoryMap.get(category) ?? 0) + 1);
     });
     const purchaseByCategoryData = Array.from(categoryMap.entries()).map(([name, value]) => ({
       name,
@@ -402,7 +402,7 @@ export default function AdminAnalytics() {
                     {pointsAnalytics ? `-${pointsAnalytics.totalSpent.toLocaleString()}` : '0'}
                   </p>
                   <p className="text-xs mt-1 opacity-80">
-                    {pointsAnalytics?.spendCount || 0}회 사용
+                    {pointsAnalytics?.spendCount ?? 0}회 사용
                   </p>
                 </div>
                 <TrendingDown className="h-8 w-8 opacity-80" />
@@ -638,19 +638,19 @@ export default function AdminAnalytics() {
               <div className="p-4 bg-green-50 rounded-xl">
                 <div className="text-sm text-green-700">평균 적립</div>
                 <div className="text-2xl font-bold text-green-600">
-                  {pointsAnalytics?.avgEarn || 0}P
+                  {pointsAnalytics?.avgEarn ?? 0}P
                 </div>
               </div>
               <div className="p-4 bg-red-50 rounded-xl">
                 <div className="text-sm text-red-700">평균 사용</div>
                 <div className="text-2xl font-bold text-red-600">
-                  {pointsAnalytics?.avgSpend || 0}P
+                  {pointsAnalytics?.avgSpend ?? 0}P
                 </div>
               </div>
               <div className="p-4 bg-blue-50 rounded-xl">
                 <div className="text-sm text-blue-700">최대 적립</div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {pointsAnalytics?.biggestEarn || 0}P
+                  {pointsAnalytics?.biggestEarn ?? 0}P
                 </div>
               </div>
               <div className="p-4 bg-purple-50 rounded-xl">

@@ -410,7 +410,7 @@ export default function ReadingLog() {
           <Input
             type="number"
             placeholder="0"
-            value={pagesRead || ''}
+            value={pagesRead ?? ''}
             onChange={(e) => setPagesRead(parseInt(e.target.value) || 0)}
             className="text-center text-lg"
             style={{ fontSize: 16 }}

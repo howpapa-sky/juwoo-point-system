@@ -88,7 +88,7 @@ export default function Transactions() {
 
       if (juwooError) throw juwooError;
 
-      const newBalance = (juwooData?.current_points || 0) - amount;
+      const newBalance = (juwooData?.current_points ?? 0) - amount;
 
       const { error: updateBalanceError } = await supabase
         .from('juwoo_profile')

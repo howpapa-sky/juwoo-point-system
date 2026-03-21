@@ -86,7 +86,7 @@ export function useEbookProgress(bookId: string, totalPages: number) {
     if (progress?.is_completed) return false;
 
     const result = await saveProgress(totalPages - 1);
-    return result?.isFirstCompletion || false;
+    return result?.isFirstCompletion ?? false;
   }, [bookId, totalPages, progress?.is_completed, saveProgress]);
 
   useEffect(() => {
@@ -100,8 +100,8 @@ export function useEbookProgress(bookId: string, totalPages: number) {
     saveProgress,
     markAsCompleted,
     reload: loadProgress,
-    isCompleted: progress?.is_completed || false,
-    currentPage: progress?.current_page || 0,
+    isCompleted: progress?.is_completed ?? false,
+    currentPage: progress?.current_page ?? 0,
   };
 }
 
@@ -126,5 +126,5 @@ export async function isBookCompleted(bookId: string): Promise<boolean> {
     .single();
 
   if (error) return false;
-  return data?.is_completed || false;
+  return data?.is_completed ?? false;
 }

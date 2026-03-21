@@ -35,7 +35,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
 
         // 관리자 이메일로 역할 결정 (DB 조회 없이)
         const adminEmails = ['appearyong@gmail.com', 'admin@juwoo.com'];
-        const userEmail = session.user.email || '';
+        const userEmail = session.user.email ?? '';
         const role = adminEmails.includes(userEmail) ? 'admin' : 'user';
         if (import.meta.env.DEV) console.log('[Auth] User role determined:', role);
         setUserRole(role);

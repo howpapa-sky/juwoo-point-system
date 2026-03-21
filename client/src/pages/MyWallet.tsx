@@ -110,8 +110,8 @@ export default function MyWallet() {
           .reduce((sum: number, t: any) => sum + t.amount, 0);
 
         setSummary({
-          currentBalance: profileData?.current_points || 0,
-          savingsBalance: savingsData?.balance || 0,
+          currentBalance: profileData?.current_points ?? 0,
+          savingsBalance: savingsData?.balance ?? 0,
           investmentBalance,
           monthlyEarned,
           monthlySpent,

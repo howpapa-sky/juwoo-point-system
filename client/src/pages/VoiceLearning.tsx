@@ -146,7 +146,7 @@ export default function VoiceLearning() {
 
         if (profile) {
           const newPoints = profile.current_points + 500;
-          await supabase.from('point_transactions').insert({
+          const { error: txError } = await supabase.from('point_transactions').insert({
             juwoo_id: 1,
             rule_id: null,
             amount: 500,
@@ -154,11 +154,19 @@ export default function VoiceLearning() {
             note: '음성 학습 완료',
             created_by: 1, // 시스템/관리자
           });
+          if (txError) {
+            if (import.meta.env.DEV) console.error('포인트 거래 기록 에러:', txError);
+            return;
+          }
 
-          await supabase
+          const { error: updateError } = await supabase
             .from('juwoo_profile')
             .update({ current_points: newPoints })
             .eq('id', 1);
+          if (updateError) {
+            if (import.meta.env.DEV) console.error('프로필 업데이트 에러:', updateError);
+            return;
+          }
 
           toast.success(`🎉 학습 완료! +500 포인트 적립!`);
         }

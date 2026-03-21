@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import InvestTutorial, { shouldShowTutorial } from "@/components/invest/InvestTutorial";
 
 interface WalletSummary {
   currentBalance: number;
@@ -42,9 +43,14 @@ export default function MyWallet() {
     monthlyInvestReturn: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [showDadView, setShowDadView] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) return;
+    if (shouldShowTutorial()) {
+      setShowTutorial(true);
+    }
 
     const fetchWalletData = async () => {
       setLoading(true);
@@ -104,8 +110,8 @@ export default function MyWallet() {
           .reduce((sum: number, t: any) => sum + t.amount, 0);
 
         setSummary({
-          currentBalance: profileData?.current_points || 0,
-          savingsBalance: savingsData?.balance || 0,
+          currentBalance: profileData?.current_points ?? 0,
+          savingsBalance: savingsData?.balance ?? 0,
           investmentBalance,
           monthlyEarned,
           monthlySpent,
@@ -156,6 +162,10 @@ export default function MyWallet() {
         <p className="text-slate-500 mt-6 font-medium">지갑을 열고 있어요...</p>
       </div>
     );
+  }
+
+  if (showTutorial) {
+    return <InvestTutorial onClose={() => setShowTutorial(false)} />;
   }
 
   const totalAssets =
@@ -438,6 +448,92 @@ export default function MyWallet() {
             </Link>
           </div>
         </motion.div>
+
+        {/* 아빠와 함께 투자 보기 */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <Button
+            variant="outline"
+            className="w-full h-14 rounded-2xl font-bold border-2 border-violet-200 text-violet-700 hover:bg-violet-50 active:scale-[0.98] transition-all"
+            onClick={() => setShowDadView(!showDadView)}
+          >
+            <span className="text-xl mr-2">👨‍👦</span>
+            아빠와 함께 투자 보기
+          </Button>
+        </motion.div>
+
+        {/* 아빠와 함께 보기 뷰 */}
+        <AnimatePresence>
+          {showDadView && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <Card className="border-0 bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl shadow-lg">
+                <CardContent className="p-5 space-y-4">
+                  <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">
+                    👨‍👦 아빠한테 설명해볼까?
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="p-3 bg-white/70 rounded-xl">
+                      <p className="text-sm text-slate-500 mb-1">내 전체 자산</p>
+                      <p className="text-2xl font-black text-slate-800">
+                        {totalAssets.toLocaleString()} 코인
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="p-2 bg-orange-50 rounded-lg text-center">
+                        <p className="text-xs text-slate-500">지갑</p>
+                        <p className="text-sm font-bold text-orange-600">
+                          {summary.currentBalance.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="p-2 bg-blue-50 rounded-lg text-center">
+                        <p className="text-xs text-slate-500">금고</p>
+                        <p className="text-sm font-bold text-blue-600">
+                          {summary.savingsBalance.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="p-2 bg-emerald-50 rounded-lg text-center">
+                        <p className="text-xs text-slate-500">씨앗밭</p>
+                        <p className="text-sm font-bold text-emerald-600">
+                          {summary.investmentBalance.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-white/70 rounded-xl">
+                      <p className="text-sm text-slate-600">
+                        이번 달 번 코인: <strong className="text-emerald-600">+{summary.monthlyEarned.toLocaleString()}</strong>
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        이번 달 쓴 코인: <strong className="text-orange-600">-{summary.monthlySpent.toLocaleString()}</strong>
+                      </p>
+                      {summary.monthlyInterest > 0 && (
+                        <p className="text-sm text-slate-600">
+                          이자 수입: <strong className="text-blue-600">+{summary.monthlyInterest.toLocaleString()}</strong>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-violet-100 rounded-xl">
+                    <p className="text-sm text-violet-700">
+                      💡 주우가 아빠에게 자기 자산을 직접 설명해보는 건 어떨까요? (VCI 111 강점 활용)
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

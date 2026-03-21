@@ -183,7 +183,7 @@ export default function PronunciationPractice() {
 
         if (!profileErr && profile) {
           const newBalance = (profile.current_points ?? 0) + totalCoins;
-          await supabase.from('point_transactions').insert({
+          const { error: txError } = await supabase.from('point_transactions').insert({
             juwoo_id: 1,
             rule_id: null,
             amount: totalCoins,
@@ -191,7 +191,12 @@ export default function PronunciationPractice() {
             note: `발음 연습 보상 (${total}단어)`,
             created_by: 1,
           });
-          await supabase.from('juwoo_profile').update({ current_points: newBalance }).eq('id', 1);
+          if (txError) {
+            if (import.meta.env.DEV) console.error('발음 연습 포인트 기록 에러:', txError);
+          } else {
+            const { error: updateError } = await supabase.from('juwoo_profile').update({ current_points: newBalance }).eq('id', 1);
+            if (updateError && import.meta.env.DEV) console.error('프로필 업데이트 에러:', updateError);
+          }
         }
       }
 

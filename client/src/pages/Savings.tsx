@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { SAVINGS_INTEREST_RATE } from "@/lib/investmentConstants";
+import { FlyingCoin, ShimmerEffect } from "@/components/invest/CoinAnimation";
 import { Link } from "wouter";
 import {
   ArrowLeft,
@@ -16,7 +17,7 @@ import {
   Info,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SavingsData {
@@ -47,29 +48,126 @@ export default function Savings() {
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [interestJustPaid, setInterestJustPaid] = useState<number | null>(null);
+  const [displayBalance, setDisplayBalance] = useState<number | null>(null);
+  const interestCheckedRef = useRef(false);
+  const [showDepositAnim, setShowDepositAnim] = useState(false);
+  const [showWithdrawAnim, setShowWithdrawAnim] = useState(false);
+
+  // 이자 자동 계산
+  const calculatePendingInterest = async () => {
+    if (interestCheckedRef.current) return;
+    interestCheckedRef.current = true;
+
+    const { data: account, error } = await supabase
+      .from("savings_account")
+      .select("*")
+      .eq("juwoo_id", 1)
+      .single();
+
+    if (error || !account || (account.balance ?? 0) <= 0) return;
+
+    const lastDate = new Date(account.last_interest_date ?? account.created_at);
+    const now = new Date();
+    const weeksPassed = Math.floor(
+      (now.getTime() - lastDate.getTime()) / (7 * 24 * 60 * 60 * 1000)
+    );
+
+    if (weeksPassed <= 0) return;
+
+    const rate = account.interest_rate ?? 0.03;
+    let balance = account.balance ?? 0;
+    const startBalance = balance;
+    let totalInterest = 0;
+
+    for (let i = 0; i < weeksPassed; i++) {
+      const interest = Math.floor(balance * rate);
+      if (interest <= 0) break;
+
+      const { error: histError } = await supabase.from("interest_history").insert({
+        savings_id: account.id,
+        balance_before: balance,
+        interest_amount: interest,
+        balance_after: balance + interest,
+      });
+      if (histError) break;
+
+      totalInterest += interest;
+      balance += interest;
+    }
+
+    if (totalInterest > 0) {
+      const { error: updateError } = await supabase
+        .from("savings_account")
+        .update({
+          balance,
+          last_interest_date: now.toISOString(),
+        })
+        .eq("id", account.id);
+      if (updateError) {
+        if (import.meta.env.DEV) console.error('이자 반영 실패:', updateError);
+        return;
+      }
+
+      setInterestJustPaid(totalInterest);
+      setDisplayBalance(startBalance);
+
+      // 카운트업 애니메이션
+      const steps = 20;
+      const increment = totalInterest / steps;
+      for (let i = 1; i <= steps; i++) {
+        setTimeout(() => {
+          setDisplayBalance(Math.floor(startBalance + increment * i));
+          if (i === steps) {
+            setDisplayBalance(null); // 실제 데이터로 전환
+          }
+        }, i * 40);
+      }
+
+      toast.success("금고에 이자가 쌓였어요!", {
+        description: `${weeksPassed}주 동안 +${totalInterest}코인 이자가 붙었어요!`,
+      });
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("juwoo_profile")
         .select("current_points")
         .eq("id", 1)
         .single();
-      setWalletBalance(profileData?.current_points || 0);
+      if (profileError) {
+        if (import.meta.env.DEV) console.error('프로필 조회 실패:', profileError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
+      setWalletBalance(profileData?.current_points ?? 0);
 
-      let { data: savingsData } = await supabase
+      let { data: savingsData, error: savingsError } = await supabase
         .from("savings_account")
         .select("*")
         .eq("juwoo_id", 1)
         .single();
 
+      if (savingsError && savingsError.code !== 'PGRST116') {
+        if (import.meta.env.DEV) console.error('저축 계좌 조회 실패:', savingsError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
+
       if (!savingsData) {
-        const { data: newSavings } = await supabase
+        const { data: newSavings, error: insertError } = await supabase
           .from("savings_account")
           .insert({ juwoo_id: 1, balance: 0, interest_rate: 0.03 })
           .select()
           .single();
+        if (insertError) {
+          if (import.meta.env.DEV) console.error('저축 계좌 생성 실패:', insertError);
+          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          return;
+        }
         savingsData = newSavings;
       }
 
@@ -81,14 +179,17 @@ export default function Savings() {
           lastInterestDate: savingsData.last_interest_date,
         });
 
-        const { data: historyData } = await supabase
+        const { data: historyData, error: historyError } = await supabase
           .from("interest_history")
           .select("*")
           .eq("savings_id", savingsData.id)
           .order("calculated_at", { ascending: false })
           .limit(10);
+        if (historyError) {
+          if (import.meta.env.DEV) console.error('이자 기록 조회 실패:', historyError);
+        }
 
-        setInterestHistory(historyData || []);
+        setInterestHistory(historyData ?? []);
       }
     } catch (error: any) {
       if (import.meta.env.DEV) console.error("Error fetching savings:", error);
@@ -100,7 +201,11 @@ export default function Savings() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    fetchData();
+    const init = async () => {
+      await calculatePendingInterest();
+      await fetchData();
+    };
+    init();
   }, [isAuthenticated]);
 
   const getNextSunday = () => {
@@ -130,19 +235,29 @@ export default function Savings() {
       const newSavingsBalance = savings.balance + amount;
 
       // 지갑에서 차감
-      await supabase
+      const { error: walletError } = await supabase
         .from("juwoo_profile")
         .update({ current_points: newWalletBalance })
         .eq("id", 1);
+      if (walletError) {
+        if (import.meta.env.DEV) console.error('지갑 차감 실패:', walletError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
       // 금고에 추가
-      await supabase
+      const { error: savingsError } = await supabase
         .from("savings_account")
         .update({ balance: newSavingsBalance })
         .eq("id", savings.id);
+      if (savingsError) {
+        if (import.meta.env.DEV) console.error('금고 입금 실패:', savingsError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
       // 거래 내역 기록
-      await supabase.from("point_transactions").insert({
+      const { error: txError } = await supabase.from("point_transactions").insert({
         juwoo_id: 1,
         rule_id: null,
         amount: -amount,
@@ -150,6 +265,12 @@ export default function Savings() {
         note: `🏦 금고 입금 ${amount}코인`,
         created_by: 1,
       });
+      if (txError) {
+        if (import.meta.env.DEV) console.error('거래 내역 기록 실패:', txError);
+      }
+
+      setShowDepositAnim(true);
+      setTimeout(() => setShowDepositAnim(false), 1000);
 
       toast.success(`금고에 ${amount}코인을 넣었어요!`, {
         description: "매주 일요일에 이자가 붙어요!",
@@ -183,19 +304,29 @@ export default function Savings() {
       const newSavingsBalance = savings.balance - amount;
 
       // 지갑에 추가
-      await supabase
+      const { error: walletError } = await supabase
         .from("juwoo_profile")
         .update({ current_points: newWalletBalance })
         .eq("id", 1);
+      if (walletError) {
+        if (import.meta.env.DEV) console.error('지갑 추가 실패:', walletError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
       // 금고에서 차감
-      await supabase
+      const { error: savingsError } = await supabase
         .from("savings_account")
         .update({ balance: newSavingsBalance })
         .eq("id", savings.id);
+      if (savingsError) {
+        if (import.meta.env.DEV) console.error('금고 출금 실패:', savingsError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
       // 거래 내역 기록
-      await supabase.from("point_transactions").insert({
+      const { error: txError } = await supabase.from("point_transactions").insert({
         juwoo_id: 1,
         rule_id: null,
         amount: amount,
@@ -203,6 +334,12 @@ export default function Savings() {
         note: `🏦 금고 출금 ${amount}코인`,
         created_by: 1,
       });
+      if (txError) {
+        if (import.meta.env.DEV) console.error('거래 내역 기록 실패:', txError);
+      }
+
+      setShowWithdrawAnim(true);
+      setTimeout(() => setShowWithdrawAnim(false), 1000);
 
       toast.success(`금고에서 ${amount}코인을 꺼냈어요!`);
 
@@ -256,6 +393,8 @@ export default function Savings() {
 
   return (
     <div className="min-h-screen pb-24 md:pb-8">
+      <FlyingCoin show={showDepositAnim} direction="to-vault" />
+      <FlyingCoin show={showWithdrawAnim} direction="from-vault" />
       {/* 배경 */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-blue-400/30 to-indigo-400/30 rounded-full blur-3xl" />
@@ -277,6 +416,36 @@ export default function Savings() {
           </div>
         </div>
 
+        {/* 이자 지급 알림 */}
+        <AnimatePresence>
+          {interestJustPaid !== null && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="relative"
+            >
+              <ShimmerEffect show={true}>
+                <Card className="border-0 bg-gradient-to-r from-emerald-400 to-teal-500 text-white rounded-2xl overflow-hidden">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <motion.span
+                      animate={{ rotate: [0, 15, -15, 0] }}
+                      transition={{ duration: 0.5, repeat: 2 }}
+                      className="text-3xl"
+                    >
+                      ✨
+                    </motion.span>
+                    <div>
+                      <p className="font-bold text-lg">금고에 이자가 쌓였어요!</p>
+                      <p className="text-white/80 text-sm">+{interestJustPaid}코인 이자 적립</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </ShimmerEffect>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* 금고 잔액 카드 */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="border-0 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 text-white overflow-hidden shadow-2xl shadow-blue-500/30 rounded-3xl">
@@ -287,7 +456,7 @@ export default function Savings() {
                 <p className="text-white/70 text-sm font-medium mb-1">금고 잔액</p>
                 <div className="flex items-end gap-2 mb-4">
                   <p className="text-4xl font-black tracking-tight">
-                    {savings?.balance.toLocaleString() || 0}
+                    {(displayBalance ?? savings?.balance ?? 0).toLocaleString()}
                     <span className="text-lg ml-1">코인</span>
                   </p>
                 </div>
@@ -299,7 +468,7 @@ export default function Savings() {
                       <span className="text-white/70 text-sm">지난 이자</span>
                     </div>
                     <p className="text-lg font-bold text-emerald-300">
-                      +{lastInterest?.interest_amount || 0}코인
+                      +{lastInterest?.interest_amount ?? 0}코인
                     </p>
                   </div>
                   <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-sm">
@@ -600,7 +769,7 @@ export default function Savings() {
                 <Button
                   variant="outline"
                   className="h-12 font-bold rounded-xl border-2 border-slate-200"
-                  onClick={() => setWithdrawAmount(String(savings?.balance || 0))}
+                  onClick={() => setWithdrawAmount(String(savings?.balance ?? 0))}
                   disabled={!savings || savings.balance === 0}
                 >
                   전부
@@ -616,7 +785,7 @@ export default function Savings() {
                     placeholder="금액 입력"
                     className="flex-1 h-12 px-4 border-2 border-slate-200 rounded-xl text-lg font-bold focus:border-blue-500 focus:outline-none"
                     min={1}
-                    max={savings?.balance || 0}
+                    max={savings?.balance ?? 0}
                   />
                   <span className="text-slate-500 font-medium">코인</span>
                 </div>

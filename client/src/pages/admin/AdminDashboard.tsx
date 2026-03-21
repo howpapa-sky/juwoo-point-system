@@ -71,8 +71,8 @@ export default function AdminDashboard() {
         .select("amount")
         .gte("created_at", today.toISOString());
 
-      const todayEarned = todayTx?.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0) || 0;
-      const todaySpent = todayTx?.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0) || 0;
+      const todayEarned = todayTx?.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0) ?? 0;
+      const todaySpent = todayTx?.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0) ?? 0;
 
       // Get counts
       const [rulesRes, itemsRes, badgesRes, recentTxRes] = await Promise.all([
@@ -87,14 +87,14 @@ export default function AdminDashboard() {
       ]);
 
       setStats({
-        currentPoints: profile?.current_points || 0,
+        currentPoints: profile?.current_points ?? 0,
         todayEarned,
         todaySpent,
-        totalRules: rulesRes.count || 0,
-        totalShopItems: itemsRes.count || 0,
+        totalRules: rulesRes.count ?? 0,
+        totalShopItems: itemsRes.count ?? 0,
         totalEbooks: 2, // From booksData
         totalQuizzes: 30, // Estimated
-        totalBadges: badgesRes.count || 0,
+        totalBadges: badgesRes.count ?? 0,
         recentTransactions: recentTxRes.data || [],
       });
 

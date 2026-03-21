@@ -51,8 +51,8 @@ export default function AdminPanel() {
 
         if (transactionsError) throw transactionsError;
 
-        const earned = transactionsData?.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0) || 0;
-        const spent = Math.abs(transactionsData?.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0) || 0);
+        const earned = transactionsData?.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0) ?? 0;
+        const spent = Math.abs(transactionsData?.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0) ?? 0);
 
         const { data: profileData, error: profileError } = await supabase
           .from('juwoo_profile')
@@ -65,8 +65,8 @@ export default function AdminPanel() {
         setPointStats({
           total_earned: earned,
           total_spent: spent,
-          current_balance: profileData?.current_points || 0,
-          transaction_count: transactionsData?.length || 0,
+          current_balance: profileData?.current_points ?? 0,
+          transaction_count: transactionsData?.length ?? 0,
         });
 
         // 3. 최다 적립 규칙
@@ -245,25 +245,25 @@ export default function AdminPanel() {
                   <div className="p-4 rounded-lg bg-green-50 border border-green-200">
                     <p className="text-sm text-green-600 font-medium mb-1">총 적립</p>
                     <p className="text-2xl font-bold text-green-700">
-                      +{pointStats?.total_earned?.toLocaleString() || 0}
+                      +{pointStats?.total_earned?.toLocaleString() ?? 0}
                     </p>
                   </div>
                   <div className="p-4 rounded-lg bg-red-50 border border-red-200">
                     <p className="text-sm text-red-600 font-medium mb-1">총 차감</p>
                     <p className="text-2xl font-bold text-red-700">
-                      -{pointStats?.total_spent?.toLocaleString() || 0}
+                      -{pointStats?.total_spent?.toLocaleString() ?? 0}
                     </p>
                   </div>
                   <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
                     <p className="text-sm text-blue-600 font-medium mb-1">현재 잔액</p>
                     <p className="text-2xl font-bold text-blue-700">
-                      {pointStats?.current_balance?.toLocaleString() || 0}
+                      {pointStats?.current_balance?.toLocaleString() ?? 0}
                     </p>
                   </div>
                   <div className="p-4 rounded-lg bg-purple-50 border border-purple-200">
                     <p className="text-sm text-purple-600 font-medium mb-1">총 거래</p>
                     <p className="text-2xl font-bold text-purple-700">
-                      {pointStats?.transaction_count?.toLocaleString() || 0}건
+                      {pointStats?.transaction_count?.toLocaleString() ?? 0}건
                     </p>
                   </div>
                 </div>

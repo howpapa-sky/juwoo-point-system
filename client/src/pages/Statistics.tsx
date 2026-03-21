@@ -260,7 +260,7 @@ export default function Statistics() {
     const categoryMap = new Map<string, CategoryStat>();
     transactions.forEach(t => {
       let category = '기타';
-      const note = t.note?.toLowerCase() || '';
+      const note = t.note?.toLowerCase() ?? '';
 
       if (note.includes('퀴즈') || note.includes('quiz')) category = '퀴즈';
       else if (note.includes('플래시') || note.includes('단어') || note.includes('학습')) category = '학습';
@@ -389,8 +389,8 @@ export default function Statistics() {
   const learningStats = useMemo(() => {
     const totalWords = learningProgress.length;
     const masteredWords = learningProgress.filter(p => p.mastery_level >= 3).length;
-    const totalReviews = learningProgress.reduce((sum, p) => sum + (p.review_count || 0), 0);
-    const totalCorrect = learningProgress.reduce((sum, p) => sum + (p.correct_count || 0), 0);
+    const totalReviews = learningProgress.reduce((sum, p) => sum + (p.review_count ?? 0), 0);
+    const totalCorrect = learningProgress.reduce((sum, p) => sum + (p.correct_count ?? 0), 0);
     const accuracy = totalReviews > 0 ? Math.round((totalCorrect / totalReviews) * 100) : 0;
 
     return {
@@ -405,9 +405,9 @@ export default function Statistics() {
   // 퀴즈 통계
   const quizStats = useMemo(() => {
     const completedQuizzes = quizProgress.filter(q => q.is_completed).length;
-    const totalAttempts = quizProgress.reduce((sum, q) => sum + (q.total_attempts || 0), 0);
+    const totalAttempts = quizProgress.reduce((sum, q) => sum + (q.total_attempts ?? 0), 0);
     const avgScore = quizProgress.length > 0
-      ? Math.round(quizProgress.reduce((sum, q) => sum + (q.best_score || 0), 0) / quizProgress.length)
+      ? Math.round(quizProgress.reduce((sum, q) => sum + (q.best_score ?? 0), 0) / quizProgress.length)
       : 0;
 
     const byTier = {
@@ -428,8 +428,8 @@ export default function Statistics() {
   const goalStats = useMemo(() => {
     const activeGoals = goals.filter(g => g.status === 'active');
     const completedGoals = goals.filter(g => g.status === 'completed');
-    const totalSaved = activeGoals.reduce((sum, g) => sum + (g.current_points || 0), 0);
-    const totalTarget = activeGoals.reduce((sum, g) => sum + (g.target_points || 0), 0);
+    const totalSaved = activeGoals.reduce((sum, g) => sum + (g.current_points ?? 0), 0);
+    const totalTarget = activeGoals.reduce((sum, g) => sum + (g.target_points ?? 0), 0);
 
     return {
       activeCount: activeGoals.length,
@@ -522,7 +522,7 @@ export default function Statistics() {
             통계 대시보드 📊
           </h1>
           <p className="text-lg text-muted-foreground">
-            {profile?.current_points?.toLocaleString() || 0}포인트 보유 중!
+            {profile?.current_points?.toLocaleString() ?? 0}포인트 보유 중!
           </p>
         </motion.div>
 
@@ -592,7 +592,7 @@ export default function Statistics() {
                       <span className="text-sm font-medium opacity-90">현재 포인트</span>
                     </div>
                     <div className="text-3xl md:text-4xl font-black">
-                      {profile?.current_points?.toLocaleString() || 0}
+                      {profile?.current_points?.toLocaleString() ?? 0}
                     </div>
                     <p className="text-sm opacity-80 mt-1">보유 중</p>
                   </CardContent>

@@ -380,7 +380,7 @@ export default function AdminEbooks() {
           <Tabs defaultValue="info" className="flex-1 overflow-hidden flex flex-col">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="info">기본 정보</TabsTrigger>
-              <TabsTrigger value="pages">페이지 편집 ({editingBook?.pages.length || 0})</TabsTrigger>
+              <TabsTrigger value="pages">페이지 편집 ({editingBook?.pages.length ?? 0})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="info" className="flex-1 overflow-auto space-y-4 p-1">
@@ -506,7 +506,7 @@ export default function AdminEbooks() {
               <div className="flex-1 space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>페이지 {currentEditPage + 1} 내용</Label>
-                  {(editingBook?.pages.length || 0) > 1 && (
+                  {(editingBook?.pages.length ?? 0) > 1 && (
                     <Button
                       variant="ghost"
                       size="sm"

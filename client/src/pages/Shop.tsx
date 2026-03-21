@@ -91,21 +91,29 @@ export default function Shop() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('juwoo_profile')
           .select('current_points')
           .eq('id', 1)
           .single();
 
-        setBalance(profileData?.current_points || 0);
+        if (profileError) {
+          if (import.meta.env.DEV) console.error('Error fetching profile:', profileError);
+          toast.error('프로필을 불러오지 못했어요.');
+          return;
+        }
+        setBalance(profileData?.current_points ?? 0);
 
-        const { data: purchasesData } = await supabase
+        const { data: purchasesData, error: purchasesError } = await supabase
           .from('purchases')
           .select('id, point_cost, status, created_at, note')
           .order('created_at', { ascending: false })
           .limit(10);
 
-        setPurchases(purchasesData || []);
+        if (purchasesError) {
+          if (import.meta.env.DEV) console.error('Error fetching purchases:', purchasesError);
+        }
+        setPurchases(purchasesData ?? []);
       } catch (error) {
         if (import.meta.env.DEV) console.error('Error fetching shop data:', error);
         toast.error('데이터를 불러오지 못했어요.');
@@ -127,14 +135,23 @@ export default function Shop() {
         return;
       }
 
+      const originalPoints = balance;
       const newBalance = balance - selectedItem.cost;
 
-      await supabase
+      // 1. 포인트 차감
+      const { error: updateError } = await supabase
         .from('juwoo_profile')
         .update({ current_points: newBalance })
         .eq('id', 1);
 
-      await supabase
+      if (updateError) {
+        if (import.meta.env.DEV) console.error('Error updating profile:', updateError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
+
+      // 2. 거래 내역 기록
+      const { error: txError } = await supabase
         .from('point_transactions')
         .insert({
           juwoo_id: 1,
@@ -145,7 +162,16 @@ export default function Shop() {
           created_by: 1,
         });
 
-      await supabase
+      if (txError) {
+        if (import.meta.env.DEV) console.error('Error inserting transaction:', txError);
+        // 롤백: 포인트 복구
+        await supabase.from('juwoo_profile').update({ current_points: originalPoints }).eq('id', 1);
+        toast.error('잠깐, 문제가 생겼어요. 포인트는 돌려놨어요');
+        return;
+      }
+
+      // 3. 구매 기록
+      const { error: insertError } = await supabase
         .from('purchases')
         .insert({
           item_id: null,
@@ -154,6 +180,14 @@ export default function Shop() {
           note: `상점 구매: ${selectedItem.name}`,
           approved_at: new Date().toISOString(),
         });
+
+      if (insertError) {
+        if (import.meta.env.DEV) console.error('Error inserting purchase:', insertError);
+        // 롤백: 포인트 복구
+        await supabase.from('juwoo_profile').update({ current_points: originalPoints }).eq('id', 1);
+        toast.error('잠깐, 문제가 생겼어요. 포인트는 돌려놨어요');
+        return;
+      }
 
       setBalance(newBalance);
       setLastPurchase({ name: selectedItem.name, cost: selectedItem.cost });
@@ -318,7 +352,7 @@ export default function Shop() {
                           </div>
                           <div>
                             <p className="font-bold text-slate-800">
-                              {purchase.note?.replace('상점 구매: ', '').replace('수기 구매: ', '').replace('수기 입력: ', '') || '구매'}
+                              {purchase.note?.replace('상점 구매: ', '').replace('수기 구매: ', '').replace('수기 입력: ', '') ?? '구매'}
                             </p>
                             <p className="text-sm text-slate-400">
                               {new Date(purchase.created_at).toLocaleDateString("ko-KR", {

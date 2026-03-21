@@ -87,7 +87,7 @@ export default function FillBlankQuiz({ word, options, onAnswer, onSpeak, onSpea
         </div>
 
         {/* 보기 */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-3">
           {options.map((option, idx) => {
             const isSelected = selected === option;
             const isCorrect = option === word.meaning;

@@ -31,7 +31,7 @@ const COLORS = {
   secondary: '#ec4899',
   success: '#22c55e',
   warning: '#f59e0b',
-  danger: '#ef4444',
+  danger: '#f97316',
   info: '#3b82f6',
   cyan: '#06b6d4',
   emerald: '#10b981',
@@ -49,7 +49,7 @@ const categoryColors: Record<string, string> = {
   "특별": "#f59e0b",
   "퀴즈": "#ec4899",
   "읽기": "#06b6d4",
-  "상점": "#ef4444",
+  "상점": "#f97316",
   "목표": "#10b981",
 };
 
@@ -628,7 +628,7 @@ export default function Statistics() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <Card className="bg-gradient-to-br from-orange-500 to-red-500 text-white border-0 shadow-xl overflow-hidden relative">
+                <Card className="bg-gradient-to-br from-orange-500 to-amber-500 text-white border-0 shadow-xl overflow-hidden relative">
                   <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10" />
                   <CardContent className="p-4 relative">
                     <div className="flex items-center gap-2 mb-2">
@@ -688,8 +688,8 @@ export default function Statistics() {
                             <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1} />
                           </linearGradient>
                           <linearGradient id="spentGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#f97316" stopOpacity={0.1} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -708,7 +708,7 @@ export default function Statistics() {
                         />
                         <Legend />
                         <Area type="monotone" dataKey="earned" name="적립" fill="url(#earnedGradient)" stroke="#22c55e" strokeWidth={2} />
-                        <Area type="monotone" dataKey="spent" name="사용" fill="url(#spentGradient)" stroke="#ef4444" strokeWidth={2} />
+                        <Area type="monotone" dataKey="spent" name="사용" fill="url(#spentGradient)" stroke="#f97316" strokeWidth={2} />
                         <Line type="monotone" dataKey="net" name="순수익" stroke="#8b5cf6" strokeWidth={3} dot={{ fill: '#8b5cf6', strokeWidth: 2 }} />
                       </ComposedChart>
                     </ResponsiveContainer>
@@ -791,7 +791,7 @@ export default function Statistics() {
                         <PolarAngleAxis dataKey="day" fontSize={12} />
                         <PolarRadiusAxis angle={30} domain={[0, 'auto']} fontSize={10} />
                         <Radar name="적립" dataKey="earned" stroke="#22c55e" fill="#22c55e" fillOpacity={0.5} />
-                        <Radar name="사용" dataKey="spent" stroke="#ef4444" fill="#ef4444" fillOpacity={0.3} />
+                        <Radar name="사용" dataKey="spent" stroke="#f97316" fill="#f97316" fillOpacity={0.3} />
                         <Legend />
                         <Tooltip />
                       </RadarChart>
@@ -851,7 +851,7 @@ export default function Statistics() {
                   <div className="text-sm opacity-80">총 적립</div>
                 </CardContent>
               </Card>
-              <Card className="bg-gradient-to-br from-red-500 to-rose-500 text-white border-0 shadow-lg">
+              <Card className="bg-gradient-to-br from-orange-500 to-amber-500 text-white border-0 shadow-lg">
                 <CardContent className="p-4">
                   <TrendingDown className="h-8 w-8 mb-2 opacity-80" />
                   <div className="text-3xl font-black">-{stats.totalSpent.toLocaleString()}</div>
@@ -892,8 +892,8 @@ export default function Statistics() {
                           <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="colorSpent" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -908,7 +908,7 @@ export default function Statistics() {
                       />
                       <Legend />
                       <Area type="monotone" dataKey="earned" name="적립" stroke="#22c55e" fillOpacity={1} fill="url(#colorEarned)" />
-                      <Area type="monotone" dataKey="spent" name="사용" stroke="#ef4444" fillOpacity={1} fill="url(#colorSpent)" />
+                      <Area type="monotone" dataKey="spent" name="사용" stroke="#f97316" fillOpacity={1} fill="url(#colorSpent)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
@@ -951,7 +951,7 @@ export default function Statistics() {
                         </div>
                         <div>
                           <div className="text-sm text-gray-500">사용</div>
-                          <div className="text-xl font-bold text-red-600">-{cat.spent.toLocaleString()}</div>
+                          <div className="text-xl font-bold text-orange-600">-{cat.spent.toLocaleString()}</div>
                         </div>
                       </div>
                       <Progress
@@ -1094,7 +1094,7 @@ export default function Statistics() {
                   <div className="text-sm opacity-80">획득 배지</div>
                 </CardContent>
               </Card>
-              <Card className="bg-gradient-to-br from-orange-500 to-red-500 text-white border-0 shadow-lg">
+              <Card className="bg-gradient-to-br from-orange-500 to-amber-500 text-white border-0 shadow-lg">
                 <CardContent className="p-4">
                   <Flame className="h-8 w-8 mb-2 opacity-80" />
                   <div className="text-3xl font-black">{stats.streak.longest}</div>

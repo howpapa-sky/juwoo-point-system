@@ -147,8 +147,8 @@ export default function SpeedRound({ questions, timeLimit = 60, onComplete, onSp
               <p className="text-sm text-gray-400">[{currentQ.word.pronunciation}]</p>
             </div>
 
-            {/* 보기 (2x2 격자) */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* 보기 (세로 1열) */}
+            <div className="flex flex-col gap-3">
               {currentQ.options?.map((option, idx) => (
                 <motion.button
                   key={idx}

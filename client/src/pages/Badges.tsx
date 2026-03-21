@@ -93,7 +93,7 @@ const CATEGORY_CONFIG: Record<BadgeCategory, {
     label: '연속 학습',
     icon: <Flame className="h-5 w-5" />,
     color: 'text-orange-600',
-    bgGradient: 'from-orange-500 to-red-500',
+    bgGradient: 'from-orange-500 to-amber-500',
     emoji: '🔥',
   },
   special: {
@@ -402,7 +402,7 @@ export default function Badges() {
   // 로딩 화면
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-orange-50 to-amber-50">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -415,7 +415,7 @@ export default function Badges() {
   // 로그인 필요
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-orange-50 to-amber-50 p-4">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -440,7 +440,7 @@ export default function Badges() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 dark:from-gray-900 dark:to-gray-800 pb-24 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-amber-50 dark:from-gray-900 dark:to-gray-800 pb-24 md:pb-8">
       <div className="container max-w-2xl py-6 px-4">
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-6">
@@ -467,7 +467,7 @@ export default function Badges() {
           animate={{ y: 0, opacity: 1 }}
           className="text-center mb-6"
         >
-          <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-yellow-600 via-orange-500 to-red-500 bg-clip-text text-transparent mb-1">
+          <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-yellow-600 via-orange-500 to-amber-500 bg-clip-text text-transparent mb-1">
             나의 배지 컬렉션
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -624,7 +624,7 @@ export default function Badges() {
           transition={{ delay: 0.1 }}
           className="mb-6"
         >
-          <Card className="border-0 bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white shadow-xl shadow-orange-500/25 rounded-2xl overflow-hidden">
+          <Card className="border-0 bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-500 text-white shadow-xl shadow-orange-500/25 rounded-2xl overflow-hidden">
             <CardContent className="p-5 relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4" />
 
@@ -821,7 +821,7 @@ export default function Badges() {
             transition={{ delay: 0.3 }}
             className="mt-6"
           >
-            <Card className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white border-0 shadow-xl rounded-2xl">
+            <Card className="bg-gradient-to-r from-yellow-500 via-orange-500 to-amber-500 text-white border-0 shadow-xl rounded-2xl">
               <CardContent className="py-5 text-center">
                 <div className="text-3xl mb-2">
                   {earnedCount >= 20 ? '👑' : earnedCount >= 10 ? '🏆' : earnedCount >= 5 ? '⭐' : '🌟'}

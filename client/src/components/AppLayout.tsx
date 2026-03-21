@@ -65,7 +65,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { path: "/english-quiz", label: "우주어 해독", icon: GraduationCap, color: "from-blue-500 to-indigo-600" },
     { path: "/english-learning", label: "영어 학습", icon: BookOpen, color: "from-emerald-500 to-teal-600" },
     { path: "/seed-album", label: "씨앗 도감", icon: Album, color: "from-amber-500 to-yellow-600" },
-    { path: "/goal-saving", label: "목표 모으기", icon: Target, color: "from-red-500 to-rose-600" },
+    { path: "/goal-saving", label: "목표 모으기", icon: Target, color: "from-amber-500 to-orange-600" },
     { path: "/invest-report", label: "투자 리포트", icon: BarChart3, color: "from-slate-500 to-gray-600" },
     { path: "/badges", label: "탐험 훈장", icon: Award, color: "from-indigo-500 to-violet-600" },
     { path: "/statistics", label: "통계", icon: BarChart3, color: "from-slate-500 to-gray-600" },
@@ -211,14 +211,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       <div
                         className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
                           isActive
-                            ? "bg-red-100 dark:bg-red-900/30"
+                            ? "bg-amber-100 dark:bg-amber-900/30"
                             : "hover:bg-slate-100 dark:hover:bg-slate-800"
                         }`}
                       >
-                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg">
+                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
                           <Icon className="w-5 h-5 text-white" />
                         </div>
-                        <span className={`flex-1 font-medium ${isActive ? "text-red-700 dark:text-red-300" : "text-slate-700 dark:text-slate-300"}`}>
+                        <span className={`flex-1 font-medium ${isActive ? "text-amber-700 dark:text-amber-300" : "text-slate-700 dark:text-slate-300"}`}>
                           {item.label}
                         </span>
                         <ChevronRight className="w-5 h-5 text-slate-400" />
@@ -234,10 +234,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <div className="p-4 border-t dark:border-slate-800">
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 h-14 rounded-2xl text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+              className="w-full justify-start gap-3 h-14 rounded-2xl text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
               onClick={handleLogout}
             >
-              <div className="w-11 h-11 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <div className="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                 <LogOut className="w-5 h-5" />
               </div>
               <span className="font-medium">로그아웃</span>
@@ -318,7 +318,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     <div
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                         isActive
-                          ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 font-semibold"
+                          ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-semibold"
                           : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                       }`}
                     >
@@ -336,7 +336,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <div className="p-4 border-t dark:border-slate-800 space-y-2">
           <Button
             variant="ghost"
-            className="w-full justify-start gap-2 rounded-xl h-11 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+            className="w-full justify-start gap-2 rounded-xl h-11 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
             onClick={handleLogout}
           >
             <LogOut className="w-4 h-4" />

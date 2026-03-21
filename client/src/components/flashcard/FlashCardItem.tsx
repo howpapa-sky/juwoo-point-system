@@ -13,7 +13,7 @@ const categoryThemes: Record<WordCategory, {
   bg: string; border: string; icon: string; gradient: string;
 }> = {
   "동물": { bg: "from-amber-100 to-orange-100", border: "border-amber-400", icon: "🐾", gradient: "from-amber-500 to-orange-500" },
-  "과일": { bg: "from-red-100 to-pink-100", border: "border-red-400", icon: "🍎", gradient: "from-red-500 to-pink-500" },
+  "과일": { bg: "from-pink-100 to-rose-100", border: "border-pink-400", icon: "🍎", gradient: "from-pink-500 to-rose-500" },
   "색깔": { bg: "from-purple-100 to-fuchsia-100", border: "border-purple-400", icon: "🌈", gradient: "from-purple-500 to-pink-500" },
   "숫자": { bg: "from-blue-100 to-cyan-100", border: "border-blue-400", icon: "🔢", gradient: "from-blue-500 to-cyan-500" },
   "가족": { bg: "from-pink-100 to-rose-100", border: "border-pink-400", icon: "👨‍👩‍👧", gradient: "from-pink-500 to-rose-500" },
@@ -23,7 +23,7 @@ const categoryThemes: Record<WordCategory, {
   "신체": { bg: "from-rose-100 to-pink-100", border: "border-rose-400", icon: "🖐️", gradient: "from-rose-500 to-pink-500" },
   "감정": { bg: "from-yellow-100 to-orange-100", border: "border-yellow-400", icon: "😊", gradient: "from-yellow-500 to-orange-500" },
   "날씨": { bg: "from-sky-100 to-blue-100", border: "border-sky-400", icon: "☀️", gradient: "from-sky-500 to-blue-500" },
-  "포켓몬": { bg: "from-yellow-100 to-red-100", border: "border-yellow-400", icon: "⚡", gradient: "from-yellow-500 to-red-500" },
+  "포켓몬": { bg: "from-yellow-100 to-orange-100", border: "border-yellow-400", icon: "⚡", gradient: "from-yellow-500 to-orange-500" },
   "동사": { bg: "from-indigo-100 to-violet-100", border: "border-indigo-400", icon: "🏃", gradient: "from-indigo-500 to-violet-500" },
   "학교": { bg: "from-blue-100 to-indigo-100", border: "border-blue-400", icon: "🏫", gradient: "from-blue-500 to-indigo-500" },
   "장소": { bg: "from-teal-100 to-cyan-100", border: "border-teal-400", icon: "📍", gradient: "from-teal-500 to-cyan-500" },

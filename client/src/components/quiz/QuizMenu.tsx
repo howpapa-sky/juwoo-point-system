@@ -24,7 +24,7 @@ interface Props {
 
 const gameModes: { id: QuizMode; name: string; icon: React.ReactNode; desc: string; color: string; isNew?: boolean }[] = [
   { id: 'mixed', name: '믹스', icon: <Sparkles className="h-6 w-6" />, desc: '다양한 유형 섞기', color: 'purple' },
-  { id: 'multiple-choice', name: '객관식', icon: <MousePointer className="h-6 w-6" />, desc: '4지선다', color: 'blue' },
+  { id: 'multiple-choice', name: '객관식', icon: <MousePointer className="h-6 w-6" />, desc: '3지선다', color: 'blue' },
   { id: 'typing', name: '타이핑', icon: <Keyboard className="h-6 w-6" />, desc: '직접 입력', color: 'green' },
   { id: 'listening', name: '듣기', icon: <Headphones className="h-6 w-6" />, desc: '발음 듣고 맞추기', color: 'pink' },
   { id: 'reverse', name: '한→영', icon: <BookOpen className="h-6 w-6" />, desc: '영어로 답하기', color: 'orange' },

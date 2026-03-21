@@ -20,7 +20,7 @@ import { SRS_BOX_META } from "@/lib/englishConstants";
 // 카테고리 색상
 const categoryColors: Record<string, string> = {
   "동물": "#f59e0b",
-  "과일": "#ef4444",
+  "과일": "#f97316",
   "색깔": "#8b5cf6",
   "숫자": "#3b82f6",
   "가족": "#ec4899",
@@ -46,7 +46,7 @@ const categoryColors: Record<string, string> = {
   "문장": "#4f46e5",
 };
 
-const CHART_COLORS = ['#8b5cf6', '#ec4899', '#f59e0b', '#22c55e', '#3b82f6', '#ef4444', '#14b8a6', '#f97316', '#6366f1', '#84cc16'];
+const CHART_COLORS = ['#8b5cf6', '#ec4899', '#f59e0b', '#22c55e', '#3b82f6', '#f97316', '#14b8a6', '#f97316', '#6366f1', '#84cc16'];
 
 interface LearningProgress {
   id: number;

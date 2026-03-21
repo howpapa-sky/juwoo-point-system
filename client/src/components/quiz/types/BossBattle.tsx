@@ -168,7 +168,7 @@ export default function BossBattle({ questions, onComplete, onSpeak, playSound }
                 <p className="text-sm text-gray-400">[{currentQ.word.pronunciation}]</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="flex flex-col gap-3 mb-3">
                 {currentQ.options?.map((option, idx) => (
                   <motion.button
                     key={idx}

@@ -379,7 +379,7 @@ export default function EnglishStory() {
                             disabled={isListening || pageInteractionDone}
                             className={`h-16 w-16 rounded-full mx-auto ${
                               isListening
-                                ? 'bg-red-500 hover:bg-red-600 animate-pulse'
+                                ? 'bg-orange-500 hover:bg-orange-600 animate-pulse'
                                 : pageInteractionDone
                                 ? 'bg-green-500 hover:bg-green-500'
                                 : 'bg-indigo-500 hover:bg-indigo-600'
@@ -392,7 +392,7 @@ export default function EnglishStory() {
                             )}
                           </Button>
                           {isListening && (
-                            <p className="text-sm text-red-500 animate-pulse">듣고 있어요...</p>
+                            <p className="text-sm text-orange-500 animate-pulse">듣고 있어요...</p>
                           )}
                           {speakScore !== null && (
                             <p className="text-lg font-bold text-indigo-600">

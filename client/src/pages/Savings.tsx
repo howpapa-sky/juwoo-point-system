@@ -296,7 +296,7 @@ export default function Savings() {
                   <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-sm">
                     <div className="flex items-center gap-1.5 mb-1">
                       <TrendingUp className="h-3.5 w-3.5 text-emerald-300" />
-                      <span className="text-white/70 text-xs">지난 이자</span>
+                      <span className="text-white/70 text-sm">지난 이자</span>
                     </div>
                     <p className="text-lg font-bold text-emerald-300">
                       +{lastInterest?.interest_amount || 0}코인
@@ -305,7 +305,7 @@ export default function Savings() {
                   <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-sm">
                     <div className="flex items-center gap-1.5 mb-1">
                       <Calendar className="h-3.5 w-3.5 text-amber-300" />
-                      <span className="text-white/70 text-xs">다음 이자일</span>
+                      <span className="text-white/70 text-sm">다음 이자일</span>
                     </div>
                     <p className="text-sm font-bold text-amber-300">{getNextSunday()}</p>
                   </div>
@@ -368,7 +368,7 @@ export default function Savings() {
                     );
                   })}
                 </div>
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="text-sm text-slate-500 mt-2">
                   오래 두면 이자가 이자를 낳아요! 이게 복리예요 🪄
                 </p>
               </CardContent>
@@ -427,7 +427,7 @@ export default function Savings() {
                             weekday: "short",
                           })}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-sm text-slate-500">
                           {record.balance_before}코인 → {record.balance_after}코인
                         </p>
                       </div>
@@ -441,7 +441,7 @@ export default function Savings() {
                 <div className="text-center py-6">
                   <Landmark className="h-12 w-12 text-slate-300 mx-auto mb-2" />
                   <p className="text-slate-500 text-sm">아직 이자 기록이 없어요</p>
-                  <p className="text-slate-400 text-xs mt-1">
+                  <p className="text-slate-400 text-sm mt-1">
                     금고에 코인을 넣으면 매주 일요일에 이자가 붙어요!
                   </p>
                 </div>
@@ -461,7 +461,7 @@ export default function Savings() {
               <p className="text-sm text-blue-700 font-medium">
                 💡 금고에 오래 넣어둘수록 이자가 더 많이 붙어요!
               </p>
-              <p className="text-xs text-blue-500 mt-1">
+              <p className="text-sm text-blue-500 mt-1">
                 매주 일요일에 금고 잔액의 {Math.round(SAVINGS_INTEREST_RATE * 100)}%가 이자로 들어옵니다.
               </p>
             </CardContent>

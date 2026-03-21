@@ -281,7 +281,7 @@ function BadgeModal({
                 <span className="text-sm font-bold text-violet-600">{progress.percent}%</span>
               </div>
               <Progress value={progress.percent} className="h-3 mb-2" />
-              <p className="text-xs text-slate-500 text-center">
+              <p className="text-sm text-slate-500 text-center">
                 {progress.current.toLocaleString()} / {progress.target.toLocaleString()}
               </p>
             </div>
@@ -536,7 +536,7 @@ export default function Badges() {
                           <div className={`text-4xl mb-2 ${!badge.is_earned && 'grayscale opacity-50'}`}>
                             {badge.emoji}
                           </div>
-                          <h3 className={`font-bold text-xs mb-0.5 ${badge.is_earned ? 'text-indigo-600' : 'text-gray-400'}`}>
+                          <h3 className={`font-bold text-base mb-0.5 ${badge.is_earned ? 'text-indigo-600' : 'text-gray-400'}`}>
                             {badge.name}
                           </h3>
                           <p className="text-sm text-muted-foreground">{badge.description}</p>
@@ -585,7 +585,7 @@ export default function Badges() {
                           <div className={`text-4xl mb-2 ${!badge.is_earned && 'grayscale opacity-50'}`}>
                             {badge.emoji}
                           </div>
-                          <h3 className={`font-bold text-xs mb-0.5 ${badge.is_earned ? 'text-emerald-600' : 'text-gray-400'}`}>
+                          <h3 className={`font-bold text-base mb-0.5 ${badge.is_earned ? 'text-emerald-600' : 'text-gray-400'}`}>
                             {badge.name}
                           </h3>
                           <p className="text-sm text-muted-foreground">{badge.description}</p>
@@ -635,13 +635,13 @@ export default function Badges() {
                       <Trophy className="h-7 w-7" />
                     </div>
                     <div>
-                      <p className="text-white/70 text-xs font-medium">수집한 배지</p>
+                      <p className="text-white/70 text-sm font-medium">수집한 배지</p>
                       <p className="text-3xl font-black">{earnedCount}<span className="text-lg text-white/60 ml-1">/ {totalCount}</span></p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-4xl font-black">{progressPercent}%</p>
-                    <p className="text-xs text-white/70">달성률</p>
+                    <p className="text-sm text-white/70">달성률</p>
                   </div>
                 </div>
 
@@ -692,7 +692,7 @@ export default function Badges() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="font-bold text-sm text-slate-800 truncate">{badge.name}</h3>
-                            <span className="text-xs font-bold text-orange-600 ml-2">{badge.progress.percent}%</span>
+                            <span className="text-sm font-bold text-orange-600 ml-2">{badge.progress.percent}%</span>
                           </div>
                           <Progress value={badge.progress.percent} className="h-2 mb-1" />
                           <p className="text-sm text-slate-500">

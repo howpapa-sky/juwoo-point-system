@@ -230,7 +230,7 @@ export default function MyWallet() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="border-0 bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white overflow-hidden shadow-2xl shadow-orange-500/30 rounded-3xl">
+          <Card className="border-0 bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white overflow-hidden shadow-2xl shadow-orange-500/30 rounded-3xl">
             <CardContent className="p-0">
               <div className="relative p-5">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4" />

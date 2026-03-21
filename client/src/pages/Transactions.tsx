@@ -229,12 +229,12 @@ export default function Transactions() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-gray-500 hover:text-gray-600 hover:bg-gray-50"
                             onClick={() => handleCancelTransaction(tx.id, tx.amount)}
                             disabled={cancellingId === tx.id}
                           >
                             {cancellingId === tx.id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500"></div>
                             ) : (
                               <X className="h-4 w-4" />
                             )}

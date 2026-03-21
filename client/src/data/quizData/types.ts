@@ -2,7 +2,7 @@
 
 // ===== 확장된 문제 유형 =====
 export type QuestionType =
-  | 'multiple-choice'        // 4지선다
+  | 'multiple-choice'        // 3지선다
   | 'true-false'             // O/X
   | 'fill-blank'             // 빈칸 채우기
   | 'sequence'               // 순서 맞추기 (스토리 순서, 사건 순서)
@@ -362,7 +362,7 @@ export const QUESTION_TYPE_INFO: Record<QuestionType, {
   label: string;
   description: string;
 }> = {
-  'multiple-choice': { emoji: '🔢', label: '4지선다', description: '4개 중 정답을 골라요!' },
+  'multiple-choice': { emoji: '🔢', label: '3지선다', description: '3개 중 정답을 골라요!' },
   'true-false': { emoji: '⭕', label: 'O/X 퀴즈', description: '맞으면 O, 틀리면 X!' },
   'fill-blank': { emoji: '✏️', label: '빈칸 채우기', description: '빈칸에 들어갈 말을 적어요!' },
   'sequence': { emoji: '📋', label: '순서 맞추기', description: '올바른 순서로 나열해요!' },

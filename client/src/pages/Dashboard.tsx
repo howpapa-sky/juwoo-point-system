@@ -51,8 +51,8 @@ const LEVELS: LevelInfo[] = [
   { level: 4, name: "빛나는 기사", icon: "⚔️", minPoints: 6000, maxPoints: 9999, gradient: "from-purple-400 to-violet-500", starCount: 2 },
   { level: 5, name: "멋진 영웅", icon: "🦸", minPoints: 10000, maxPoints: 14999, gradient: "from-rose-400 to-pink-500", starCount: 3 },
   { level: 6, name: "전설의 마법사", icon: "🧙", minPoints: 15000, maxPoints: 19999, gradient: "from-indigo-400 to-blue-500", starCount: 3 },
-  { level: 7, name: "슈퍼 챔피언", icon: "🏆", minPoints: 20000, maxPoints: 29999, gradient: "from-orange-400 to-red-500", starCount: 4 },
-  { level: 8, name: "드래곤 마스터", icon: "🐉", minPoints: 30000, maxPoints: 49999, gradient: "from-red-500 to-rose-600", starCount: 4 },
+  { level: 7, name: "슈퍼 챔피언", icon: "🏆", minPoints: 20000, maxPoints: 29999, gradient: "from-orange-400 to-amber-500", starCount: 4 },
+  { level: 8, name: "드래곤 마스터", icon: "🐉", minPoints: 30000, maxPoints: 49999, gradient: "from-purple-500 to-violet-600", starCount: 4 },
   { level: 9, name: "우주 대장", icon: "🚀", minPoints: 50000, maxPoints: 99999, gradient: "from-cyan-400 to-blue-600", starCount: 5 },
   { level: 10, name: "전설의 왕", icon: "👑", minPoints: 100000, maxPoints: Infinity, gradient: "from-amber-400 to-yellow-500", starCount: 5 },
 ];
@@ -427,7 +427,7 @@ export default function Dashboard() {
         </Card>
 
         {/* 오늘의 미션 배너 */}
-        <Card className="border-0 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 text-white overflow-hidden shadow-lg shadow-orange-500/25 rounded-2xl">
+        <Card className="border-0 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 text-white overflow-hidden shadow-lg shadow-orange-500/25 rounded-2xl">
           <CardContent className="p-4 relative">
             <div className="absolute right-0 top-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4" />
             <Link href="/pokemon-quiz">

@@ -85,7 +85,7 @@ export const QUIZ_THEMES = {
   pokemon: {
     name: '포켓몬', icon: '⚡',
     primary: 'from-yellow-400 to-orange-500',
-    secondary: 'from-yellow-100 via-orange-100 to-red-100',
+    secondary: 'from-yellow-100 via-orange-100 to-orange-100',
     card: 'border-yellow-400', accent: 'yellow',
   },
   ocean: {

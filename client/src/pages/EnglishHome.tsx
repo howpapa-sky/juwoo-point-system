@@ -61,7 +61,7 @@ const navItems: NavItem[] = [
     href: '/english-quiz',
     icon: Trophy,
     title: '퀴즈',
-    description: '4지선다 퀴즈로 실력 확인',
+    description: '3지선다 퀴즈로 실력 확인',
     gradient: 'from-purple-500 to-pink-500',
     shadowColor: 'shadow-purple-500/25',
   },

@@ -32,9 +32,9 @@ export default function MultipleChoice({ word, options, onAnswer, onSpeak, onSpe
   const handleHint = () => {
     if (usedHint) return;
     setUsedHint(true);
-    // 50/50: 오답 2개 제거
+    // 50/50: 오답 1개 제거 (3지선다이므로 1개만 제거)
     const wrongOptions = options.filter(o => o !== word.meaning);
-    const toEliminate = wrongOptions.sort(() => Math.random() - 0.5).slice(0, 2);
+    const toEliminate = wrongOptions.sort(() => Math.random() - 0.5).slice(0, 1);
     setEliminated(new Set(toEliminate));
   };
 

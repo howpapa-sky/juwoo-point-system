@@ -25,7 +25,7 @@ interface FixedShopItem {
 
 const SHOP_CATEGORIES = [
   { key: "tablet", label: "태블릿", emoji: "📱", icon: Tablet, gradient: "from-blue-500 to-cyan-500", bg: "from-blue-50 to-cyan-50" },
-  { key: "youtube", label: "유튜브", emoji: "▶️", icon: Youtube, gradient: "from-red-500 to-rose-500", bg: "from-red-50 to-rose-50" },
+  { key: "youtube", label: "유튜브", emoji: "▶️", icon: Youtube, gradient: "from-rose-500 to-pink-500", bg: "from-rose-50 to-pink-50" },
   { key: "netflix", label: "넷플릭스", emoji: "🎬", icon: Tv, gradient: "from-purple-500 to-violet-500", bg: "from-purple-50 to-violet-50" },
 ];
 

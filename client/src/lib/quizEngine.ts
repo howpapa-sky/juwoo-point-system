@@ -82,7 +82,7 @@ export const generateSmartDistractors = (
   const addFrom = (source: EnglishWord[]) => {
     const shuffled = shuffleArray(source);
     for (const w of shuffled) {
-      if (result.length >= 3) break;
+      if (result.length >= 2) break;
       if (used.has(w.id)) continue;
       if (result.includes(w[field])) continue;
       if (w[field] === word[field]) continue;
@@ -105,19 +105,19 @@ export const getImageOptions = (word: string, category?: string): string[] => {
   const correctEmoji = wordEmojiMap[lower];
 
   if (!correctEmoji) {
-    return shuffleArray(['❓', '🎯', '💫', '🌟']);
+    return shuffleArray(['❓', '🎯', '💫']);
   }
 
   const categoryPool = category ? getCategoryEmojis(category) : [];
   const wrongEmojis = categoryPool
     .filter(e => e !== correctEmoji)
     .sort(() => Math.random() - 0.5)
-    .slice(0, 3);
+    .slice(0, 2);
 
-  if (wrongEmojis.length < 3) {
+  if (wrongEmojis.length < 2) {
     const allEmojis = Object.values(wordEmojiMap);
     const unique = Array.from(new Set(allEmojis)).filter(e => e !== correctEmoji && !wrongEmojis.includes(e));
-    wrongEmojis.push(...unique.sort(() => Math.random() - 0.5).slice(0, 3 - wrongEmojis.length));
+    wrongEmojis.push(...unique.sort(() => Math.random() - 0.5).slice(0, 2 - wrongEmojis.length));
   }
 
   return shuffleArray([correctEmoji, ...wrongEmojis]);

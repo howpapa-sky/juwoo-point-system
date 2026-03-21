@@ -360,7 +360,7 @@ export default function VoiceLearning() {
               {!isListening ? (
                 <Button
                   onClick={startListening}
-                  className="px-12 py-8 text-xl bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
+                  className="px-12 py-8 text-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600"
                 >
                   <Mic className="mr-3 h-8 w-8" />
                   녹음 시작

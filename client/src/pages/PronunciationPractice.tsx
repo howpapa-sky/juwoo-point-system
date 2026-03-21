@@ -413,7 +413,7 @@ export default function PronunciationPractice() {
                     disabled={isListening}
                     className={`h-24 w-24 rounded-full mx-auto shadow-xl ${
                       isListening
-                        ? 'bg-red-500 hover:bg-red-600 animate-pulse'
+                        ? 'bg-orange-500 hover:bg-orange-600 animate-pulse'
                         : 'bg-gradient-to-br from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600'
                     }`}
                   >
@@ -421,7 +421,7 @@ export default function PronunciationPractice() {
                   </Button>
 
                   {isListening && (
-                    <p className="text-red-500 mt-4 animate-pulse text-lg font-bold">
+                    <p className="text-orange-500 mt-4 animate-pulse text-lg font-bold">
                       듣고 있어요...
                     </p>
                   )}

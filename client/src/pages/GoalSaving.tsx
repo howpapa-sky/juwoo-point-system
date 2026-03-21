@@ -292,7 +292,7 @@ export default function GoalSaving() {
   return (
     <div className="min-h-screen pb-24 md:pb-8">
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-red-400/30 to-rose-400/30 rounded-full blur-3xl" />
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-amber-400/30 to-orange-400/30 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 -left-16 w-48 h-48 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-full blur-3xl" />
       </div>
 
@@ -311,7 +311,7 @@ export default function GoalSaving() {
           </div>
           <Button
             size="icon"
-            className="rounded-xl bg-gradient-to-br from-red-500 to-rose-600 shadow-lg"
+            className="rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg"
             onClick={() => setShowNewGoalModal(true)}
           >
             <Plus className="h-5 w-5 text-white" />
@@ -352,7 +352,7 @@ export default function GoalSaving() {
                           <span className="text-slate-600 font-medium">
                             현재: {goal.current_amount.toLocaleString()} 코인
                           </span>
-                          <span className="font-bold text-red-600">{percent}%</span>
+                          <span className="font-bold text-amber-600">{percent}%</span>
                         </div>
                         <Progress value={percent} className="h-3" />
                       </div>
@@ -371,7 +371,7 @@ export default function GoalSaving() {
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           variant="outline"
-                          className="h-10 rounded-xl border-2 border-red-200 text-red-700 hover:bg-red-50 font-bold"
+                          className="h-10 rounded-xl border-2 border-amber-200 text-amber-700 hover:bg-amber-50 font-bold"
                           onClick={() => {
                             setSelectedGoal(goal);
                             setDepositAmount("10");
@@ -381,7 +381,7 @@ export default function GoalSaving() {
                           10코인 넣기
                         </Button>
                         <Button
-                          className="h-10 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold"
+                          className="h-10 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold"
                           onClick={() => {
                             setSelectedGoal(goal);
                             setDepositAmount("");
@@ -408,7 +408,7 @@ export default function GoalSaving() {
                 갖고 싶은 것을 목표로 세우고 코인을 모아보세요!
               </p>
               <Button
-                className="bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold rounded-2xl h-12 px-6"
+                className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-2xl h-12 px-6"
                 onClick={() => setShowNewGoalModal(true)}
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -494,7 +494,7 @@ export default function GoalSaving() {
                       key={emoji}
                       className={`w-10 h-10 rounded-xl text-xl flex items-center justify-center transition-all ${
                         newEmoji === emoji
-                          ? "bg-red-100 ring-2 ring-red-500 scale-110"
+                          ? "bg-amber-100 ring-2 ring-amber-500 scale-110"
                           : "bg-slate-100 hover:bg-slate-200"
                       }`}
                       onClick={() => setNewEmoji(emoji)}
@@ -512,7 +512,7 @@ export default function GoalSaving() {
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="예: 닌텐도 게임 시간 1시간"
-                  className="w-full h-12 px-4 border-2 border-slate-200 rounded-xl text-base font-medium focus:border-red-500 focus:outline-none"
+                  className="w-full h-12 px-4 border-2 border-slate-200 rounded-xl text-base font-medium focus:border-amber-500 focus:outline-none"
                 />
               </div>
 
@@ -524,7 +524,7 @@ export default function GoalSaving() {
                     value={newTarget}
                     onChange={(e) => setNewTarget(e.target.value)}
                     placeholder="100"
-                    className="flex-1 h-12 px-4 border-2 border-slate-200 rounded-xl text-lg font-bold focus:border-red-500 focus:outline-none"
+                    className="flex-1 h-12 px-4 border-2 border-slate-200 rounded-xl text-lg font-bold focus:border-amber-500 focus:outline-none"
                     min={10}
                   />
                   <span className="text-slate-500 font-medium">코인</span>
@@ -540,7 +540,7 @@ export default function GoalSaving() {
                   취소
                 </Button>
                 <Button
-                  className="h-12 bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold rounded-xl"
+                  className="h-12 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-xl"
                   onClick={handleCreateGoal}
                   disabled={processing}
                 >
@@ -587,7 +587,7 @@ export default function GoalSaving() {
                   <Button
                     key={amt}
                     variant="outline"
-                    className="h-12 font-bold rounded-xl border-2 border-red-200 text-red-700 hover:bg-red-50"
+                    className="h-12 font-bold rounded-xl border-2 border-amber-200 text-amber-700 hover:bg-amber-50"
                     onClick={() => setDepositAmount(String(amt))}
                     disabled={amt > walletBalance}
                   >
@@ -596,7 +596,7 @@ export default function GoalSaving() {
                 ))}
                 <Button
                   variant="outline"
-                  className="h-12 font-bold rounded-xl border-2 border-red-200 text-red-700 hover:bg-red-50"
+                  className="h-12 font-bold rounded-xl border-2 border-amber-200 text-amber-700 hover:bg-amber-50"
                   onClick={() => {
                     const remaining = selectedGoal.target_amount - selectedGoal.current_amount;
                     setDepositAmount(String(Math.min(remaining, walletBalance)));
@@ -612,7 +612,7 @@ export default function GoalSaving() {
                   value={depositAmount}
                   onChange={(e) => setDepositAmount(e.target.value)}
                   placeholder="직접 입력"
-                  className="flex-1 h-12 px-4 border-2 border-slate-200 rounded-xl text-lg font-bold focus:border-red-500 focus:outline-none"
+                  className="flex-1 h-12 px-4 border-2 border-slate-200 rounded-xl text-lg font-bold focus:border-amber-500 focus:outline-none"
                   min={1}
                   max={walletBalance}
                 />
@@ -631,7 +631,7 @@ export default function GoalSaving() {
                   취소
                 </Button>
                 <Button
-                  className="h-12 bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold rounded-xl"
+                  className="h-12 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-xl"
                   onClick={handleDeposit}
                   disabled={processing}
                 >

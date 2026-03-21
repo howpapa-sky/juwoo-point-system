@@ -54,7 +54,7 @@ export function useSRS() {
       if (error) throw error;
       setReviewWords(data ?? []);
     } catch (err) {
-      console.error('SRS review load error:', err);
+      if (import.meta.env.DEV) console.error('SRS review load error:', err);
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export function useSRS() {
       setGardenStats(stats);
       setTotalWords((data ?? []).length);
     } catch (err) {
-      console.error('Garden stats load error:', err);
+      if (import.meta.env.DEV) console.error('Garden stats load error:', err);
     }
   }, []);
 
@@ -143,7 +143,7 @@ export function useSRS() {
       if (updateErr) throw updateErr;
       return { newBox, correctStreak };
     } catch (err) {
-      console.error('SRS update error:', err);
+      if (import.meta.env.DEV) console.error('SRS update error:', err);
       return null;
     }
   }, []);
@@ -178,7 +178,7 @@ export function useSRS() {
       if (error) throw error;
       return data?.[0] ?? null;
     } catch (err) {
-      console.error('SRS add word error:', err);
+      if (import.meta.env.DEV) console.error('SRS add word error:', err);
       return null;
     }
   }, []);
@@ -211,7 +211,7 @@ export function useSRS() {
 
       if (error) throw error;
     } catch (err) {
-      console.error('SRS bulk add error:', err);
+      if (import.meta.env.DEV) console.error('SRS bulk add error:', err);
     }
   }, []);
 
@@ -228,7 +228,7 @@ export function useSRS() {
       if (error) throw error;
       return data ?? [];
     } catch (err) {
-      console.error('SRS unit words error:', err);
+      if (import.meta.env.DEV) console.error('SRS unit words error:', err);
       return [];
     }
   }, []);
@@ -248,7 +248,7 @@ export function useSRS() {
       const mastered = data.filter((w) => w.box >= 3).length;
       return Math.round((mastered / data.length) * 100);
     } catch (err) {
-      console.error('SRS unit mastery error:', err);
+      if (import.meta.env.DEV) console.error('SRS unit mastery error:', err);
       return 0;
     }
   }, []);
@@ -272,7 +272,7 @@ export function useSRS() {
 
       return updateWord(data.id, result, pronunciationScore);
     } catch (err) {
-      console.error('SRS updateWordByName error:', err);
+      if (import.meta.env.DEV) console.error('SRS updateWordByName error:', err);
       return null;
     }
   }, [updateWord]);

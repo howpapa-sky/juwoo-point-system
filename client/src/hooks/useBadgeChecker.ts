@@ -28,7 +28,7 @@ export function useBadgeChecker() {
       if (error) throw error;
       setEarnedBadges(data ?? []);
     } catch (err) {
-      console.error('Badge load error:', err);
+      if (import.meta.env.DEV) console.error('Badge load error:', err);
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ export function useBadgeChecker() {
       await loadEarnedBadges();
       return true;
     } catch (err) {
-      console.error('Badge award error:', err);
+      if (import.meta.env.DEV) console.error('Badge award error:', err);
       return false;
     }
   }, [earnedBadges, loadEarnedBadges]);
@@ -142,7 +142,7 @@ export function useBadgeChecker() {
       if (reviewSessions.length >= 1 && !earned.has('first-review')) await awardBadge('first-review');
       if (reviewSessions.length >= 30 && !earned.has('review-master')) await awardBadge('review-master');
     } catch (err) {
-      console.error('Session badge check error:', err);
+      if (import.meta.env.DEV) console.error('Session badge check error:', err);
     }
   }, [earnedBadges, awardBadge]);
 

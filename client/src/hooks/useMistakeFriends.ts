@@ -30,7 +30,7 @@ export function useMistakeFriends() {
       if (error) throw error;
       setFriends(data ?? []);
     } catch (err) {
-      console.error('실수 친구 로드 에러:', err);
+      if (import.meta.env.DEV) console.error('실수 친구 로드 에러:', err);
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export function useMistakeFriends() {
         return created;
       }
     } catch (err) {
-      console.error('실수 친구 기록 에러:', err);
+      if (import.meta.env.DEV) console.error('실수 친구 기록 에러:', err);
       return null;
     }
   }, []);
@@ -97,7 +97,7 @@ export function useMistakeFriends() {
       if (error) throw error;
       return true;
     } catch (err) {
-      console.error('실수 친구 이름 짓기 에러:', err);
+      if (import.meta.env.DEV) console.error('실수 친구 이름 짓기 에러:', err);
       return false;
     }
   }, []);
@@ -132,7 +132,7 @@ export function useMistakeFriends() {
       if (updateErr) throw updateErr;
       return { mastered: isMastered };
     } catch (err) {
-      console.error('실수 친구 정답 기록 에러:', err);
+      if (import.meta.env.DEV) console.error('실수 친구 정답 기록 에러:', err);
       return null;
     }
   }, []);

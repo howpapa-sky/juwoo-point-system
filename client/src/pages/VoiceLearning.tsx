@@ -33,7 +33,7 @@ export default function VoiceLearning() {
 
   function initSpeechRecognition() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      toast.error('이 브라우저는 음성 인식을 지원하지 않습니다.');
+      toast.error('이 브라우저에서는 음성 인식이 안 돼!');
       return;
     }
 
@@ -55,9 +55,9 @@ export default function VoiceLearning() {
       if (import.meta.env.DEV) console.error('Speech recognition error:', event.error);
       setIsListening(false);
       if (event.error === 'no-speech') {
-        toast.error('음성이 감지되지 않았습니다. 다시 시도해주세요.');
+        toast.error('소리가 안 들렸어! 다시 해보자');
       } else {
-        toast.error('음성 인식 오류가 발생했습니다.');
+        toast.error('음성 인식에 문제가 있어!');
       }
     };
 
@@ -87,7 +87,7 @@ export default function VoiceLearning() {
 
   function startListening() {
     if (!recognition) {
-      toast.error('음성 인식이 초기화되지 않았습니다.');
+      toast.error('음성 인식이 준비 안 됐어!');
       return;
     }
 
@@ -200,8 +200,8 @@ export default function VoiceLearning() {
       <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>단어가 없습니다</CardTitle>
-            <CardDescription>학습할 단어를 먼저 추가해주세요.</CardDescription>
+            <CardTitle>단어가 없어!</CardTitle>
+            <CardDescription>먼저 단어를 추가해줘!</CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/english-learning">
@@ -338,7 +338,7 @@ export default function VoiceLearning() {
               <div className="text-sm opacity-90 mb-2">{currentWord.category}</div>
               <CardTitle className="text-5xl mb-4">{currentWord.korean}</CardTitle>
               <CardDescription className="text-white/90 text-lg">
-                이 단어를 영어로 발음하세요
+                이 단어를 영어로 말해봐!
               </CardDescription>
             </div>
           </CardHeader>
@@ -392,15 +392,15 @@ export default function VoiceLearning() {
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 font-bold">1.</span>
-                <span>"발음 듣기" 버튼을 눌러 정확한 발음을 확인하세요.</span>
+                <span>"발음 듣기" 버튼을 눌러서 들어봐!</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 font-bold">2.</span>
-                <span>"녹음 시작" 버튼을 누르고 영어 단어를 발음하세요.</span>
+                <span>"녹음 시작" 버튼을 누르고 영어 단어를 말해봐!</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 font-bold">3.</span>
-                <span>80% 이상 정답 시 +500 포인트를 획득합니다!</span>
+                <span>80% 이상 맞추면 +500 포인트 획득!</span>
               </li>
             </ul>
           </CardContent>

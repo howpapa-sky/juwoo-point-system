@@ -231,7 +231,7 @@ export default function Dashboard() {
 
       if (updateError) throw updateError;
 
-      toast.success("포인트가 취소되었습니다!");
+      toast.success("포인트 취소 완료!");
       setBalance(newBalance);
       setTransactions(prev => prev.filter(t => t.id !== transactionId));
     } catch (error: any) {
@@ -250,7 +250,7 @@ export default function Dashboard() {
               <Sparkles className="h-10 w-10 text-white" />
             </div>
             <CardTitle className="text-2xl font-black">로그인이 필요해요</CardTitle>
-            <CardDescription className="text-base">대시보드를 보려면 로그인해주세요</CardDescription>
+            <CardDescription className="text-base">로그인하면 볼 수 있어!</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
             <a href={getLoginUrl()}>
@@ -299,7 +299,7 @@ export default function Dashboard() {
         <div className="pt-2">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-2xl">👋</span>
-            <span className="text-slate-500 font-medium">안녕하세요!</span>
+            <span className="text-slate-500 font-medium">안녕!</span>
           </div>
           <h1 className="text-3xl font-black text-slate-800">
             {user?.user_metadata?.name ?? user?.email?.split("@")[0] ?? "주우"}님

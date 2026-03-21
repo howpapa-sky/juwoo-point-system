@@ -55,19 +55,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // 전체 메뉴 아이템
   const menuItems = [
     { path: "/dashboard", label: "대시보드", icon: LayoutDashboard, color: "from-violet-500 to-purple-600" },
-    { path: "/routine", label: "기지 전력 충전", icon: Sparkles, color: "from-indigo-500 to-purple-600" },
+    { path: "/routine", label: "오늘 할 일", icon: Sparkles, color: "from-indigo-500 to-purple-600" },
     { path: "/wallet", label: "내 지갑", icon: Wallet, color: "from-amber-500 to-orange-600" },
     { path: "/savings", label: "금고", icon: Landmark, color: "from-blue-500 to-indigo-600" },
     { path: "/seed-farm", label: "씨앗밭", icon: Sprout, color: "from-emerald-500 to-green-600" },
-    { path: "/shop", label: "탐험 보급소", icon: ShoppingBag, color: "from-pink-500 to-rose-600" },
+    { path: "/shop", label: "상점", icon: ShoppingBag, color: "from-pink-500 to-rose-600" },
     { path: "/points-manage", label: "포인트 관리", icon: Coins, color: "from-amber-500 to-orange-600" },
     { path: "/worry-box", label: "걱정상자", icon: BookOpen, color: "from-cyan-500 to-blue-600" },
-    { path: "/english-quiz", label: "우주어 해독", icon: GraduationCap, color: "from-blue-500 to-indigo-600" },
+    { path: "/english-quiz", label: "영어 퀴즈", icon: GraduationCap, color: "from-blue-500 to-indigo-600" },
     { path: "/english-learning", label: "영어 학습", icon: BookOpen, color: "from-emerald-500 to-teal-600" },
     { path: "/seed-album", label: "씨앗 도감", icon: Album, color: "from-amber-500 to-yellow-600" },
     { path: "/goal-saving", label: "목표 모으기", icon: Target, color: "from-amber-500 to-orange-600" },
     { path: "/invest-report", label: "투자 리포트", icon: BarChart3, color: "from-slate-500 to-gray-600" },
-    { path: "/badges", label: "탐험 훈장", icon: Award, color: "from-indigo-500 to-violet-600" },
+    { path: "/badges", label: "배지", icon: Award, color: "from-indigo-500 to-violet-600" },
     { path: "/statistics", label: "통계", icon: BarChart3, color: "from-slate-500 to-gray-600" },
   ];
 

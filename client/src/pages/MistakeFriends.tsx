@@ -94,7 +94,7 @@ export default function MistakeFriends() {
             <span className="text-sm font-semibold text-amber-700">실수 친구 도감</span>
           </div>
           <h1 className="text-3xl font-black text-slate-800 mb-1">실수 친구들</h1>
-          <p className="text-slate-500">우주어를 아직 배우는 중인 친구들이야!</p>
+          <p className="text-slate-500">아직 배우는 중인 단어들이야!</p>
         </div>
 
         {/* 통계 */}
@@ -108,7 +108,7 @@ export default function MistakeFriends() {
           <Card className="border-0 bg-gradient-to-br from-yellow-100 to-amber-100 shadow-sm rounded-2xl">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-black text-yellow-600">{masteredFriends.length}</p>
-              <p className="text-sm text-yellow-700">우주어 마스터!</p>
+              <p className="text-sm text-yellow-700">완벽히 외웠어!</p>
             </CardContent>
           </Card>
         </div>
@@ -161,7 +161,7 @@ export default function MistakeFriends() {
         {masteredFriends.length > 0 && (
           <div>
             <h3 className="font-bold text-slate-700 mb-2 flex items-center gap-2">
-              <span className="text-lg">⭐</span> 우주어 마스터!
+              <span className="text-lg">⭐</span> 완벽히 외웠어!
             </h3>
             <div className="grid grid-cols-2 gap-3">
               {masteredFriends.map((friend) => (
@@ -338,7 +338,7 @@ function FriendCard({
             {isMastered && (
               <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 rounded-full">
                 <Sparkles className="h-3 w-3 text-yellow-600" />
-                <span className="text-sm font-bold text-yellow-700">우주어 마스터!</span>
+                <span className="text-sm font-bold text-yellow-700">완벽히 외웠어!</span>
               </div>
             )}
           </div>

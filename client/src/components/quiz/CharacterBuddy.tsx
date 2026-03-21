@@ -5,9 +5,9 @@ type BuddyMood = 'greeting' | 'correct' | 'wrong' | 'combo' | 'hint' | 'dontknow
 
 const BUDDY_MESSAGES: Record<BuddyMood, string[]> = {
   greeting: [
-    '주우야, 오늘은 어떤 우주어를 해독할까?',
+    '주우야, 오늘은 어떤 단어를 배울까?',
     '준비됐어? 출발!',
-    '오늘도 같이 해독하자!',
+    '오늘도 같이 공부하자!',
     '주우야! 반가워! 오늘도 화이팅!',
   ],
   correct: [
@@ -16,7 +16,7 @@ const BUDDY_MESSAGES: Record<BuddyMood, string[]> = {
     '천재다~!',
     '완벽해!',
     '멋지다!',
-    '정확해! 우주어 해독 성공!',
+    '정확해! 정답!',
   ],
   wrong: [
     '괜찮아, 같이 다시 해보자!',
@@ -51,7 +51,7 @@ const BUDDY_MESSAGES: Record<BuddyMood, string[]> = {
     '오늘도 고생했어! 내일 또 만나!',
     '대단해! 오늘도 성장했어!',
     '최고야! 다음에 또 하자!',
-    '잘했어! 주우는 우주어 해독 천재야!',
+    '잘했어! 주우는 영어 천재야!',
   ],
   // Phase 2: 실수 친구 도감 연동
   new_friend: [
@@ -60,9 +60,9 @@ const BUDDY_MESSAGES: Record<BuddyMood, string[]> = {
     '새 친구가 생겼어! 도감에서 만나보자!',
   ],
   friend_mastered: [
-    '실수 친구가 우주어를 마스터했어! 대단해!',
+    '실수 친구가 단어를 마스터했어! 대단해!',
     '친구가 성장했어! 함께 자랐구나!',
-    '와! 이 친구도 이제 우주어 전문가야!',
+    '와! 이 친구도 이제 영어 전문가야!',
   ],
 };
 

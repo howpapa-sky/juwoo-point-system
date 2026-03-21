@@ -201,8 +201,8 @@ function getGrowthStory(progress: number, daysLeft: number, isReady: boolean): s
 
 // 수확 결과 스토리
 function getHarvestStory(seedIcon: string, profit: number, invested: number): string {
-  if (profit > invested * 0.3) return `${seedIcon} 황금 열매가 가득 열렸어요! +${profit}코인 🍎`;
-  if (profit > 0) return `${seedIcon} 열매가 잘 익었어요! +${profit}코인`;
+  if (profit > invested * 0.3) return `${seedIcon} 황금 열매가 가득 열렸어요! +${profit}포인트 🍎`;
+  if (profit > 0) return `${seedIcon} 열매가 잘 익었어요! +${profit}포인트`;
   if (profit === 0) return "심은 만큼 돌아왔어요. 다음엔 더 좋은 일이 있을 거야!";
   return "이번엔 열매가 적었어요. 하지만 나무는 더 단단해졌어요 💪";
 }
@@ -339,7 +339,7 @@ export default function SeedFarm() {
       const profitText = profit >= 0 ? `+${profit}` : `${profit}`;
       await adjustPoints({
         amount: harvestedAmount,
-        note: `🌱 씨앗 수확: ${getSeedIcon(seed.seed_type)} ${harvestedAmount}코인 (${profitText})`,
+        note: `🌱 씨앗 수확: ${getSeedIcon(seed.seed_type)} ${harvestedAmount}포인트 (${profitText})`,
       });
 
       results.push({
@@ -369,7 +369,7 @@ export default function SeedFarm() {
         .single();
       if (profileError) {
         if (import.meta.env.DEV) console.error('프로필 조회 실패:', profileError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
       setWalletBalance(profileData?.current_points ?? 0);
@@ -383,7 +383,7 @@ export default function SeedFarm() {
         .order("planted_date", { ascending: false });
       if (growingError) {
         if (import.meta.env.DEV) console.error('성장 중 씨앗 조회 실패:', growingError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -479,11 +479,11 @@ export default function SeedFarm() {
   const handlePlant = async () => {
     const amount = parseInt(plantAmount);
     if (!selectedSeedType || !amount || amount < 10) {
-      toast.error("최소 10코인부터 심을 수 있어요!");
+      toast.error("최소 10포인트부터 심을 수 있어요!");
       return;
     }
     if (amount > walletBalance) {
-      toast.error("지갑에 코인이 부족해요!");
+      toast.error("지갑에 포인트이 부족해요!");
       return;
     }
 
@@ -508,7 +508,7 @@ export default function SeedFarm() {
       });
       if (seedError) {
         if (import.meta.env.DEV) console.error('씨앗 생성 실패:', seedError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -520,7 +520,7 @@ export default function SeedFarm() {
         .eq("id", 1);
       if (walletError) {
         if (import.meta.env.DEV) console.error('지갑 차감 실패:', walletError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -530,14 +530,14 @@ export default function SeedFarm() {
         rule_id: null,
         amount: -amount,
         balance_after: newBalance,
-        note: `🌱 씨앗 심기: ${selectedSeedType.icon} ${selectedSeedType.name} ${amount}코인`,
+        note: `🌱 씨앗 심기: ${selectedSeedType.icon} ${selectedSeedType.name} ${amount}포인트`,
         created_by: 1,
       });
       if (txError) {
         if (import.meta.env.DEV) console.error('거래 내역 기록 실패:', txError);
       }
 
-      // 코인 이동 애니메이션
+      // 포인트 이동 애니메이션
       setShowPlantAnimation(true);
       setTimeout(() => setShowPlantAnimation(false), 1000);
 
@@ -585,7 +585,7 @@ export default function SeedFarm() {
           .eq("id", seed.id);
         if (seedUpdateError) {
           if (import.meta.env.DEV) console.error('씨앗 수확 업데이트 실패:', seedUpdateError);
-          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          toast.error('잠깐, 문제가 생겼어! 다시 해보자');
           setShowHarvestAnimation(false);
           return;
         }
@@ -598,7 +598,7 @@ export default function SeedFarm() {
           .single();
         if (profileError) {
           if (import.meta.env.DEV) console.error('프로필 조회 실패:', profileError);
-          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          toast.error('잠깐, 문제가 생겼어! 다시 해보자');
           setShowHarvestAnimation(false);
           return;
         }
@@ -612,7 +612,7 @@ export default function SeedFarm() {
           .eq("id", 1);
         if (walletUpdateError) {
           if (import.meta.env.DEV) console.error('지갑 업데이트 실패:', walletUpdateError);
-          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          toast.error('잠깐, 문제가 생겼어! 다시 해보자');
           setShowHarvestAnimation(false);
           return;
         }
@@ -625,7 +625,7 @@ export default function SeedFarm() {
           rule_id: null,
           amount: harvestedAmount,
           balance_after: newBalance,
-          note: `🌱 씨앗 수확: ${getSeedIcon(seed.seed_type)} ${harvestedAmount}코인 (${profitText})`,
+          note: `🌱 씨앗 수확: ${getSeedIcon(seed.seed_type)} ${harvestedAmount}포인트 (${profitText})`,
           created_by: 1,
         });
         if (txError) {
@@ -673,7 +673,7 @@ export default function SeedFarm() {
           .eq("id", harvestResult.seed.id);
         if (reflectionError) {
           if (import.meta.env.DEV) console.error('투자 일기 저장 실패:', reflectionError);
-          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         } else {
           toast.success("투자 일기를 저장했어요!");
         }
@@ -804,11 +804,11 @@ export default function SeedFarm() {
                       <span
                         className={`font-bold ${result.profit >= 0 ? "text-emerald-600" : "text-slate-500"}`}
                       >
-                        {result.profit >= 0 ? `+${result.profit}` : result.profit}코인
+                        {result.profit >= 0 ? `+${result.profit}` : result.profit}포인트
                       </span>
                     </div>
                     <p className="text-sm text-slate-500">
-                      {result.seed.invested_amount}코인 → {result.harvestedAmount}코인
+                      {result.seed.invested_amount}포인트 → {result.harvestedAmount}포인트
                     </p>
                     {result.lossMessage && (
                       <p className="text-sm text-slate-500 mt-1">{result.lossMessage}</p>
@@ -829,10 +829,10 @@ export default function SeedFarm() {
             >
               <CardContent className="p-4 text-center">
                 <p className="text-white/70 text-sm">총 수확</p>
-                <p className="text-3xl font-black">{totalHarvested.toLocaleString()}코인</p>
+                <p className="text-3xl font-black">{totalHarvested.toLocaleString()}포인트</p>
                 <p className="text-white/80 text-sm mt-1">
                   {hasProfit
-                    ? `씨앗이 잘 자랐어요! +${totalProfit}코인 이득!`
+                    ? `씨앗이 잘 자랐어요! +${totalProfit}포인트 이득!`
                     : "다음에는 더 좋은 날씨가 올 거예요!"}
                 </p>
               </CardContent>
@@ -915,7 +915,7 @@ export default function SeedFarm() {
               <CardContent className="p-6 text-center">
                 <div className="grid grid-cols-3 gap-4 mb-4">
                   <div>
-                    <p className="text-sm text-slate-500">심은 코인</p>
+                    <p className="text-sm text-slate-500">심은 포인트</p>
                     <p className="text-2xl font-black text-slate-700">
                       {harvestResult.seed.invested_amount}
                     </p>
@@ -924,7 +924,7 @@ export default function SeedFarm() {
                     <ChevronRight className="h-6 w-6 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-500">수확 코인</p>
+                    <p className="text-sm text-slate-500">수확 포인트</p>
                     <p
                       className={`text-2xl font-black ${isProfit ? "text-emerald-600" : "text-slate-600"}`}
                     >
@@ -946,7 +946,7 @@ export default function SeedFarm() {
                     <TrendingDown className="h-4 w-4" />
                   )}
                   <span className="font-bold">
-                    {isProfit ? `+${profit}코인!` : `${profit}코인`}
+                    {isProfit ? `+${profit}포인트!` : `${profit}포인트`}
                   </span>
                 </div>
 
@@ -1011,7 +1011,7 @@ export default function SeedFarm() {
             transition={{ delay: 0.5 }}
           >
             <p className="text-center text-slate-600 font-medium mb-3">
-              수확한 코인으로 뭐 할까?
+              수확한 포인트으로 뭐 할까?
             </p>
             <div className="grid grid-cols-3 gap-3">
               <Button
@@ -1115,7 +1115,7 @@ export default function SeedFarm() {
                             const last = harvestHistory.find(h => h.seed_type === seed.type)!;
                             return (
                               <p className="text-sm text-slate-400 mb-2">
-                                지난번: {last.invested_amount}코인 → {last.harvested_amount}코인 됐어요
+                                지난번: {last.invested_amount}포인트 → {last.harvested_amount}포인트 됐어요
                               </p>
                             );
                           })()}
@@ -1170,7 +1170,7 @@ export default function SeedFarm() {
             <CardContent className="p-5">
               <p className="text-sm text-slate-500 mb-3">
                 내 지갑: <strong className="text-slate-800">{walletBalance.toLocaleString()}</strong>{" "}
-                코인
+                포인트
               </p>
 
               <div className="grid grid-cols-4 gap-2 mb-4">
@@ -1197,7 +1197,7 @@ export default function SeedFarm() {
                   min={10}
                   max={walletBalance}
                 />
-                <span className="text-slate-500 font-medium">코인</span>
+                <span className="text-slate-500 font-medium">포인트</span>
               </div>
 
               {amount >= 10 && (
@@ -1205,18 +1205,18 @@ export default function SeedFarm() {
                   <p className="text-sm text-slate-600 mb-1">
                     {selectedSeedType.type !== "sunflower" && (
                       <>
-                        좋을 때: {plantAmount}코인 → <strong className="text-emerald-600">{bestCase}코인</strong>
+                        좋을 때: {plantAmount}포인트 → <strong className="text-emerald-600">{bestCase}포인트</strong>
                       </>
                     )}
                     {selectedSeedType.type === "sunflower" && (
                       <>
-                        확정 결과: {plantAmount}코인 → <strong className="text-emerald-600">{bestCase}코인</strong>
+                        확정 결과: {plantAmount}포인트 → <strong className="text-emerald-600">{bestCase}포인트</strong>
                       </>
                     )}
                   </p>
                   {selectedSeedType.type !== "sunflower" && (
                     <p className="text-sm text-slate-500">
-                      아쉬울 때: {plantAmount}코인 → <strong className="text-slate-500">{worstCase}코인</strong>
+                      아쉬울 때: {plantAmount}포인트 → <strong className="text-slate-500">{worstCase}포인트</strong>
                     </p>
                   )}
                 </div>
@@ -1333,13 +1333,13 @@ export default function SeedFarm() {
     const handleBundlePlant = async () => {
       const entries = Object.entries(bundleAllocations).filter(([, v]) => v >= 10);
       if (entries.length === 0) {
-        toast.error("최소 10코인 이상 심어야 해요!");
+        toast.error("최소 10포인트 이상 심어야 해요!");
         return;
       }
       // 유효한 항목만의 합계로 검증 및 차감
       const validTotal = entries.reduce((sum, [, v]) => sum + v, 0);
       if (validTotal > walletBalance) {
-        toast.error("지갑에 코인이 부족해요!");
+        toast.error("지갑에 포인트이 부족해요!");
         return;
       }
 
@@ -1363,7 +1363,7 @@ export default function SeedFarm() {
           });
           if (seedInsertError) {
             if (import.meta.env.DEV) console.error('묶음 씨앗 생성 실패:', seedInsertError);
-            toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+            toast.error('잠깐, 문제가 생겼어! 다시 해보자');
             return;
           }
         }
@@ -1376,7 +1376,7 @@ export default function SeedFarm() {
           .eq("id", 1);
         if (walletError) {
           if (import.meta.env.DEV) console.error('지갑 차감 실패:', walletError);
-          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          toast.error('잠깐, 문제가 생겼어! 다시 해보자');
           return;
         }
 
@@ -1390,7 +1390,7 @@ export default function SeedFarm() {
           rule_id: null,
           amount: -validTotal,
           balance_after: newBalance,
-          note: `🌈 묶음 심기: ${seedNames.join(", ")} (${validTotal}코인)`,
+          note: `🌈 묶음 심기: ${seedNames.join(", ")} (${validTotal}포인트)`,
           created_by: 1,
         });
         if (txError) {
@@ -1449,7 +1449,7 @@ export default function SeedFarm() {
           <div className="flex items-center justify-between p-3 bg-white/80 rounded-2xl">
             <span className="text-sm text-slate-600">내 지갑</span>
             <span className="font-bold text-slate-800">
-              {walletBalance.toLocaleString()}코인
+              {walletBalance.toLocaleString()}포인트
             </span>
           </div>
 
@@ -1515,19 +1515,19 @@ export default function SeedFarm() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-slate-600">투자 합계</span>
                 <span className={`font-bold ${totalAllocated > walletBalance ? "text-amber-600" : "text-slate-800"}`}>
-                  {totalAllocated.toLocaleString()}코인
+                  {totalAllocated.toLocaleString()}포인트
                 </span>
               </div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-slate-600">남는 코인</span>
+                <span className="text-sm text-slate-600">남는 포인트</span>
                 <span className={`font-bold ${remaining < 0 ? "text-amber-600" : "text-slate-600"}`}>
-                  {remaining.toLocaleString()}코인
+                  {remaining.toLocaleString()}포인트
                 </span>
               </div>
               {totalAllocated > 0 && (
                 <div className="pt-2 border-t border-slate-200">
                   <p className="text-sm text-slate-500">
-                    예상 수확: {bundleMin.toLocaleString()}~{bundleMax.toLocaleString()}코인
+                    예상 수확: {bundleMin.toLocaleString()}~{bundleMax.toLocaleString()}포인트
                   </p>
                 </div>
               )}
@@ -1673,7 +1673,7 @@ export default function SeedFarm() {
                               {getSeedName(seed.seed_type)}
                             </span>
                             <span className="text-sm text-slate-500">
-                              ({seed.invested_amount}코인)
+                              ({seed.invested_amount}포인트)
                             </span>
                           </div>
                           <span
@@ -1689,8 +1689,8 @@ export default function SeedFarm() {
                             <span>
                               예상 수확:{" "}
                               {seedType?.type === "sunflower"
-                                ? `${Math.floor(seed.invested_amount * 1.1)}코인 확정`
-                                : `${Math.floor(seed.invested_amount * (MIN_GUARANTEE[seedType?.type ?? "tree"] ?? 0.85))}~${Math.floor(seed.invested_amount * (MAX_MULTIPLIER[seedType?.type ?? "tree"] ?? 1.4))}코인`}
+                                ? `${Math.floor(seed.invested_amount * 1.1)}포인트 확정`
+                                : `${Math.floor(seed.invested_amount * (MIN_GUARANTEE[seedType?.type ?? "tree"] ?? 0.85))}~${Math.floor(seed.invested_amount * (MAX_MULTIPLIER[seedType?.type ?? "tree"] ?? 1.4))}포인트`}
                             </span>
                           </div>
                           <Progress value={progress} className="h-2.5" />

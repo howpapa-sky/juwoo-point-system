@@ -17,7 +17,6 @@ import {
   Flame,
   ChevronRight,
   Coins,
-  Rocket,
   Package,
   Moon,
   Sprout,
@@ -121,10 +120,10 @@ export default function Home() {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-indigo-600 rounded-xl">
-                <Rocket className="h-6 w-6 text-white" />
+                <Sparkles className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">
-                탐험기지
+                주우네
               </span>
             </div>
             {balance !== null && (
@@ -143,13 +142,13 @@ export default function Home() {
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 rounded-full text-sm font-medium text-indigo-700 mb-3">
               <Sparkles className="h-4 w-4" />
-              탐험대원 {user?.user_metadata?.name ?? "주우"}, 오늘도 화이팅!
+              {user?.user_metadata?.name ?? "주우"}, 오늘도 화이팅!
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-              주우의 탐험기지에 오신 걸 환영해!
+              안녕 주우! 오늘은 뭐 할까?
             </h1>
             <p className="text-base text-gray-500">
-              좋은 습관으로 에너지를 충전하고, 새로운 세계를 탐험하세요
+              좋은 습관으로 포인트를 모으자!
             </p>
           </div>
 
@@ -167,7 +166,7 @@ export default function Home() {
 
           {/* 빠른 액션 카드 — 토스 스타일: 흰색 배경 + 좌측 액센트 바 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            {/* 기지 전력 충전 (루틴) */}
+            {/* 오늘 할 일 (루틴) */}
             <Link href="/routine">
               <Card className="group relative overflow-hidden border border-gray-100 bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 rounded-l-xl" />
@@ -190,7 +189,7 @@ export default function Home() {
               </Card>
             </Link>
 
-            {/* 우주어 해독 (영어) */}
+            {/* 영어 공부 */}
             <Link href="/english-learning">
               <Card className="group relative overflow-hidden border border-gray-100 bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 rounded-l-xl" />
@@ -204,9 +203,9 @@ export default function Home() {
                     </span>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{WORLDVIEW.english}</h3>
-                  <p className="text-gray-500 text-sm mb-4">1,000개+ 단어로 우주어 해독!</p>
+                  <p className="text-gray-500 text-sm mb-4">1,000개+ 영어 단어!</p>
                   <div className="flex items-center gap-2 text-purple-600">
-                    <span className="text-sm font-medium">해독 시작</span>
+                    <span className="text-sm font-medium">공부 시작</span>
                     <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </CardContent>
@@ -242,11 +241,11 @@ export default function Home() {
             {[
               { href: "/dashboard", icon: Sparkles, label: "대시보드", iconBg: "bg-indigo-50", iconColor: "text-indigo-600", desc: `${WORLDVIEW.points}` },
               { href: "/my-bookshelf", icon: BookOpen, label: WORLDVIEW.reading, iconBg: "bg-indigo-50", iconColor: "text-indigo-600", desc: "나의 책장" },
-              { href: "/exercise-log", icon: Dumbbell, label: WORLDVIEW.exercise, iconBg: "bg-emerald-50", iconColor: "text-emerald-600", desc: "체력 훈련" },
+              { href: "/exercise-log", icon: Dumbbell, label: WORLDVIEW.exercise, iconBg: "bg-emerald-50", iconColor: "text-emerald-600", desc: "운동 기록" },
               { href: "/shop", icon: Gift, label: WORLDVIEW.shop, iconBg: "bg-pink-50", iconColor: "text-pink-600", desc: "보상 구매" },
               { href: "/wallet", icon: Coins, label: "내 지갑", iconBg: "bg-orange-50", iconColor: "text-orange-600", desc: "잔액 확인" },
               { href: "/worry-box", icon: Package, label: "걱정상자", iconBg: "bg-amber-50", iconColor: "text-amber-600", desc: "걱정 넣기" },
-              { href: "/sleep", icon: Moon, label: "충전 모드", iconBg: "bg-indigo-50", iconColor: "text-indigo-600", desc: "수면 보너스" },
+              { href: "/sleep", icon: Moon, label: "일찍 자기", iconBg: "bg-indigo-50", iconColor: "text-indigo-600", desc: "일찍 자면 보너스!" },
               { href: "/goals", icon: Target, label: "목표", iconBg: "bg-amber-50", iconColor: "text-amber-600", desc: "목표 달성" },
               { href: "/badges", icon: Award, label: WORLDVIEW.badge, iconBg: "bg-yellow-50", iconColor: "text-yellow-600", desc: "획득 훈장" },
               { href: "/english-quiz", icon: BookOpen, label: WORLDVIEW.english, iconBg: "bg-purple-50", iconColor: "text-purple-600", desc: "단어 테스트" },
@@ -296,7 +295,7 @@ export default function Home() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Flame className="h-5 w-5 text-orange-500" />
-                    <span className="font-bold text-gray-900">오늘의 탐험</span>
+                    <span className="font-bold text-gray-900">오늘의 도전</span>
                   </div>
                   <p className="text-gray-600 text-sm">
                     매일 루틴을 완료하고 {WORLDVIEW.streak} 기록을 세워보세요!
@@ -322,27 +321,27 @@ export default function Home() {
       <div className="container max-w-4xl py-16 px-4">
         <div className="text-center">
           <div className="inline-flex items-center justify-center p-4 bg-indigo-600 rounded-3xl shadow-lg mb-8">
-            <Rocket className="h-12 w-12 text-white" />
+            <Sparkles className="h-12 w-12 text-white" />
           </div>
 
           <h1 className="text-4xl md:text-5xl font-black mb-6">
             <span className="text-indigo-600">주우의</span>
             <br />
-            <span className="text-gray-900">탐험기지</span>
+            <span className="text-gray-900">주우네</span>
           </h1>
 
           <p className="text-xl text-gray-500 mb-8 max-w-md mx-auto">
             좋은 습관으로 {WORLDVIEW.points}를 모으고,
             <br />
-            새로운 세계를 탐험하세요!
+            멋진 보상을 받자!
           </p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {[
-              { emoji: "🚀", text: "루틴 완료" },
-              { emoji: "🌟", text: "에너지 충전" },
+              { emoji: "✅", text: "오늘 할 일" },
+              { emoji: "⭐", text: "포인트 모으기" },
               { emoji: "🌱", text: "씨앗 키우기" },
-              { emoji: "🎓", text: "우주어 해독" },
+              { emoji: "📚", text: "영어 공부" },
             ].map((item, i) => (
               <div
                 key={i}
@@ -359,8 +358,8 @@ export default function Home() {
             className="bg-indigo-600 hover:bg-indigo-700 text-white text-xl px-10 py-7 rounded-2xl shadow-lg transition-all hover:-translate-y-1"
             onClick={() => (window.location.href = "/login")}
           >
-            <Rocket className="h-6 w-6 mr-2" />
-            탐험 시작하기
+            <Sparkles className="h-6 w-6 mr-2" />
+            시작하기
           </Button>
         </div>
       </div>

@@ -83,7 +83,7 @@ const ALBUM_SEEDS: AlbumSeed[] = [
     resultRange: "100~180%",
     gradient: "from-rose-400 to-pink-500",
     hidden: true,
-    unlockHint: "총 500코인 이상 투자하면 나타나요",
+    unlockHint: "총 500포인트 이상 투자하면 나타나요",
     unlockCondition: (stats) => stats.totalInvested >= 500,
   },
   {
@@ -107,7 +107,7 @@ const ALBUM_SEEDS: AlbumSeed[] = [
     resultRange: "50~300%",
     gradient: "from-violet-400 to-pink-500",
     hidden: true,
-    unlockHint: "총 수익 100코인을 넘기면 나타나요",
+    unlockHint: "총 수익 100포인트을 넘기면 나타나요",
     unlockCondition: (stats) => stats.totalProfit >= 100,
   },
 ];
@@ -220,7 +220,7 @@ export default function SeedAlbum() {
         });
       } catch (error: any) {
         if (import.meta.env.DEV) console.error("Error fetching album stats:", error);
-        toast.error("도감 데이터를 불러오지 못했습니다.");
+        toast.error("도감 데이터를 못 불러왔어!");
       } finally {
         setLoading(false);
       }
@@ -289,7 +289,7 @@ export default function SeedAlbum() {
             <p className="text-sm text-slate-500">
               총 {totalHarvests}번 수확 | 수익{" "}
               {stats.totalProfit >= 0 ? "+" : ""}
-              {stats.totalProfit}코인
+              {stats.totalProfit}포인트
             </p>
           </div>
         </div>

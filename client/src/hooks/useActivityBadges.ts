@@ -55,7 +55,7 @@ export function useActivityBadges() {
           .eq('id', badge.id);
 
         confetti({ particleCount: 50, spread: 60 });
-        toast.success(`새로운 탐험 훈장! ${badge.emoji} ${badge.name}`);
+        toast.success(`새로운 배지! ${badge.emoji} ${badge.name}`);
       }
     }
   }, []);
@@ -85,7 +85,7 @@ export function useActivityBadges() {
           .eq('id', badge.id);
 
         confetti({ particleCount: 50, spread: 60 });
-        toast.success(`새로운 탐험 훈장! ${badge.emoji} ${badge.name}`);
+        toast.success(`새로운 배지! ${badge.emoji} ${badge.name}`);
       }
     }
   }, []);
@@ -113,7 +113,7 @@ export function useActivityBadges() {
           .eq('id', badge.id);
 
         confetti({ particleCount: 50, spread: 60 });
-        toast.success(`새로운 탐험 훈장! ${badge.emoji} ${badge.name}`);
+        toast.success(`새로운 배지! ${badge.emoji} ${badge.name}`);
       }
     }
   }, []);
@@ -143,7 +143,7 @@ export function useActivityBadges() {
           .eq('id', badge.id);
 
         confetti({ particleCount: 50, spread: 60 });
-        toast.success(`새로운 탐험 훈장! ${badge.emoji} ${badge.name}`);
+        toast.success(`새로운 배지! ${badge.emoji} ${badge.name}`);
       }
     }
   }, []);

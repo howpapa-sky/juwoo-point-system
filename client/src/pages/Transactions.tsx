@@ -73,7 +73,7 @@ export default function Transactions() {
   }, [isAuthenticated, fetchTransactions]);
 
   const handleCancelTransaction = async (transactionId: number, amount: number) => {
-    if (!confirm('이 거래를 취소하시겠습니까? 포인트가 자동으로 복원됩니다.')) {
+    if (!confirm('이 거래를 취소할까? 포인트가 자동으로 돌아와!')) {
       return;
     }
 
@@ -111,15 +111,15 @@ export default function Transactions() {
 
       if (insertError) throw insertError;
 
-      toast.success('거래가 취소되었습니다', {
-        description: `${Math.abs(amount).toLocaleString()} 포인트가 복원되었습니다.`,
+      toast.success('거래 취소 완료!', {
+        description: `${Math.abs(amount).toLocaleString()} 포인트가 돌아왔어!`,
       });
 
       fetchTransactions();
     } catch (error: any) {
       if (import.meta.env.DEV) console.error('Error cancelling transaction:', error);
       toast.error('거래 취소가 잘 안 됐어요', {
-        description: error.message || '다시 시도해주세요.',
+        description: error.message || '다시 해보자!',
       });
     } finally {
       setCancellingId(null);
@@ -131,8 +131,8 @@ export default function Transactions() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle>로그인이 필요합니다</CardTitle>
-            <CardDescription>거래 내역을 보려면 로그인해주세요.</CardDescription>
+            <CardTitle>로그인이 필요해!</CardTitle>
+            <CardDescription>로그인하면 볼 수 있어!</CardDescription>
           </CardHeader>
           <CardContent>
             <a href={getLoginUrl()}>
@@ -158,7 +158,7 @@ export default function Transactions() {
 
         <div className="mb-8 animate-slide-up">
           <h1 className="text-4xl font-bold mb-2">거래 내역 📋</h1>
-          <p className="text-muted-foreground">모든 포인트 변동 내역을 확인하세요.</p>
+          <p className="text-muted-foreground">모든 포인트 변동 내역을 확인해봐!</p>
         </div>
 
         {loading ? (
@@ -257,7 +257,7 @@ export default function Transactions() {
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <Receipt className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium mb-2">거래 내역이 없습니다</p>
+                  <p className="text-lg font-medium mb-2">아직 거래 내역이 없어!</p>
                   <p className="text-sm">좋은 행동으로 포인트를 모아보세요!</p>
                 </div>
               )}

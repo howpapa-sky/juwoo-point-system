@@ -95,11 +95,11 @@ export default function ReadingLog() {
 
   const handleSubmit = async () => {
     if (!selectedBookId) {
-      toast.error('책을 선택해주세요');
+      toast.error('책을 골라줘!');
       return;
     }
     if (minutes <= 0) {
-      toast.error('읽은 시간을 입력해주세요');
+      toast.error('읽은 시간을 넣어줘!');
       return;
     }
 
@@ -220,7 +220,7 @@ export default function ReadingLog() {
       if (newCount === 7) {
         await adjustPoints({ amount: 2000, note: '7일 연속 독서 보너스!' });
         confetti({ particleCount: 100, spread: 120 });
-        toast.success('7일 연속 독서! +2,000 탐험 에너지!');
+        toast.success('7일 연속 독서! +2,000 포인트!');
       }
 
       // Check streak badges
@@ -238,7 +238,7 @@ export default function ReadingLog() {
             .from('activity_badges')
             .update({ is_earned: true, earned_at: new Date().toISOString() })
             .eq('id', badge.id);
-          toast.success(`새로운 탐험 훈장! ${badge.emoji} ${badge.name}`);
+          toast.success(`새로운 배지! ${badge.emoji} ${badge.name}`);
         }
       }
     } else {
@@ -294,7 +294,7 @@ export default function ReadingLog() {
           className="text-center"
         >
           <h1 className="text-3xl font-black text-slate-800 mb-1">행성 탐사 기록</h1>
-          <p className="text-slate-500">오늘 읽은 책을 기록하세요!</p>
+          <p className="text-slate-500">오늘 읽은 책을 기록해봐!</p>
         </motion.div>
 
         {/* 책 선택 */}
@@ -310,7 +310,7 @@ export default function ReadingLog() {
             <Card className="border-2 border-dashed border-gray-300">
               <CardContent className="p-4 text-center">
                 <p className="text-slate-400" style={{ fontSize: 16 }}>
-                  먼저 책장에 책을 등록해주세요
+                  먼저 책장에 책을 등록해줘!
                 </p>
                 <Link href="/my-bookshelf">
                   <Button

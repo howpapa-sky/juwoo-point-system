@@ -27,7 +27,7 @@ export async function adjustPoints(params: {
 
   // 차감 시 잔액 부족 체크
   if (newBalance < 0) {
-    return { success: false, newBalance: profile.current_points ?? 0, error: '탐험 에너지가 부족해요' };
+    return { success: false, newBalance: profile.current_points ?? 0, error: '포인트가 부족해요' };
   }
 
   // 2. 트랜잭션 INSERT (balance_after 필수!)

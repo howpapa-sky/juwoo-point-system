@@ -13,8 +13,8 @@ export default function MyPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle>로그인이 필요합니다</CardTitle>
-            <CardDescription>마이페이지를 보려면 로그인해주세요.</CardDescription>
+            <CardTitle>로그인이 필요해!</CardTitle>
+            <CardDescription>로그인하면 볼 수 있어!</CardDescription>
           </CardHeader>
           <CardContent>
             <a href={getLoginUrl()}>
@@ -43,7 +43,7 @@ export default function MyPage() {
             <User className="h-10 w-10" />
             마이페이지 👤
           </h1>
-          <p className="text-muted-foreground">내 정보를 확인하세요!</p>
+          <p className="text-muted-foreground">내 정보 확인!</p>
         </div>
 
         <Card>

@@ -146,7 +146,7 @@ export default function Shop() {
 
       if (updateError) {
         if (import.meta.env.DEV) console.error('Error updating profile:', updateError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 

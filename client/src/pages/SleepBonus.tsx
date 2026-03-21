@@ -25,9 +25,9 @@ interface TimeOption {
 }
 
 const TIME_OPTIONS: TimeOption[] = [
-  { label: '21:00 전', time: '21:00', points: 1500, message: '탐험대원 최고 충전!', emoji: '🌟' },
-  { label: '21:30 전', time: '21:30', points: 1000, message: '좋은 충전!', emoji: '⭐' },
-  { label: '22:00 전', time: '22:00', points: 500, message: '기본 충전 완료', emoji: '🌙' },
+  { label: '21:00 전', time: '21:00', points: 1500, message: '최고! 일찍 잤어!', emoji: '🌟' },
+  { label: '21:30 전', time: '21:30', points: 1000, message: '잘했어!', emoji: '⭐' },
+  { label: '22:00 전', time: '22:00', points: 500, message: '일찍 자기 성공!', emoji: '🌙' },
   { label: '22:00 이후', time: '22:01', points: 0, message: '내일 탐험을 위해 푹 자자', emoji: '💤' },
 ];
 
@@ -80,7 +80,7 @@ export default function SleepBonus() {
 
       if (result.success) {
         confetti({ particleCount: 50, spread: 60 });
-        toast.success(`+${selectedTime.points.toLocaleString()} 탐험 에너지!`);
+        toast.success(`+${selectedTime.points.toLocaleString()} 포인트!`);
       } else {
         toast.error(result.error ?? '포인트 적립에 오류가 발생했어요');
       }
@@ -93,7 +93,7 @@ export default function SleepBonus() {
       request_type: 'sleep',
       reference_table: 'sleep_records',
       description: `취침: ${selectedTime.label}`,
-      worldview_message: '충전 모드 진입!',
+      worldview_message: '일찍 자기 기록!',
       point_amount: selectedTime.points,
       status: 'approved',
     });
@@ -114,7 +114,7 @@ export default function SleepBonus() {
           <h2 className="text-2xl font-bold text-white mb-2">{selectedTime?.message}</h2>
           {(selectedTime?.points ?? 0) > 0 && (
             <p className="text-indigo-200 text-lg mb-6">
-              +{selectedTime?.points.toLocaleString()} 탐험 에너지
+              +{selectedTime?.points.toLocaleString()} 포인트
             </p>
           )}
           <Link href="/">
@@ -143,7 +143,7 @@ export default function SleepBonus() {
         {/* 타이틀 */}
         <div className="text-center">
           <div className="text-5xl mb-3">🌙</div>
-          <h1 className="text-3xl font-bold text-white mb-2">충전 모드</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">일찍 자기 보너스</h1>
           <p className="text-indigo-200" style={{ fontSize: 16 }}>
             오늘 몇 시에 잠자리에 들었나요?
           </p>

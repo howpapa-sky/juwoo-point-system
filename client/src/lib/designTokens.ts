@@ -4,11 +4,18 @@ export const COLORS = {
   incorrect: '#FF9600',    // 오답, 소비 (빨간색 절대 금지)
   saving: '#2196F3',       // 저축, 금고
   loss: '#9E9E9E',         // 손실 (빨간색 절대 금지)
-  background: '#F5F5F5',
+  background: '#F8F9FA',   // 앱 전체 배경
+  cardBg: '#FFFFFF',       // 카드 배경
+  cardBorder: '#E5E7EB',   // 카드 테두리
   text: '#212121',
   textSecondary: '#757575',
   primary: '#6366F1',      // 탐험기지 메인 컬러
   accent: '#8B5CF6',
+  // 카드 좌측 액센트 바
+  accentRoutine: '#6366F1',  // 루틴
+  accentLearn: '#8B5CF6',    // 학습
+  accentInvest: '#10B981',   // 투자
+  accentWorry: '#F59E0B',    // 걱정상자 (따뜻한 노랑)
 } as const;
 
 export const ANIMATION = {

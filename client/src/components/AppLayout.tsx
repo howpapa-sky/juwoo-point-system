@@ -83,8 +83,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      {/* 배경 그라디언트 */}
-      <div className="fixed inset-0 bg-gradient-to-br from-violet-100/50 via-transparent to-rose-100/50 dark:from-violet-950/30 dark:to-rose-950/30 pointer-events-none" />
+      {/* 배경 */}
+      <div className="fixed inset-0 bg-gray-50 dark:bg-slate-950 pointer-events-none" />
 
       {/* 모바일 헤더 - 글래스모피즘 */}
       <header

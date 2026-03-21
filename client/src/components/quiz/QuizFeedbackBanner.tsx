@@ -44,7 +44,7 @@ export default function QuizFeedbackBanner({
         >
           {/* 오답 시 mild shake */}
           <motion.div
-            animate={isCorrect ? {} : ANIMATION.shake}
+            animate={isCorrect ? {} : { x: [-3, 3, -3, 0], transition: { duration: 0.3 } }}
           >
             <div
               className="p-5 pb-8 rounded-t-3xl shadow-2xl"

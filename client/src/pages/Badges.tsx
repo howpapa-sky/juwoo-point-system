@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import {
-  ArrowLeft, Trophy, Star, Lock, Crown, Sparkles, Flame,
-  Target, BookOpen, Zap, Medal, Award, Gift, CheckCircle,
-  TrendingUp, Calendar, Brain, ChevronRight, Dumbbell
+  ArrowLeft, Trophy, Star, Lock, Sparkles, Flame,
+  Target, BookOpen, Award, CheckCircle,
+  Brain, ChevronRight, Dumbbell
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBadges, BADGE_DEFINITIONS, RARITY_CONFIG, type BadgeCategory, type BadgeRarity, type UserStats } from "@/hooks/useBadges.js";

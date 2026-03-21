@@ -1,26 +1,19 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   ArrowLeft,
   BarChart3,
-  Brain,
   Flame,
   Star,
   Heart,
   Clock,
-  Shield,
-  Award,
-  BookOpen,
-  Target,
   Lightbulb,
-  Flower2,
   Sprout,
   Check,
   X,

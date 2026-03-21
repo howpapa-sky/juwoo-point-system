@@ -5,24 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import { supabase } from "@/lib/supabaseClient";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area,
+  BarChart, Bar, Line, PieChart, Pie, Cell, AreaChart, Area,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  ComposedChart, Scatter
+  ComposedChart
 } from 'recharts';
 import {
   ArrowLeft, BarChart3, TrendingUp, TrendingDown, Coins, Target, Trophy,
-  Flame, Star, Crown, Zap, BookOpen, Brain, Sparkles, Medal, Gift,
-  Calendar, Clock, Award, Heart, Gamepad2, ShoppingCart, PiggyBank,
-  Rocket, Activity, Eye, CheckCircle2, XCircle, ArrowUpRight, ArrowDownRight,
-  Percent, DollarSign, LineChartIcon, PieChartIcon, Layers, Filter,
-  Download, Share2, RefreshCw, ChevronRight, Info, Lightbulb
+  Flame, Star, Crown, Zap, BookOpen, Brain, Sparkles, Medal,
+  Calendar, Clock, Award, Gamepad2, PiggyBank,
+  Activity, ArrowUpRight, ArrowDownRight,
+  Percent, LineChartIcon, PieChartIcon, Layers,
+  RefreshCw, Lightbulb
 } from "lucide-react";
 
 // 색상 팔레트

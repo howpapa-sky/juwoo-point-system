@@ -4,15 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadialBarChart, RadialBar } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import {
-  Calendar, TrendingUp, Target, Award, ArrowLeft, Star, Flame,
-  Trophy, Crown, Zap, BookOpen, Brain, Sparkles, Medal,
-  CheckCircle, XCircle, Clock, BarChart3, Users
+  Calendar, Target, Award, ArrowLeft, Flame,
+  Trophy, Crown, BookOpen, Brain, Sparkles,
+  BarChart3, Users
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { englishWordsData, type WordCategory } from "@/data/englishWordsData";
-import { motion, AnimatePresence } from "framer-motion";
+import { englishWordsData } from "@/data/englishWordsData";
+import { motion } from "framer-motion";
 import { useXP } from "@/hooks/useXP";
 import { useSRS } from "@/hooks/useSRS";
 import { SRS_BOX_META } from "@/lib/englishConstants";

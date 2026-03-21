@@ -2,7 +2,7 @@
 // 영어 학습 허브 — 3단계 우주어 해독 사이클
 // 만나기(Learn) → 연습(Practice) → 복습(Review)
 // ============================================
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useSupabaseAuth } from '@/contexts/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import {
   BookOpen, Brain, Trophy, Sparkles, Mic, ChevronRight,
-  Zap, Target, BarChart3, Lightbulb, Star, Rocket, Users,
+  Target, BarChart3, Lightbulb, Rocket, Users,
 } from 'lucide-react';
 import { useSRS } from '@/hooks/useSRS';
 import { WORLDVIEW } from '@/lib/designTokens';

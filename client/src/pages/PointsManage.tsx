@@ -4,12 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/lib/supabaseClient";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { ArrowLeft, Plus, Minus, Coins, Sparkles, Lock, RotateCcw, KeyRound } from "lucide-react";
+import { ArrowLeft, Plus, Minus, Coins, Sparkles, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { WORLDVIEW } from "@/lib/designTokens";
 
 interface PointRule {
   id: number;
@@ -18,13 +19,6 @@ interface PointRule {
   category: string;
   point_amount: number;
   is_active: boolean;
-}
-
-const ADMIN_PASSWORD_KEY = 'juwoo-admin-password';
-const POINTS_RESET_FLAG = 'juwoo-points-auto-reset-v1';
-
-function getAdminPassword(): string {
-  return localStorage.getItem(ADMIN_PASSWORD_KEY) || '0505';
 }
 
 export default function PointsManage() {
@@ -41,17 +35,19 @@ export default function PointsManage() {
   const [manualNote, setManualNote] = useState<string>("");
   const [manualType, setManualType] = useState<"add" | "subtract">("add");
 
-  // Admin password states
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
-  const [passwordInput, setPasswordInput] = useState("");
-  const [passwordError, setPasswordError] = useState(false);
+  // Auth-based role check (Supabase Auth 역할 분리)
+  const [userRole, setUserRole] = useState<'child' | 'parent'>('child');
 
-  // Password change states
-  const [showPasswordChange, setShowPasswordChange] = useState(false);
-  const [currentPasswordInput, setCurrentPasswordInput] = useState("");
-  const [newPasswordInput, setNewPasswordInput] = useState("");
-  const [confirmNewPasswordInput, setConfirmNewPasswordInput] = useState("");
+  useEffect(() => {
+    if (user?.id) {
+      supabase
+        .from('juwoo_profile')
+        .select('role')
+        .eq('user_id', user.id)
+        .single()
+        .then(({ data }) => setUserRole(data?.role ?? 'child'));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -59,23 +55,6 @@ export default function PointsManage() {
     const initialize = async () => {
       setLoading(true);
       try {
-        // One-time auto-reset (전체 초기화)
-        if (!localStorage.getItem(POINTS_RESET_FLAG)) {
-          await supabase.from('goal_deposits').delete().neq('id', 0);
-          await supabase.from('saving_goals').delete().eq('juwoo_id', 1);
-          await supabase.from('interest_history').delete().neq('id', 0);
-          await supabase.from('seeds').delete().eq('juwoo_id', 1);
-          await supabase.from('purchases').delete().neq('id', 0);
-          await supabase.from('point_transactions').delete().eq('juwoo_id', 1);
-          await supabase.from('savings_account')
-            .update({ balance: 0, last_interest_date: null })
-            .eq('juwoo_id', 1);
-          await supabase.from('juwoo_profile')
-            .update({ current_points: 0 })
-            .eq('id', 1);
-          localStorage.setItem(POINTS_RESET_FLAG, 'true');
-        }
-
         // Fetch rules
         const { data, error } = await supabase
           .from('point_rules')
@@ -85,7 +64,7 @@ export default function PointsManage() {
           .order('point_amount', { ascending: false });
 
         if (error) throw error;
-        setRules(data || []);
+        setRules(data ?? []);
 
         // Fetch current points
         const { data: profileData, error: profileError } = await supabase
@@ -95,7 +74,7 @@ export default function PointsManage() {
           .single();
 
         if (profileError) throw profileError;
-        setCurrentPoints(profileData?.current_points || 0);
+        setCurrentPoints(profileData?.current_points ?? 0);
       } catch (error: any) {
         if (import.meta.env.DEV) console.error('Error fetching data:', error);
         toast.error('데이터를 불러오지 못했어요.');
@@ -106,26 +85,6 @@ export default function PointsManage() {
 
     initialize();
   }, [isAuthenticated]);
-
-  // Password verification
-  const requirePassword = useCallback((action: () => void) => {
-    setPendingAction(() => action);
-    setPasswordInput("");
-    setPasswordError(false);
-    setShowPasswordDialog(true);
-  }, []);
-
-  const verifyAndExecute = useCallback(() => {
-    if (passwordInput === getAdminPassword()) {
-      setShowPasswordDialog(false);
-      setPasswordInput("");
-      setPasswordError(false);
-      if (pendingAction) pendingAction();
-    } else {
-      setPasswordError(true);
-      setPasswordInput("");
-    }
-  }, [passwordInput, pendingAction]);
 
   const handleApplyRule = async (ruleId: number, ruleName: string, amount: number) => {
     setApplying(true);
@@ -138,7 +97,7 @@ export default function PointsManage() {
 
       if (profileError) throw profileError;
 
-      const currentBalance = profileData?.current_points || 0;
+      const currentBalance = profileData?.current_points ?? 0;
       const newBalance = currentBalance + amount;
 
       const { error: txError } = await supabase
@@ -162,7 +121,7 @@ export default function PointsManage() {
       if (updateError) throw updateError;
 
       setCurrentPoints(newBalance);
-      toast.success("포인트가 적용되었습니다!");
+      toast.success(`${WORLDVIEW.points}가 적용되었어요!`);
     } catch (error: any) {
       if (import.meta.env.DEV) console.error('Error applying rule:', error);
       toast.error('포인트 적용이 잘 안 됐어요.');
@@ -209,7 +168,7 @@ export default function PointsManage() {
       if (updateError) throw updateError;
 
       setCurrentPoints(newBalance);
-      toast.success(`포인트가 ${manualType === "add" ? "적립" : "차감"}되었습니다!`);
+      toast.success(`${WORLDVIEW.points}가 ${manualType === "add" ? "적립" : "차감"}되었어요!`);
       setShowManualDialog(false);
       setManualAmount("");
       setManualNote("");
@@ -219,19 +178,6 @@ export default function PointsManage() {
     } finally {
       setApplying(false);
     }
-  };
-
-  const handleManualSubmit = () => {
-    const amount = parseInt(manualAmount);
-    if (isNaN(amount) || amount <= 0) {
-      toast.error('유효한 금액을 입력해주세요.');
-      return;
-    }
-    if (!manualNote.trim()) {
-      toast.error('내용을 입력해주세요.');
-      return;
-    }
-    requirePassword(() => handleManualAdjustment());
   };
 
   const handleResetPoints = async () => {
@@ -263,27 +209,6 @@ export default function PointsManage() {
     } finally {
       setApplying(false);
     }
-  };
-
-  const handleChangePassword = () => {
-    if (currentPasswordInput !== getAdminPassword()) {
-      toast.error("현재 비밀번호가 틀렸습니다.");
-      return;
-    }
-    if (newPasswordInput.length < 4) {
-      toast.error("새 비밀번호는 최소 4자리여야 합니다.");
-      return;
-    }
-    if (newPasswordInput !== confirmNewPasswordInput) {
-      toast.error("새 비밀번호가 일치하지 않습니다.");
-      return;
-    }
-    localStorage.setItem(ADMIN_PASSWORD_KEY, newPasswordInput);
-    toast.success("비밀번호가 변경되었습니다!");
-    setShowPasswordChange(false);
-    setCurrentPasswordInput("");
-    setNewPasswordInput("");
-    setConfirmNewPasswordInput("");
   };
 
   const openManualDialog = (type: "add" | "subtract") => {
@@ -320,6 +245,9 @@ export default function PointsManage() {
     "시간약속",
     "생활미준수",
     "물건관리",
+    "sleep",
+    "meal",
+    "routine",
   ];
 
   const filteredRules = rules.filter(
@@ -328,6 +256,8 @@ export default function PointsManage() {
 
   const positiveRules = filteredRules.filter((rule) => rule.point_amount > 0);
   const negativeRules = filteredRules.filter((rule) => rule.point_amount < 0);
+
+  const isParent = userRole === 'parent';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
@@ -347,10 +277,10 @@ export default function PointsManage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2">
-                포인트 관리
+                {WORLDVIEW.points} 관리
                 <Sparkles className="h-8 w-8 text-yellow-500" />
               </h1>
-              <p className="text-muted-foreground">주우의 행동에 따라 포인트를 적립하거나 차감하세요.</p>
+              <p className="text-muted-foreground">주우의 행동에 따라 {WORLDVIEW.points}를 적립하거나 차감하세요.</p>
             </div>
 
             {/* 현재 포인트 카드 */}
@@ -362,7 +292,7 @@ export default function PointsManage() {
                       <Coins className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground font-medium">현재 포인트</div>
+                      <div className="text-xs text-muted-foreground font-medium">{WORLDVIEW.points}</div>
                       <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                         {currentPoints.toLocaleString()}
                       </div>
@@ -371,47 +301,41 @@ export default function PointsManage() {
                 </div>
               </div>
 
-              {/* 수기 조정 버튼 */}
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md"
-                  onClick={() => requirePassword(() => openManualDialog("add"))}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  수기 적립
-                </Button>
-                <Button
-                  size="sm"
-                  className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-md"
-                  onClick={() => requirePassword(() => openManualDialog("subtract"))}
-                >
-                  <Minus className="h-4 w-4 mr-1" />
-                  수기 차감
-                </Button>
-              </div>
+              {/* 부모 역할만 수기 조정/리셋 가능 */}
+              {isParent && (
+                <>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md"
+                      onClick={() => openManualDialog("add")}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      수기 적립
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white shadow-md"
+                      onClick={() => openManualDialog("subtract")}
+                    >
+                      <Minus className="h-4 w-4 mr-1" />
+                      수기 차감
+                    </Button>
+                  </div>
 
-              {/* 관리 버튼 */}
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 border-orange-300 text-orange-600 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400"
-                  onClick={() => requirePassword(() => handleResetPoints())}
-                >
-                  <RotateCcw className="h-4 w-4 mr-1" />
-                  포인트 리셋
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400"
-                  onClick={() => setShowPasswordChange(true)}
-                >
-                  <KeyRound className="h-4 w-4 mr-1" />
-                  비밀번호 변경
-                </Button>
-              </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400"
+                      onClick={() => handleResetPoints()}
+                    >
+                      <RotateCcw className="h-4 w-4 mr-1" />
+                      포인트 리셋
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -447,9 +371,9 @@ export default function PointsManage() {
                     <div className="p-2 bg-green-500 rounded-lg">
                       <Plus className="h-5 w-5 text-white" />
                     </div>
-                    포인트 적립
+                    {WORLDVIEW.points} 적립
                   </CardTitle>
-                  <CardDescription>좋은 행동을 했을 때 포인트를 적립하세요.</CardDescription>
+                  <CardDescription>좋은 행동을 했을 때 {WORLDVIEW.points}를 적립하세요.</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -471,15 +395,16 @@ export default function PointsManage() {
                           <span className="text-2xl font-bold text-green-600 dark:text-green-500">
                             +{rule.point_amount.toLocaleString()}
                           </span>
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white shadow-md"
-                            onClick={() => requirePassword(() => handleApplyRule(rule.id, rule.name, rule.point_amount))}
-                            disabled={applying}
-                          >
-                            <Lock className="h-3 w-3 mr-1" />
-                            적립
-                          </Button>
+                          {isParent && (
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white shadow-md"
+                              onClick={() => handleApplyRule(rule.id, rule.name, rule.point_amount)}
+                              disabled={applying}
+                            >
+                              적립
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -488,45 +413,44 @@ export default function PointsManage() {
               </Card>
             )}
 
-            {/* 포인트 차감 */}
-            {negativeRules.length > 0 && (
-              <Card className="border-2 border-red-200 dark:border-red-900 shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950">
-                  <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
-                    <div className="p-2 bg-red-500 rounded-lg">
+            {/* 포인트 차감 — 부모 역할만 표시 */}
+            {isParent && negativeRules.length > 0 && (
+              <Card className="border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-950 dark:to-slate-950">
+                  <CardTitle className="flex items-center gap-2 text-gray-700 dark:text-gray-400">
+                    <div className="p-2 bg-gray-500 rounded-lg">
                       <Minus className="h-5 w-5 text-white" />
                     </div>
-                    포인트 차감
+                    에너지 소모
                   </CardTitle>
-                  <CardDescription>나쁜 행동을 했을 때 포인트를 차감하세요.</CardDescription>
+                  <CardDescription>필요한 경우에만 차감하세요.</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {negativeRules.map((rule) => (
                       <div
                         key={rule.id}
-                        className="group relative p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-red-400 dark:hover:border-red-600 hover:shadow-lg transition-all duration-200"
+                        className="group relative p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-400 dark:hover:border-gray-600 hover:shadow-lg transition-all duration-200"
                       >
                         <div className="mb-4">
                           <h3 className="font-semibold text-base mb-1 line-clamp-1">{rule.name}</h3>
                           {rule.description && (
                             <p className="text-sm text-muted-foreground line-clamp-2">{rule.description}</p>
                           )}
-                          <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-md">
+                          <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 rounded-md">
                             {rule.category}
                           </span>
                         </div>
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-2xl font-bold text-red-600 dark:text-red-500">
+                          <span className="text-2xl font-bold text-gray-600 dark:text-gray-500">
                             {rule.point_amount.toLocaleString()}
                           </span>
                           <Button
                             size="sm"
-                            className="bg-red-600 hover:bg-red-700 text-white shadow-md"
-                            onClick={() => requirePassword(() => handleApplyRule(rule.id, rule.name, rule.point_amount))}
+                            className="bg-gray-600 hover:bg-gray-700 text-white shadow-md"
+                            onClick={() => handleApplyRule(rule.id, rule.name, rule.point_amount)}
                             disabled={applying}
                           >
-                            <Lock className="h-3 w-3 mr-1" />
                             차감
                           </Button>
                         </div>
@@ -540,69 +464,6 @@ export default function PointsManage() {
         )}
       </div>
 
-      {/* 관리자 비밀번호 Dialog */}
-      <Dialog open={showPasswordDialog} onOpenChange={(open) => {
-        if (!open) {
-          setShowPasswordDialog(false);
-          setPasswordInput("");
-          setPasswordError(false);
-          setPendingAction(null);
-        }
-      }}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
-                <Lock className="h-5 w-5 text-white" />
-              </div>
-              관리자 인증
-            </DialogTitle>
-            <DialogDescription>
-              포인트 변경을 위해 관리자 비밀번호를 입력해주세요.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="admin-password" className="text-base font-semibold">비밀번호</Label>
-            <Input
-              id="admin-password"
-              type="password"
-              placeholder="비밀번호 입력"
-              value={passwordInput}
-              onChange={(e) => {
-                setPasswordInput(e.target.value);
-                setPasswordError(false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") verifyAndExecute();
-              }}
-              className={`mt-2 text-lg text-center tracking-widest ${passwordError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
-              autoFocus
-            />
-            {passwordError && (
-              <p className="mt-2 text-sm text-red-500 font-medium">
-                비밀번호가 틀렸습니다. 다시 입력해주세요.
-              </p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowPasswordDialog(false);
-              setPasswordInput("");
-              setPasswordError(false);
-              setPendingAction(null);
-            }}>
-              취소
-            </Button>
-            <Button
-              onClick={verifyAndExecute}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-            >
-              확인
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* 수기 조정 Dialog */}
       <Dialog open={showManualDialog} onOpenChange={setShowManualDialog}>
         <DialogContent className="sm:max-w-md">
@@ -613,21 +474,21 @@ export default function PointsManage() {
                   <div className="p-2 bg-green-500 rounded-lg">
                     <Plus className="h-5 w-5 text-white" />
                   </div>
-                  포인트 수기 적립
+                  {WORLDVIEW.points} 수기 적립
                 </>
               ) : (
                 <>
-                  <div className="p-2 bg-red-500 rounded-lg">
+                  <div className="p-2 bg-gray-500 rounded-lg">
                     <Minus className="h-5 w-5 text-white" />
                   </div>
-                  포인트 수기 차감
+                  {WORLDVIEW.points} 수기 차감
                 </>
               )}
             </DialogTitle>
             <DialogDescription>
               {manualType === "add"
-                ? "포인트를 수동으로 적립합니다."
-                : "포인트를 수동으로 차감합니다."}
+                ? `${WORLDVIEW.points}를 수동으로 적립합니다.`
+                : `${WORLDVIEW.points}를 수동으로 차감합니다.`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -655,13 +516,13 @@ export default function PointsManage() {
             <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 rounded-xl border-2 border-purple-200 dark:border-purple-800">
               <Coins className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               <div className="flex-1">
-                <div className="text-sm text-muted-foreground font-medium">현재 포인트</div>
+                <div className="text-sm text-muted-foreground font-medium">{WORLDVIEW.points}</div>
                 <div className="text-xl font-bold">{currentPoints.toLocaleString()}</div>
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground font-medium">변경 후</div>
                 <div className={`text-xl font-bold ${
-                  manualType === "add" ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"
+                  manualType === "add" ? "text-green-600 dark:text-green-500" : "text-gray-600 dark:text-gray-500"
                 }`}>
                   {manualAmount && !isNaN(parseInt(manualAmount))
                     ? (currentPoints + (manualType === "add" ? parseInt(manualAmount) : -parseInt(manualAmount))).toLocaleString()
@@ -675,88 +536,13 @@ export default function PointsManage() {
               취소
             </Button>
             <Button
-              onClick={handleManualSubmit}
+              onClick={handleManualAdjustment}
               disabled={applying}
               className={manualType === "add"
                 ? "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
-                : "bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white"}
+                : "bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white"}
             >
               {applying ? "처리 중..." : (manualType === "add" ? "적립" : "차감")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* 비밀번호 변경 Dialog */}
-      <Dialog open={showPasswordChange} onOpenChange={(open) => {
-        if (!open) {
-          setShowPasswordChange(false);
-          setCurrentPasswordInput("");
-          setNewPasswordInput("");
-          setConfirmNewPasswordInput("");
-        }
-      }}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <div className="p-2 bg-gradient-to-br from-slate-600 to-slate-800 rounded-lg">
-                <KeyRound className="h-5 w-5 text-white" />
-              </div>
-              관리자 비밀번호 변경
-            </DialogTitle>
-            <DialogDescription>
-              포인트 관리에 사용되는 관리자 비밀번호를 변경합니다.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="current-pw" className="text-sm font-semibold">현재 비밀번호</Label>
-              <Input
-                id="current-pw"
-                type="password"
-                placeholder="현재 비밀번호"
-                value={currentPasswordInput}
-                onChange={(e) => setCurrentPasswordInput(e.target.value)}
-                className="mt-1.5 text-center tracking-widest"
-              />
-            </div>
-            <div>
-              <Label htmlFor="new-pw" className="text-sm font-semibold">새 비밀번호</Label>
-              <Input
-                id="new-pw"
-                type="password"
-                placeholder="새 비밀번호 (4자리 이상)"
-                value={newPasswordInput}
-                onChange={(e) => setNewPasswordInput(e.target.value)}
-                className="mt-1.5 text-center tracking-widest"
-              />
-            </div>
-            <div>
-              <Label htmlFor="confirm-pw" className="text-sm font-semibold">새 비밀번호 확인</Label>
-              <Input
-                id="confirm-pw"
-                type="password"
-                placeholder="새 비밀번호 다시 입력"
-                value={confirmNewPasswordInput}
-                onChange={(e) => setConfirmNewPasswordInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleChangePassword();
-                }}
-                className="mt-1.5 text-center tracking-widest"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowPasswordChange(false);
-              setCurrentPasswordInput("");
-              setNewPasswordInput("");
-              setConfirmNewPasswordInput("");
-            }}>
-              취소
-            </Button>
-            <Button onClick={handleChangePassword} className="bg-gradient-to-r from-slate-600 to-slate-800 text-white">
-              변경하기
             </Button>
           </DialogFooter>
         </DialogContent>

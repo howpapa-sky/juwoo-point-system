@@ -96,6 +96,16 @@ export const generateSmartDistractors = (
   addFrom(sameDiff);
   addFrom(pool);
 
+  // 폴백: 풀이 부족할 때 아무 단어에서라도 가져오기
+  if (result.length < 2) {
+    const fallback = englishWordsData
+      .filter(w => w.id !== word.id && !result.includes(w[field]))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 2 - result.length)
+      .map(w => w[field]);
+    result.push(...fallback);
+  }
+
   return result;
 };
 
@@ -170,16 +180,13 @@ export const generateQuestions = (
     let scrambledLetters: string[] | undefined;
     let imageOptions: string[] | undefined;
 
-    if (['multiple-choice', 'listening', 'fill-blank'].includes(questionType) ||
+    if (['multiple-choice', 'listening', 'fill-blank', 'typing', 'picture-match'].includes(questionType) ||
         ['speed-round', 'time-attack', 'survival', 'boss-battle'].includes(mode)) {
       const wrongAnswers = generateSmartDistractors(word, 'meaning');
       options = shuffleArray([...wrongAnswers, word.meaning]);
     } else if (questionType === 'reverse') {
       const wrongAnswers = generateSmartDistractors(word, 'word');
       options = shuffleArray([...wrongAnswers, word.word]);
-    } else if (questionType === 'picture-match' || mode === 'picture-match') {
-      imageOptions = getImageOptions(word.word, word.category);
-      questionType = 'picture-match';
     } else if (questionType === 'word-scramble' || mode === 'word-scramble') {
       scrambledLetters = shuffleArray(word.word.split(''));
       questionType = 'word-scramble';
@@ -187,8 +194,7 @@ export const generateQuestions = (
 
     return {
       word,
-      questionType: mode === 'picture-match' ? 'picture-match' :
-                    mode === 'word-scramble' ? 'word-scramble' : questionType,
+      questionType: mode === 'word-scramble' ? 'word-scramble' : questionType,
       options,
       correctAnswer: questionType === 'reverse' ? word.word : word.meaning,
       scrambledLetters,

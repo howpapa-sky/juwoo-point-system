@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { bannerSlideUp } from '@/lib/quizAnimations';
-import { COLORS, ANIMATION } from '@/lib/designTokens';
+import { COLORS } from '@/lib/designTokens';
 import type { EnglishWord } from '@/data/englishWordsData';
 
 interface Props {

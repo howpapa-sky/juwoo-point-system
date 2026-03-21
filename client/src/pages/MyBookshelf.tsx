@@ -97,7 +97,7 @@ export default function MyBookshelf() {
 
   const handleRegister = async () => {
     if (!title.trim()) {
-      toast.error('책 제목을 입력해주세요');
+      toast.error('책 제목을 넣어줘!');
       return;
     }
 
@@ -143,13 +143,13 @@ export default function MyBookshelf() {
             .update({ is_earned: true, earned_at: new Date().toISOString() })
             .eq('id', badge.id);
 
-          toast.success(`새로운 탐험 훈장! ${badge.emoji} ${badge.name}`);
+          toast.success(`새로운 배지! ${badge.emoji} ${badge.name}`);
         }
       }
     }
 
     confetti({ particleCount: 50, spread: 60 });
-    toast.success('새로운 행성 발견!');
+    toast.success('책 읽기 완료!');
 
     // Reset form
     setTitle('');
@@ -328,7 +328,7 @@ export default function MyBookshelf() {
             <div>
               <Label className="text-base font-semibold">책 제목 *</Label>
               <Input
-                placeholder="책 제목을 입력해주세요"
+                placeholder="책 제목을 써봐!"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="mt-2 text-base"

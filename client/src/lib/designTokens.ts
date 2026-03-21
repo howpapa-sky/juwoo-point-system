@@ -9,7 +9,7 @@ export const COLORS = {
   cardBorder: '#E5E7EB',   // 카드 테두리
   text: '#212121',
   textSecondary: '#757575',
-  primary: '#6366F1',      // 탐험기지 메인 컬러
+  primary: '#6366F1',      // 메인 컬러
   accent: '#8B5CF6',
   // 카드 좌측 액센트 바
   accentRoutine: '#6366F1',  // 루틴
@@ -36,15 +36,15 @@ export const LAYOUT = {
 
 // 세계관 라벨 매핑
 export const WORLDVIEW = {
-  points: '탐험 에너지',
-  routine: '기지 전력 충전',
-  reading: '새로운 행성 발견',
-  english: '우주어 해독',
-  invest: '씨앗 농장',
-  exercise: '탐험대원 체력 훈련',
-  shop: '탐험 보급소',
-  badge: '탐험 훈장',
-  streak: '연속 탐험',
+  points: '포인트',
+  routine: '오늘 할 일',
+  reading: '책 읽기',
+  english: '영어 공부',
+  invest: '씨앗 키우기',
+  exercise: '운동 기록',
+  shop: '상점',
+  badge: '배지',
+  streak: '연속 기록',
 } as const;
 
 // 금지 표현 → 대체 표현
@@ -53,5 +53,5 @@ export const FORBIDDEN_WORDS: Record<string, string> = {
   '틀렸어요': '다시 해보자!',
   '게임오버': '오늘은 여기까지!',
   '잃었다': '적게 열렸어요',
-  '벌점': '에너지 소모',
+  '벌점': '포인트 차감',
 };

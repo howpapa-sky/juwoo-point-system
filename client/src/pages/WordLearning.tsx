@@ -126,7 +126,7 @@ export default function WordLearning() {
         setCorrectCount(0);
         setIsCompleted(false);
       } else {
-        toast.error('해당 카테고리에 단어가 없습니다.');
+        toast.error('해당 카테고리에 단어가 없어!');
         setSelectedCategory(null);
       }
     } catch (error) {
@@ -140,7 +140,7 @@ export default function WordLearning() {
   // 답안 제출
   const handleSubmit = () => {
     if (!userAnswer.trim()) {
-      toast.error('답을 입력해주세요!');
+      toast.error('답을 넣어줘!');
       return;
     }
 
@@ -246,7 +246,7 @@ export default function WordLearning() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>로그인이 필요합니다</CardTitle>
+            <CardTitle>로그인이 필요해!</CardTitle>
           </CardHeader>
           <CardContent>
             <a href={getLoginUrl()}>
@@ -350,7 +350,7 @@ export default function WordLearning() {
                 📖 영어 학습 📚
               </h1>
               <p className="text-lg text-muted-foreground">
-                카테고리를 선택하세요
+                카테고리를 골라봐!
               </p>
             </div>
           </div>
@@ -421,7 +421,7 @@ export default function WordLearning() {
             <div className="space-y-4">
               <Input
                 type="text"
-                placeholder="한글 뜻을 입력하세요"
+                placeholder="한글 뜻을 써봐!"
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
                 onKeyPress={handleKeyPress}

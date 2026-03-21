@@ -93,11 +93,11 @@ export default function ExerciseLog() {
 
   const handleSubmit = async () => {
     if (!selectedType) {
-      toast.error('운동 종류를 선택해주세요');
+      toast.error('운동 종류를 골라줘!');
       return;
     }
     if (minutes <= 0) {
-      toast.error('운동 시간을 입력해주세요');
+      toast.error('운동 시간을 넣어줘!');
       return;
     }
 
@@ -141,7 +141,7 @@ export default function ExerciseLog() {
         reference_id: logData.id,
         reference_table: 'exercise_logs',
         description,
-        worldview_message: `${WORLDVIEW.exercise} — 체력 훈련 완료!`,
+        worldview_message: `${WORLDVIEW.exercise} — 운동 완료!`,
         point_amount: totalPoints,
         status: 'pending',
       });
@@ -218,7 +218,7 @@ export default function ExerciseLog() {
             .from('activity_badges')
             .update({ is_earned: true, earned_at: new Date().toISOString() })
             .eq('id', badge.id);
-          toast.success(`새로운 탐험 훈장! ${badge.emoji} ${badge.name}`);
+          toast.success(`새로운 배지! ${badge.emoji} ${badge.name}`);
         }
       }
     } else {
@@ -250,7 +250,7 @@ export default function ExerciseLog() {
             .from('activity_badges')
             .update({ is_earned: true, earned_at: new Date().toISOString() })
             .eq('id', badge.id);
-          toast.success(`새로운 탐험 훈장! ${badge.emoji} ${badge.name}`);
+          toast.success(`새로운 배지! ${badge.emoji} ${badge.name}`);
         }
       }
     }
@@ -297,8 +297,8 @@ export default function ExerciseLog() {
           animate={{ y: 0, opacity: 1 }}
           className="text-center"
         >
-          <h1 className="text-3xl font-black text-slate-800 mb-1">체력 훈련 기록</h1>
-          <p className="text-slate-500">탐험대원의 체력을 키워보자!</p>
+          <h1 className="text-3xl font-black text-slate-800 mb-1">운동 기록</h1>
+          <p className="text-slate-500">몸을 튼튼하게!</p>
         </motion.div>
 
         {/* 운동 종류 선택 */}

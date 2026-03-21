@@ -1,5 +1,5 @@
 // ============================================
-// 영어 학습 허브 — 3단계 우주어 해독 사이클
+// 영어 학습 허브 — 3단계 영어 학습 사이클
 // 만나기(Learn) → 연습(Practice) → 복습(Review)
 // ============================================
 import { useState } from 'react';
@@ -23,7 +23,7 @@ const STAGES: { id: LearningStage; icon: typeof BookOpen; title: string; descrip
     id: 'learn',
     icon: BookOpen,
     title: '만나기',
-    description: '새로운 우주어를 배워요',
+    description: '새로운 단어를 배워요',
     color: 'text-blue-600',
     gradient: 'from-blue-500 to-cyan-500',
   },
@@ -31,7 +31,7 @@ const STAGES: { id: LearningStage; icon: typeof BookOpen; title: string; descrip
     id: 'practice',
     icon: Brain,
     title: '연습',
-    description: '배운 우주어로 퀴즈!',
+    description: '배운 단어로 퀴즈!',
     color: 'text-purple-600',
     gradient: 'from-purple-500 to-pink-500',
   },
@@ -75,7 +75,7 @@ export default function EnglishLearning() {
               <Rocket className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-2xl font-black mb-2">로그인이 필요해요</h2>
-            <p className="text-slate-500 mb-4">{WORLDVIEW.english}을 시작하려면 로그인해주세요</p>
+            <p className="text-slate-500 mb-4">{WORLDVIEW.english}을 시작하려면 로그인해줘!</p>
             <a href={getLoginUrl()}>
               <Button className="w-full h-14 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-lg rounded-2xl">
                 로그인하기
@@ -104,8 +104,8 @@ export default function EnglishLearning() {
             <Rocket className="h-4 w-4 text-indigo-600" />
             <span className="text-sm font-semibold text-indigo-700">{WORLDVIEW.english}</span>
           </div>
-          <h1 className="text-3xl font-black text-slate-800 mb-1">우주어 해독 기지</h1>
-          <p className="text-slate-500">3단계로 우주어를 마스터하자!</p>
+          <h1 className="text-3xl font-black text-slate-800 mb-1">영어 공부</h1>
+          <p className="text-slate-500">3단계로 영어를 마스터하자!</p>
         </div>
 
         {/* 레벨 & 통계 바 */}
@@ -113,7 +113,7 @@ export default function EnglishLearning() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/80">해독한 우주어</p>
+                <p className="text-sm text-white/80">배운 단어</p>
                 <p className="text-2xl font-black">{totalWords}개</p>
               </div>
               <div className="text-right">
@@ -171,14 +171,14 @@ export default function EnglishLearning() {
                   </motion.span>
                   <div className="bg-blue-50 rounded-xl rounded-tl-none px-4 py-2">
                     <span className="font-medium text-blue-700">
-                      새로운 우주어 친구들을 만나러 가자! 카드를 넘기면서 배울 수 있어!
+                      새로운 단어를 배우자! 카드를 넘기면서!
                     </span>
                   </div>
                 </div>
                 <Link href="/english-flashcard">
                   <Button className="w-full h-14 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold text-lg rounded-2xl shadow-lg">
                     <BookOpen className="h-5 w-5 mr-2" />
-                    새 우주어 만나기 (5개씩)
+                    새 단어 배우기 (5개씩)
                   </Button>
                 </Link>
               </CardContent>
@@ -222,7 +222,7 @@ export default function EnglishLearning() {
                   </motion.span>
                   <div className="bg-purple-50 rounded-xl rounded-tl-none px-4 py-2">
                     <span className="font-medium text-purple-700">
-                      배운 우주어로 퀴즈를 풀어보자! 틀려도 되는 시간이야!
+                      배운 단어로 퀴즈를 풀어보자! 틀려도 괜찮아!
                     </span>
                   </div>
                 </div>
@@ -301,8 +301,8 @@ export default function EnglishLearning() {
                   <div className="bg-emerald-50 rounded-xl rounded-tl-none px-4 py-2">
                     <span className="font-medium text-emerald-700">
                       {reviewCount > 0
-                        ? `오늘 복습할 우주어가 ${reviewCount}개 있어! 가볍게 시작하자!`
-                        : '오늘 복습할 우주어가 없어! 대단해!'}
+                        ? `오늘 복습할 단어가 ${reviewCount}개 있어! 가볍게 시작하자!`
+                        : '오늘 복습할 단어가 없어! 대단해!'}
                     </span>
                   </div>
                 </div>
@@ -386,15 +386,15 @@ export default function EnglishLearning() {
                 <Lightbulb className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <h4 className="font-bold text-amber-800 mb-2">우주어 해독 팁</h4>
+                <h4 className="font-bold text-amber-800 mb-2">영어 공부 팁</h4>
                 <ul className="space-y-1.5 text-sm text-amber-700">
                   <li className="flex items-start gap-2">
                     <span className="text-base">1️⃣</span>
-                    <span>먼저 <strong>만나기</strong>로 새 우주어를 배워요</span>
+                    <span>먼저 <strong>만나기</strong>로 새 단어를 배워요</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-base">2️⃣</span>
-                    <span><strong>연습</strong>으로 배운 우주어를 확인해요</span>
+                    <span><strong>연습</strong>으로 배운 단어를 확인해요</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-base">3️⃣</span>

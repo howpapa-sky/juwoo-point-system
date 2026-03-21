@@ -125,7 +125,7 @@ export default function Savings() {
       }
 
       toast.success("금고에 이자가 쌓였어요!", {
-        description: `${weeksPassed}주 동안 +${totalInterest}코인 이자가 붙었어요!`,
+        description: `${weeksPassed}주 동안 +${totalInterest}포인트 이자가 붙었어요!`,
       });
     }
   };
@@ -140,7 +140,7 @@ export default function Savings() {
         .single();
       if (profileError) {
         if (import.meta.env.DEV) console.error('프로필 조회 실패:', profileError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
       setWalletBalance(profileData?.current_points ?? 0);
@@ -153,7 +153,7 @@ export default function Savings() {
 
       if (savingsError && savingsError.code !== 'PGRST116') {
         if (import.meta.env.DEV) console.error('저축 계좌 조회 실패:', savingsError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -165,7 +165,7 @@ export default function Savings() {
           .single();
         if (insertError) {
           if (import.meta.env.DEV) console.error('저축 계좌 생성 실패:', insertError);
-          toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+          toast.error('잠깐, 문제가 생겼어! 다시 해보자');
           return;
         }
         savingsData = newSavings;
@@ -193,7 +193,7 @@ export default function Savings() {
       }
     } catch (error: any) {
       if (import.meta.env.DEV) console.error("Error fetching savings:", error);
-      toast.error("금고 데이터를 불러오지 못했습니다.");
+      toast.error("금고 데이터를 못 불러왔어!");
     } finally {
       setLoading(false);
     }
@@ -220,11 +220,11 @@ export default function Savings() {
   const handleDeposit = async () => {
     const amount = parseInt(depositAmount);
     if (!amount || amount < 5) {
-      toast.error("최소 5코인부터 입금할 수 있어요!");
+      toast.error("최소 5포인트부터 입금할 수 있어요!");
       return;
     }
     if (amount > walletBalance) {
-      toast.error("지갑에 코인이 부족해요!");
+      toast.error("지갑에 포인트이 부족해요!");
       return;
     }
     if (!savings) return;
@@ -241,7 +241,7 @@ export default function Savings() {
         .eq("id", 1);
       if (walletError) {
         if (import.meta.env.DEV) console.error('지갑 차감 실패:', walletError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -252,7 +252,7 @@ export default function Savings() {
         .eq("id", savings.id);
       if (savingsError) {
         if (import.meta.env.DEV) console.error('금고 입금 실패:', savingsError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -262,7 +262,7 @@ export default function Savings() {
         rule_id: null,
         amount: -amount,
         balance_after: newWalletBalance,
-        note: `🏦 금고 입금 ${amount}코인`,
+        note: `🏦 금고 입금 ${amount}포인트`,
         created_by: 1,
       });
       if (txError) {
@@ -272,7 +272,7 @@ export default function Savings() {
       setShowDepositAnim(true);
       setTimeout(() => setShowDepositAnim(false), 1000);
 
-      toast.success(`금고에 ${amount}코인을 넣었어요!`, {
+      toast.success(`금고에 ${amount}포인트을 넣었어요!`, {
         description: "매주 일요일에 이자가 붙어요!",
       });
 
@@ -290,11 +290,11 @@ export default function Savings() {
   const handleWithdraw = async () => {
     const amount = parseInt(withdrawAmount);
     if (!amount || amount < 1) {
-      toast.error("출금할 금액을 입력해주세요!");
+      toast.error("출금할 금액을 넣어줘!");
       return;
     }
     if (!savings || amount > savings.balance) {
-      toast.error("금고에 코인이 부족해요!");
+      toast.error("금고에 포인트이 부족해요!");
       return;
     }
 
@@ -310,7 +310,7 @@ export default function Savings() {
         .eq("id", 1);
       if (walletError) {
         if (import.meta.env.DEV) console.error('지갑 추가 실패:', walletError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -321,7 +321,7 @@ export default function Savings() {
         .eq("id", savings.id);
       if (savingsError) {
         if (import.meta.env.DEV) console.error('금고 출금 실패:', savingsError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -331,7 +331,7 @@ export default function Savings() {
         rule_id: null,
         amount: amount,
         balance_after: newWalletBalance,
-        note: `🏦 금고 출금 ${amount}코인`,
+        note: `🏦 금고 출금 ${amount}포인트`,
         created_by: 1,
       });
       if (txError) {
@@ -341,7 +341,7 @@ export default function Savings() {
       setShowWithdrawAnim(true);
       setTimeout(() => setShowWithdrawAnim(false), 1000);
 
-      toast.success(`금고에서 ${amount}코인을 꺼냈어요!`);
+      toast.success(`금고에서 ${amount}포인트을 꺼냈어요!`);
 
       setShowWithdrawModal(false);
       setWithdrawAmount("");
@@ -437,7 +437,7 @@ export default function Savings() {
                     </motion.span>
                     <div>
                       <p className="font-bold text-lg">금고에 이자가 쌓였어요!</p>
-                      <p className="text-white/80 text-sm">+{interestJustPaid}코인 이자 적립</p>
+                      <p className="text-white/80 text-sm">+{interestJustPaid}포인트 이자 적립</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -457,7 +457,7 @@ export default function Savings() {
                 <div className="flex items-end gap-2 mb-4">
                   <p className="text-4xl font-black tracking-tight">
                     {(displayBalance ?? savings?.balance ?? 0).toLocaleString()}
-                    <span className="text-lg ml-1">코인</span>
+                    <span className="text-lg ml-1">포인트</span>
                   </p>
                 </div>
 
@@ -468,7 +468,7 @@ export default function Savings() {
                       <span className="text-white/70 text-sm">지난 이자</span>
                     </div>
                     <p className="text-lg font-bold text-emerald-300">
-                      +{lastInterest?.interest_amount ?? 0}코인
+                      +{lastInterest?.interest_amount ?? 0}포인트
                     </p>
                   </div>
                   <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-sm">
@@ -495,7 +495,7 @@ export default function Savings() {
               <CardContent className="p-4 flex items-center gap-3">
                 <Info className="h-5 w-5 text-blue-500 flex-shrink-0" />
                 <p className="text-sm text-blue-700">
-                  다음 일요일에 약 <strong>{estimatedInterest}코인</strong> 이자를 받을 수 있어요!
+                  다음 일요일에 약 <strong>{estimatedInterest}포인트</strong> 이자를 받을 수 있어요!
                 </p>
               </CardContent>
             </Card>
@@ -531,7 +531,7 @@ export default function Savings() {
                           <span>{icon}</span> {label}
                         </span>
                         <span className="text-sm font-bold text-indigo-600">
-                          {futureBalance.toLocaleString()}코인 <span className="text-indigo-400 font-normal">(+{gain.toLocaleString()})</span>
+                          {futureBalance.toLocaleString()}포인트 <span className="text-indigo-400 font-normal">(+{gain.toLocaleString()})</span>
                         </span>
                       </div>
                     );
@@ -597,11 +597,11 @@ export default function Savings() {
                           })}
                         </p>
                         <p className="text-sm text-slate-500">
-                          {record.balance_before}코인 → {record.balance_after}코인
+                          {record.balance_before}포인트 → {record.balance_after}포인트
                         </p>
                       </div>
                       <span className="font-bold text-emerald-600 text-lg">
-                        +{record.interest_amount}코인
+                        +{record.interest_amount}포인트
                       </span>
                     </div>
                   ))}
@@ -611,7 +611,7 @@ export default function Savings() {
                   <Landmark className="h-12 w-12 text-slate-300 mx-auto mb-2" />
                   <p className="text-slate-500 text-sm">아직 이자 기록이 없어요</p>
                   <p className="text-slate-400 text-sm mt-1">
-                    금고에 코인을 넣으면 매주 일요일에 이자가 붙어요!
+                    금고에 포인트을 넣으면 매주 일요일에 이자가 붙어요!
                   </p>
                 </div>
               )}
@@ -659,7 +659,7 @@ export default function Savings() {
             >
               <h2 className="text-xl font-black text-slate-800 mb-1">금고에 얼마나 넣을까?</h2>
               <p className="text-sm text-slate-500 mb-4">
-                내 지갑: <strong>{walletBalance.toLocaleString()}</strong> 코인
+                내 지갑: <strong>{walletBalance.toLocaleString()}</strong> 포인트
               </p>
 
               <div className="grid grid-cols-4 gap-2 mb-4">
@@ -696,7 +696,7 @@ export default function Savings() {
                     min={5}
                     max={walletBalance}
                   />
-                  <span className="text-slate-500 font-medium">코인</span>
+                  <span className="text-slate-500 font-medium">포인트</span>
                 </div>
               </div>
 
@@ -751,7 +751,7 @@ export default function Savings() {
             >
               <h2 className="text-xl font-black text-slate-800 mb-1">금고에서 얼마나 꺼낼까?</h2>
               <p className="text-sm text-slate-500 mb-4">
-                금고 잔액: <strong>{savings?.balance.toLocaleString()}</strong> 코인
+                금고 잔액: <strong>{savings?.balance.toLocaleString()}</strong> 포인트
               </p>
 
               <div className="grid grid-cols-4 gap-2 mb-4">
@@ -787,7 +787,7 @@ export default function Savings() {
                     min={1}
                     max={savings?.balance ?? 0}
                   />
-                  <span className="text-slate-500 font-medium">코인</span>
+                  <span className="text-slate-500 font-medium">포인트</span>
                 </div>
               </div>
 

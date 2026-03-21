@@ -61,7 +61,7 @@ export default function Goals() {
   // 새 목표 추가
   const handleAddGoal = async () => {
     if (!newGoal.title || newGoal.target_points <= 0) {
-      toast.error("제목과 목표 포인트를 입력해주세요");
+      toast.error("제목과 목표 포인트를 넣어줘!");
       return;
     }
 
@@ -79,7 +79,7 @@ export default function Goals() {
       if (import.meta.env.DEV) console.error('Error adding goal:', error);
       toast.error("목표 추가가 잘 안 됐어요");
     } else {
-      toast.success("새 목표가 추가되었습니다!");
+      toast.success("새 목표 추가 완료!");
       setDialogOpen(false);
       setNewGoal({ title: "", target_points: 0 });
       fetchGoals();
@@ -100,7 +100,7 @@ export default function Goals() {
       if (import.meta.env.DEV) console.error('Error completing goal:', error);
       toast.error("목표 달성 처리가 잘 안 됐어요");
     } else {
-      toast.success("🎉 목표를 달성했습니다!");
+      toast.success("🎉 목표 달성!");
       fetchGoals();
     }
   };
@@ -116,7 +116,7 @@ export default function Goals() {
       if (import.meta.env.DEV) console.error('Error updating progress:', error);
       toast.error("진행률 업데이트가 잘 안 됐어요");
     } else {
-      toast.success("진행률이 업데이트되었습니다");
+      toast.success("진행률 업데이트 완료!");
       fetchGoals();
     }
   };
@@ -126,8 +126,8 @@ export default function Goals() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle>로그인이 필요합니다</CardTitle>
-            <CardDescription>목표를 설정하려면 로그인해주세요.</CardDescription>
+            <CardTitle>로그인이 필요해!</CardTitle>
+            <CardDescription>로그인하면 볼 수 있어!</CardDescription>
           </CardHeader>
           <CardContent>
             <a href={getLoginUrl()}>
@@ -173,7 +173,7 @@ export default function Goals() {
               <DialogHeader>
                 <DialogTitle>새 목표 추가</DialogTitle>
                 <DialogDescription>
-                  달성하고 싶은 목표를 설정하세요.
+                  달성하고 싶은 목표를 정해봐!
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -224,7 +224,7 @@ export default function Goals() {
                 <Card>
                   <CardContent className="py-12 text-center">
                     <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">진행 중인 목표가 없습니다.</p>
+                    <p className="text-muted-foreground">아직 진행 중인 목표가 없어!</p>
                     <p className="text-sm text-muted-foreground mt-2">
                       새 목표를 추가해보세요!
                     </p>
@@ -260,7 +260,7 @@ export default function Goals() {
                               className="flex-1"
                               onClick={() => {
                                 const newProgress = prompt(
-                                  `현재 진행률: ${goal.current_points}\n새로운 진행률을 입력하세요:`,
+                                  `현재 진행률: ${goal.current_points}\n새로운 진행률을 넣어줘:`,
                                   goal.current_points.toString()
                                 );
                                 if (newProgress !== null) {

@@ -116,7 +116,7 @@ export default function RoutineTimeline() {
         },
         () => {
           confetti({ particleCount: 50, spread: 60 });
-          toast.success('승인됐어요! 탐험 에너지가 충전됐어요!');
+          toast.success('승인 완료! 포인트 받았어!');
           fetchData();
         }
       )
@@ -210,8 +210,8 @@ export default function RoutineTimeline() {
       confetti({ particleCount: 80, spread: 100 });
       toast.success(
         timeOfDay === 'morning'
-          ? '기지 전력 충전 완료! +500 탐험 에너지!'
-          : '기지 점검 완료! +500 탐험 에너지!'
+          ? '오늘 할 일 완료! +500 포인트!'
+          : '할 일 완료! +500 포인트!'
       );
     }
   };
@@ -329,10 +329,10 @@ export default function RoutineTimeline() {
                   </div>
                   <h3 className="text-xl font-bold mb-1">
                     {timeOfDay === 'morning'
-                      ? '기지 전력 충전 완료!'
-                      : '기지 점검 완료!'}
+                      ? '오늘 할 일 다 했어!'
+                      : '오늘 할 일 다 했어!'}
                   </h3>
-                  <p className="text-white/80 text-sm">+500 탐험 에너지 보너스!</p>
+                  <p className="text-white/80 text-sm">+500 포인트 보너스!</p>
                 </CardContent>
               </Card>
             </motion.div>

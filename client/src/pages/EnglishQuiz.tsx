@@ -239,8 +239,8 @@ export default function EnglishQuiz() {
               <motion.div className="text-7xl mb-6" animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1 }}>
                 📚
               </motion.div>
-              <h2 className="text-2xl font-bold mb-4">로그인이 필요합니다</h2>
-              <p className="text-muted-foreground mb-6">영어 퀴즈를 풀려면 로그인해주세요!</p>
+              <h2 className="text-2xl font-bold mb-4">로그인이 필요해!</h2>
+              <p className="text-muted-foreground mb-6">로그인하면 영어 퀴즈를 풀 수 있어!</p>
               <a href={getLoginUrl()}>
                 <Button className={`w-full bg-gradient-to-r ${theme.primary} text-white font-bold text-lg py-6`}>
                   로그인하기

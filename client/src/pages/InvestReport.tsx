@@ -100,7 +100,7 @@ export default function InvestReport() {
         const savePercent = totalOutflow > 0 ? Math.round((savedToVault / totalOutflow) * 100) : 0;
         const investPercent = totalOutflow > 0 ? Math.round((investedToSeed / totalOutflow) * 100) : 0;
 
-        // 반사실적 사고: 소비한 코인의 기회비용
+        // 반사실적 사고: 소비한 포인트의 기회비용
         const counterfactualSavings = Math.round(spent * SAVINGS_INTEREST_RATE);
         const counterfactualInvestment = Math.round(spent * (MAX_MULTIPLIER['sunflower'] - 1)); // 해바라기 기준
 
@@ -121,7 +121,7 @@ export default function InvestReport() {
         });
       } catch (error: any) {
         if (import.meta.env.DEV) console.error("Error fetching report:", error);
-        toast.error("리포트 데이터를 불러오지 못했습니다.");
+        toast.error("리포트 데이터를 못 불러왔어!");
       } finally {
         setLoading(false);
       }
@@ -207,16 +207,16 @@ export default function InvestReport() {
           </div>
         </div>
 
-        {/* 번 코인 */}
+        {/* 번 포인트 */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="border-0 bg-gradient-to-br from-violet-500 to-purple-600 text-white overflow-hidden shadow-2xl shadow-violet-500/30 rounded-3xl">
             <CardContent className="p-5 relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4" />
               <div className="relative">
-                <p className="text-white/70 text-sm font-medium mb-1">이번 주 번 코인</p>
+                <p className="text-white/70 text-sm font-medium mb-1">이번 주 번 포인트</p>
                 <p className="text-4xl font-black tracking-tight">
                   {report.earned.toLocaleString()}
-                  <span className="text-lg ml-1">코인</span>
+                  <span className="text-lg ml-1">포인트</span>
                 </p>
               </div>
             </CardContent>
@@ -262,7 +262,7 @@ export default function InvestReport() {
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-orange-600">
-                          {report.spent.toLocaleString()}코인
+                          {report.spent.toLocaleString()}포인트
                         </span>
                         <span className="text-sm text-slate-500 ml-1">({report.spendPercent}%)</span>
                       </div>
@@ -277,7 +277,7 @@ export default function InvestReport() {
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-blue-600">
-                          {report.savedToVault.toLocaleString()}코인
+                          {report.savedToVault.toLocaleString()}포인트
                         </span>
                         <span className="text-sm text-slate-500 ml-1">({report.savePercent}%)</span>
                       </div>
@@ -292,7 +292,7 @@ export default function InvestReport() {
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-emerald-600">
-                          {report.investedToSeed.toLocaleString()}코인
+                          {report.investedToSeed.toLocaleString()}포인트
                         </span>
                         <span className="text-sm text-slate-500 ml-1">({report.investPercent}%)</span>
                       </div>
@@ -371,7 +371,7 @@ export default function InvestReport() {
                   🔍 만약에...
                 </h3>
                 <p className="text-sm text-slate-500 mb-3">
-                  이번 주 쓴 {report.spent.toLocaleString()}코인으로 다른 걸 했다면?
+                  이번 주 쓴 {report.spent.toLocaleString()}포인트으로 다른 걸 했다면?
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 p-3 bg-white/60 rounded-xl">
@@ -379,7 +379,7 @@ export default function InvestReport() {
                     <div className="flex-1">
                       <p className="text-sm font-medium text-slate-700">금고에 넣었다면</p>
                       <p className="text-sm text-blue-600 font-bold">
-                        매주 이자 +{report.counterfactualSavings}코인씩!
+                        매주 이자 +{report.counterfactualSavings}포인트씩!
                       </p>
                     </div>
                   </div>
@@ -388,7 +388,7 @@ export default function InvestReport() {
                     <div className="flex-1">
                       <p className="text-sm font-medium text-slate-700">해바라기에 심었다면</p>
                       <p className="text-sm text-emerald-600 font-bold">
-                        +{report.counterfactualInvestment}코인 돌아왔을 거예요!
+                        +{report.counterfactualInvestment}포인트 돌아왔을 거예요!
                       </p>
                     </div>
                   </div>

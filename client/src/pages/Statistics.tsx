@@ -460,8 +460,8 @@ export default function Statistics() {
             <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4">
               <BarChart3 className="h-8 w-8 text-white" />
             </div>
-            <CardTitle className="text-2xl">로그인이 필요합니다</CardTitle>
-            <CardDescription>통계를 확인하려면 로그인해주세요.</CardDescription>
+            <CardTitle className="text-2xl">로그인이 필요해!</CardTitle>
+            <CardDescription>로그인하면 볼 수 있어!</CardDescription>
           </CardHeader>
           <CardContent>
             <a href={getLoginUrl()}>

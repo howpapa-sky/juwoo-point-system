@@ -425,7 +425,7 @@ export default function Badges() {
               <div className="text-6xl mb-4">🏆</div>
               <h2 className="text-2xl font-bold mb-4">로그인이 필요해요!</h2>
               <p className="text-muted-foreground mb-6">
-                멋진 배지들을 확인하려면<br />먼저 로그인해주세요!
+                멋진 배지들을 보려면<br />먼저 로그인해줘!
               </p>
               <a href={getLoginUrl()}>
                 <Button size="lg" className="w-full bg-gradient-to-r from-yellow-500 to-orange-500">
@@ -837,7 +837,7 @@ export default function Badges() {
                 </h3>
                 <p className="text-sm opacity-90">
                   {earnedCount >= 20
-                    ? '정말 대단해요! 계속 도전하세요!'
+                    ? '정말 대단해! 계속 도전하자!'
                     : earnedCount >= 10
                     ? `벌써 ${earnedCount}개의 배지를 모았어요!`
                     : earnedCount >= 5

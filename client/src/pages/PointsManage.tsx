@@ -110,7 +110,7 @@ export default function PointsManage() {
 
       if (profileError) {
         if (import.meta.env.DEV) console.error('Error fetching profile:', profileError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -131,7 +131,7 @@ export default function PointsManage() {
 
       if (txError) {
         if (import.meta.env.DEV) console.error('Error inserting transaction:', txError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -143,7 +143,7 @@ export default function PointsManage() {
 
       if (updateError) {
         if (import.meta.env.DEV) console.error('Error updating profile:', updateError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -160,12 +160,12 @@ export default function PointsManage() {
   const handleManualAdjustment = async () => {
     const amount = parseInt(manualAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error('유효한 금액을 입력해주세요.');
+      toast.error('유효한 금액을 넣어줘!');
       return;
     }
 
     if (!manualNote.trim()) {
-      toast.error('내용을 입력해주세요.');
+      toast.error('내용을 넣어줘!');
       return;
     }
 
@@ -188,7 +188,7 @@ export default function PointsManage() {
 
       if (txError) {
         if (import.meta.env.DEV) console.error('Error inserting transaction:', txError);
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -201,7 +201,7 @@ export default function PointsManage() {
       if (updateError) {
         if (import.meta.env.DEV) console.error('Error updating profile:', updateError);
         // 롤백 불가 (tx는 이미 기록됨) - 사용자에게 알림
-        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        toast.error('잠깐, 문제가 생겼어! 다시 해보자');
         return;
       }
 
@@ -272,8 +272,8 @@ export default function PointsManage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle>로그인이 필요합니다</CardTitle>
-            <CardDescription>포인트 관리를 하려면 로그인해주세요.</CardDescription>
+            <CardTitle>로그인이 필요해!</CardTitle>
+            <CardDescription>로그인하면 볼 수 있어!</CardDescription>
           </CardHeader>
           <CardContent>
             <a href={getLoginUrl()}>
@@ -331,7 +331,7 @@ export default function PointsManage() {
                 {WORLDVIEW.points} 관리
                 <Sparkles className="h-8 w-8 text-yellow-500" />
               </h1>
-              <p className="text-muted-foreground">주우의 행동에 따라 {WORLDVIEW.points}를 적립하거나 차감하세요.</p>
+              <p className="text-muted-foreground">주우의 행동에 따라 {WORLDVIEW.points}를 적립하거나 차감해봐!</p>
             </div>
 
             {/* 현재 포인트 카드 */}
@@ -424,7 +424,7 @@ export default function PointsManage() {
                     </div>
                     {WORLDVIEW.points} 적립
                   </CardTitle>
-                  <CardDescription>좋은 행동을 했을 때 {WORLDVIEW.points}를 적립하세요.</CardDescription>
+                  <CardDescription>좋은 행동을 했을 때 {WORLDVIEW.points}를 적립해봐!</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -472,9 +472,9 @@ export default function PointsManage() {
                     <div className="p-2 bg-gray-500 rounded-lg">
                       <Minus className="h-5 w-5 text-white" />
                     </div>
-                    에너지 소모
+                    포인트 차감
                   </CardTitle>
-                  <CardDescription>필요한 경우에만 차감하세요.</CardDescription>
+                  <CardDescription>필요한 경우에만 차감해!</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -538,8 +538,8 @@ export default function PointsManage() {
             </DialogTitle>
             <DialogDescription>
               {manualType === "add"
-                ? `${WORLDVIEW.points}를 수동으로 적립합니다.`
-                : `${WORLDVIEW.points}를 수동으로 차감합니다.`}
+                ? `${WORLDVIEW.points}를 수동으로 적립해!`
+                : `${WORLDVIEW.points}를 수동으로 차감해!`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">

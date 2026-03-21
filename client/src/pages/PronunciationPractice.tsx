@@ -297,7 +297,7 @@ export default function PronunciationPractice() {
                     <Coins className="h-5 w-5 text-amber-600" />
                     <span className="text-3xl font-black text-amber-600">{totalCoins}</span>
                   </div>
-                  <p className="text-sm text-amber-500 mt-1">코인 획득</p>
+                  <p className="text-sm text-amber-500 mt-1">포인트 획득</p>
                 </CardContent>
               </Card>
             </div>
@@ -386,7 +386,7 @@ export default function PronunciationPractice() {
                       className="w-full h-14 text-lg font-bold rounded-2xl border-2 border-amber-300 text-amber-700 hover:bg-amber-50"
                     >
                       <HelpCircle className="h-5 w-5 mr-2" />
-                      모르겠어요 (+1코인)
+                      모르겠어요 (+1포인트)
                     </Button>
                   </div>
                 </CardContent>
@@ -475,7 +475,7 @@ export default function PronunciationPractice() {
 
                   <div className="flex items-center justify-center gap-1 mb-6">
                     <Coins className="h-5 w-5 text-amber-500" />
-                    <span className="font-bold text-amber-600">+{currentFeedback.coins} 코인</span>
+                    <span className="font-bold text-amber-600">+{currentFeedback.coins} 포인트</span>
                   </div>
 
                   <h2 className="text-2xl font-black text-slate-800 mb-1">{currentWord.word}</h2>

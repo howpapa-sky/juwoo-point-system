@@ -91,7 +91,7 @@ export default function GoalSaving() {
       setAchievedGoals(doneGoals ?? []);
     } catch (error: any) {
       if (import.meta.env.DEV) console.error("Error fetching goals:", error);
-      toast.error("목표 데이터를 불러오지 못했습니다.");
+      toast.error("목표 데이터를 못 불러왔어!");
     } finally {
       setLoading(false);
     }
@@ -104,12 +104,12 @@ export default function GoalSaving() {
 
   const handleCreateGoal = async () => {
     if (!newTitle.trim()) {
-      toast.error("목표 이름을 입력해주세요!");
+      toast.error("목표 이름을 넣어줘!");
       return;
     }
     const target = parseInt(newTarget);
     if (!target || target < 10) {
-      toast.error("최소 10코인 이상 목표를 설정해주세요!");
+      toast.error("최소 10포인트 이상으로 목표를 정해줘!");
       return;
     }
 
@@ -131,7 +131,7 @@ export default function GoalSaving() {
       }
 
       toast.success("새 목표를 만들었어요!", {
-        description: `${newEmoji} ${newTitle} - ${target}코인`,
+        description: `${newEmoji} ${newTitle} - ${target}포인트`,
       });
 
       setShowNewGoalModal(false);
@@ -150,11 +150,11 @@ export default function GoalSaving() {
   const handleDeposit = async () => {
     const amount = parseInt(depositAmount);
     if (!amount || amount < 1 || !selectedGoal) {
-      toast.error("금액을 입력해주세요!");
+      toast.error("금액을 넣어줘!");
       return;
     }
     if (amount > walletBalance) {
-      toast.error("지갑에 코인이 부족해요!");
+      toast.error("지갑에 포인트이 부족해요!");
       return;
     }
 
@@ -178,7 +178,7 @@ export default function GoalSaving() {
 
       if (goalUpdateError) {
         if (import.meta.env.DEV) console.error("Error updating goal:", goalUpdateError);
-        toast.error("잠깐, 문제가 생겼어요. 다시 시도해주세요");
+        toast.error("잠깐, 문제가 생겼어! 다시 해보자");
         return;
       }
 
@@ -192,7 +192,7 @@ export default function GoalSaving() {
         if (import.meta.env.DEV) console.error("Error inserting deposit:", depositError);
         // 롤백: 목표 복구
         await supabase.from("saving_goals").update({ current_amount: originalGoalAmount, status: "active", achieved_at: null }).eq("id", selectedGoal.id);
-        toast.error("잠깐, 문제가 생겼어요. 다시 시도해주세요");
+        toast.error("잠깐, 문제가 생겼어! 다시 해보자");
         return;
       }
 
@@ -207,7 +207,7 @@ export default function GoalSaving() {
         if (import.meta.env.DEV) console.error("Error updating wallet:", walletError);
         // 롤백: 목표 복구
         await supabase.from("saving_goals").update({ current_amount: originalGoalAmount, status: "active", achieved_at: null }).eq("id", selectedGoal.id);
-        toast.error("잠깐, 문제가 생겼어요. 다시 시도해주세요");
+        toast.error("잠깐, 문제가 생겼어! 다시 해보자");
         return;
       }
 
@@ -217,7 +217,7 @@ export default function GoalSaving() {
         rule_id: null,
         amount: -amount,
         balance_after: newBalance,
-        note: `🎯 목표 저축: ${selectedGoal.emoji} ${selectedGoal.title} (${amount}코인)`,
+        note: `🎯 목표 저축: ${selectedGoal.emoji} ${selectedGoal.title} (${amount}포인트)`,
         created_by: 1,
       });
 
@@ -240,7 +240,7 @@ export default function GoalSaving() {
           description: `${selectedGoal.emoji} ${selectedGoal.title}을(를) 모두 모았어요!`,
         });
       } else {
-        toast.success(`${amount}코인을 넣었어요!`);
+        toast.success(`${amount}포인트을 넣었어요!`);
       }
 
       setShowDepositModal(false);
@@ -342,7 +342,7 @@ export default function GoalSaving() {
                         <div className="flex-1">
                           <h3 className="font-black text-slate-800 text-lg">{goal.title}</h3>
                           <p className="text-sm text-slate-500">
-                            목표: {goal.target_amount.toLocaleString()} 코인
+                            목표: {goal.target_amount.toLocaleString()} 포인트
                           </p>
                         </div>
                       </div>
@@ -350,7 +350,7 @@ export default function GoalSaving() {
                       <div className="mb-3">
                         <div className="flex items-center justify-between text-sm mb-1">
                           <span className="text-slate-600 font-medium">
-                            현재: {goal.current_amount.toLocaleString()} 코인
+                            현재: {goal.current_amount.toLocaleString()} 포인트
                           </span>
                           <span className="font-bold text-amber-600">{percent}%</span>
                         </div>
@@ -365,7 +365,7 @@ export default function GoalSaving() {
                       )}
 
                       <p className="text-sm text-slate-500 mb-3">
-                        남은 금액: {remaining.toLocaleString()} 코인
+                        남은 금액: {remaining.toLocaleString()} 포인트
                       </p>
 
                       <div className="grid grid-cols-2 gap-2">
@@ -378,7 +378,7 @@ export default function GoalSaving() {
                             setShowDepositModal(true);
                           }}
                         >
-                          10코인 넣기
+                          10포인트 넣기
                         </Button>
                         <Button
                           className="h-10 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold"
@@ -405,7 +405,7 @@ export default function GoalSaving() {
                 아직 목표가 없어요
               </h3>
               <p className="text-slate-500 text-sm mb-4">
-                갖고 싶은 것을 목표로 세우고 코인을 모아보세요!
+                갖고 싶은 것을 목표로 세우고 포인트을 모아보세요!
               </p>
               <Button
                 className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-2xl h-12 px-6"
@@ -454,7 +454,7 @@ export default function GoalSaving() {
                         </div>
                       </div>
                       <span className="font-bold text-amber-600 text-sm">
-                        {goal.target_amount.toLocaleString()}코인 ✅
+                        {goal.target_amount.toLocaleString()}포인트 ✅
                       </span>
                     </div>
                   ))}
@@ -517,7 +517,7 @@ export default function GoalSaving() {
               </div>
 
               <div className="mb-4">
-                <label className="text-sm text-slate-500 mb-1 block">목표 코인</label>
+                <label className="text-sm text-slate-500 mb-1 block">목표 포인트</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -527,7 +527,7 @@ export default function GoalSaving() {
                     className="flex-1 h-12 px-4 border-2 border-slate-200 rounded-xl text-lg font-bold focus:border-amber-500 focus:outline-none"
                     min={10}
                   />
-                  <span className="text-slate-500 font-medium">코인</span>
+                  <span className="text-slate-500 font-medium">포인트</span>
                 </div>
               </div>
 
@@ -575,11 +575,11 @@ export default function GoalSaving() {
                 {selectedGoal.emoji} {selectedGoal.title}
               </h2>
               <p className="text-sm text-slate-500 mb-4">
-                내 지갑: <strong>{walletBalance.toLocaleString()}</strong> 코인 | 남은 목표:{" "}
+                내 지갑: <strong>{walletBalance.toLocaleString()}</strong> 포인트 | 남은 목표:{" "}
                 <strong>
                   {(selectedGoal.target_amount - selectedGoal.current_amount).toLocaleString()}
                 </strong>{" "}
-                코인
+                포인트
               </p>
 
               <div className="grid grid-cols-4 gap-2 mb-4">
@@ -616,7 +616,7 @@ export default function GoalSaving() {
                   min={1}
                   max={walletBalance}
                 />
-                <span className="text-slate-500 font-medium">코인</span>
+                <span className="text-slate-500 font-medium">포인트</span>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

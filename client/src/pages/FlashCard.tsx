@@ -83,12 +83,12 @@ export default function FlashCard() {
 
           <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-sm font-bold mb-4">
-              <Sparkles className="h-4 w-4" />우주어 해독 카드<Sparkles className="h-4 w-4" />
+              <Sparkles className="h-4 w-4" />영어 카드<Sparkles className="h-4 w-4" />
             </div>
             <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 bg-clip-text text-transparent mb-2">
               플래시카드 학습 🃏
             </h1>
-            <p className="text-lg text-muted-foreground">재미있게 우주어를 배워봐요!</p>
+            <p className="text-lg text-muted-foreground">재미있게 영어를 배우자!</p>
           </motion.div>
 
           {/* 학습 모드 */}

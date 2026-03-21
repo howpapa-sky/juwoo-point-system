@@ -322,15 +322,15 @@ export default function ParentDashboard() {
 
     const result = await adjustPoints({
       amount: -amount,
-      note: `에너지 소모: ${deductReason}`,
+      note: `포인트 차감: ${deductReason}`,
     });
 
     if (result.success) {
       // Log in approval queue for tracking
       await supabase.from('approval_queue').insert({
         request_type: 'deduction',
-        description: `에너지 소모: ${deductReason}`,
-        worldview_message: '에너지 소모',
+        description: `포인트 차감: ${deductReason}`,
+        worldview_message: '포인트 차감',
         point_amount: -amount,
         status: 'approved',
         responded_by: user?.id ?? null,
@@ -338,7 +338,7 @@ export default function ParentDashboard() {
         deduction_reason: deductReason,
       });
 
-      toast.success(`${amount.toLocaleString()} 에너지 소모 처리 완료`);
+      toast.success(`${amount.toLocaleString()} 포인트 차감 완료`);
       setShowDeductDialog(false);
     } else {
       toast.error(result.error ?? '차감 오류');
@@ -510,7 +510,7 @@ export default function ParentDashboard() {
                   <span className="text-sm font-medium text-slate-700">금고 잔액</span>
                 </div>
                 <span className="font-bold text-blue-600">
-                  {investSummary.savingsBalance.toLocaleString()}코인
+                  {investSummary.savingsBalance.toLocaleString()}포인트
                 </span>
               </div>
 
@@ -521,7 +521,7 @@ export default function ParentDashboard() {
                   <span className="text-sm font-medium text-slate-700">이번 주 이자</span>
                 </div>
                 <span className="font-bold text-emerald-600">
-                  +{investSummary.weeklyInterest.toLocaleString()}코인
+                  +{investSummary.weeklyInterest.toLocaleString()}포인트
                 </span>
               </div>
 
@@ -544,7 +544,7 @@ export default function ParentDashboard() {
                       return (
                         <div key={i} className="flex items-center justify-between text-sm p-2 bg-slate-50 rounded-lg">
                           <span>
-                            {seedIcons[seed.seed_type] ?? "🌱"} {seed.invested_amount}코인
+                            {seedIcons[seed.seed_type] ?? "🌱"} {seed.invested_amount}포인트
                           </span>
                           <span className="text-slate-500">
                             {daysLeft > 0
@@ -566,7 +566,7 @@ export default function ParentDashboard() {
               {investSummary.weeklyPlanted > 0 && (
                 <div className="p-3 bg-amber-50 rounded-lg">
                   <p className="text-sm text-amber-700">
-                    📊 주우가 이번 주 {investSummary.weeklyPlanted.toLocaleString()}코인을 씨앗밭에 심었어요
+                    📊 주우가 이번 주 {investSummary.weeklyPlanted.toLocaleString()}포인트를 씨앗밭에 심었어요
                   </p>
                 </div>
               )}
@@ -650,7 +650,7 @@ export default function ParentDashboard() {
         >
           <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-gray-500" />
-            에너지 소모 (차감)
+            포인트 차감
           </h2>
           <Button
             variant="outline"
@@ -725,7 +725,7 @@ export default function ParentDashboard() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-gray-500" />
-              에너지 소모
+              포인트 차감
             </DialogTitle>
             <DialogDescription>
               꼭 필요한 차감인지 한번 더 생각해주세요.

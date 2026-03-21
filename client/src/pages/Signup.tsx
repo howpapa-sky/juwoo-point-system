@@ -25,19 +25,19 @@ export default function Signup() {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      toast.error("비밀번호가 일치하지 않습니다.");
+      toast.error("비밀번호가 안 맞아!");
       return;
     }
 
     if (password.length < 6) {
-      toast.error("비밀번호는 최소 6자 이상이어야 합니다.");
+      toast.error("비밀번호는 최소 6자 이상이야!");
       return;
     }
 
     setLoading(true);
     try {
       await signUpWithEmail(email, password);
-      toast.success("회원가입이 완료되었습니다! 이메일을 확인해주세요.");
+      toast.success("회원가입 완료! 이메일을 확인해줘!");
       setLocation("/login");
     } catch (error: any) {
       if (import.meta.env.DEV) console.error("Signup error:", error);

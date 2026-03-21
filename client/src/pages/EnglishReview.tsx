@@ -261,7 +261,7 @@ export default function EnglishReview() {
                     <Coins className="h-5 w-5 text-amber-600" />
                     <span className="text-3xl font-black text-amber-600">{totalCoins}</span>
                   </div>
-                  <p className="text-sm text-amber-500 mt-1">코인 획득</p>
+                  <p className="text-sm text-amber-500 mt-1">포인트 획득</p>
                 </CardContent>
               </Card>
             </div>
@@ -347,7 +347,7 @@ export default function EnglishReview() {
                       className="h-16 text-xl font-bold rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg shadow-green-500/25"
                     >
                       <ThumbsUp className="h-6 w-6 mr-2" />
-                      알아요! (+2코인)
+                      알아요! (+2포인트)
                     </Button>
                     <Button
                       onClick={handleDontKnow}
@@ -355,7 +355,7 @@ export default function EnglishReview() {
                       className="h-16 text-xl font-bold rounded-2xl border-2 border-amber-300 text-amber-700 hover:bg-amber-50"
                     >
                       <HelpCircle className="h-6 w-6 mr-2" />
-                      모르겠어요 (+1코인)
+                      모르겠어요 (+1포인트)
                     </Button>
                   </div>
                 </CardContent>

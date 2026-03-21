@@ -38,7 +38,7 @@ export default function Login() {
       setLoading(true);
       if (isSignUp) {
         await signUpWithEmail(email, password);
-        toast.success('회원가입 성공! 이메일을 확인해주세요.');
+        toast.success('회원가입 성공! 이메일을 확인해줘!');
         // 이메일 확인이 비활성화된 경우 바로 로그인됨
       } else {
         await signInWithEmail(email, password);

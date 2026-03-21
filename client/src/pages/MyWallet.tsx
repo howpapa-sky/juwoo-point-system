@@ -138,7 +138,7 @@ export default function MyWallet() {
               <Wallet className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-2xl font-black mb-2">로그인이 필요해요</h2>
-            <p className="text-slate-500 mb-4">지갑을 보려면 로그인해주세요</p>
+            <p className="text-slate-500 mb-4">로그인하면 볼 수 있어!</p>
             <a href={getLoginUrl()}>
               <Button className="w-full h-14 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-lg rounded-2xl">
                 로그인하기
@@ -250,7 +250,7 @@ export default function MyWallet() {
                     <div>
                       <p className="text-4xl font-black tracking-tight">
                         {summary.currentBalance.toLocaleString()}
-                        <span className="text-lg ml-1">코인</span>
+                        <span className="text-lg ml-1">포인트</span>
                       </p>
                     </div>
                   </div>
@@ -260,7 +260,7 @@ export default function MyWallet() {
                     <div className="flex items-center justify-between">
                       <span className="text-white/80 text-sm">전체 자산 (지갑 + 금고 + 씨앗밭)</span>
                       <span className="font-bold text-lg">
-                        {totalAssets.toLocaleString()} 코인
+                        {totalAssets.toLocaleString()} 포인트
                       </span>
                     </div>
                   </div>
@@ -278,7 +278,7 @@ export default function MyWallet() {
         >
           <h2 className="text-lg font-bold text-slate-700 mb-3 flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
-            코인으로 뭐 할까?
+            포인트으로 뭐 할까?
           </h2>
           <div className="grid grid-cols-3 gap-3">
             {choices.map((choice, index) => (
@@ -335,7 +335,7 @@ export default function MyWallet() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-blue-600">
-                        {summary.savingsBalance.toLocaleString()} 코인
+                        {summary.savingsBalance.toLocaleString()} 포인트
                       </span>
                       <ChevronRight className="h-4 w-4 text-slate-400" />
                     </div>
@@ -348,12 +348,12 @@ export default function MyWallet() {
                       <span className="text-xl">🌱</span>
                       <div>
                         <p className="font-semibold text-slate-800 text-sm">씨앗밭</p>
-                        <p className="text-sm text-slate-500">투자 중인 코인</p>
+                        <p className="text-sm text-slate-500">투자 중인 포인트</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-emerald-600">
-                        {summary.investmentBalance.toLocaleString()} 코인
+                        {summary.investmentBalance.toLocaleString()} 포인트
                       </span>
                       <ChevronRight className="h-4 w-4 text-slate-400" />
                     </div>
@@ -379,7 +379,7 @@ export default function MyWallet() {
                 <div className="p-3 rounded-xl bg-emerald-50">
                   <div className="flex items-center gap-1.5 mb-1">
                     <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                    <span className="text-sm text-slate-500">번 코인</span>
+                    <span className="text-sm text-slate-500">번 포인트</span>
                   </div>
                   <p className="text-lg font-bold text-emerald-600">
                     +{summary.monthlyEarned.toLocaleString()}
@@ -388,7 +388,7 @@ export default function MyWallet() {
                 <div className="p-3 rounded-xl bg-orange-50">
                   <div className="flex items-center gap-1.5 mb-1">
                     <ShoppingBag className="h-3.5 w-3.5 text-orange-500" />
-                    <span className="text-sm text-slate-500">쓴 코인</span>
+                    <span className="text-sm text-slate-500">쓴 포인트</span>
                   </div>
                   <p className="text-lg font-bold text-orange-600">
                     -{summary.monthlySpent.toLocaleString()}
@@ -484,7 +484,7 @@ export default function MyWallet() {
                     <div className="p-3 bg-white/70 rounded-xl">
                       <p className="text-sm text-slate-500 mb-1">내 전체 자산</p>
                       <p className="text-2xl font-black text-slate-800">
-                        {totalAssets.toLocaleString()} 코인
+                        {totalAssets.toLocaleString()} 포인트
                       </p>
                     </div>
 
@@ -511,10 +511,10 @@ export default function MyWallet() {
 
                     <div className="p-3 bg-white/70 rounded-xl">
                       <p className="text-sm text-slate-600">
-                        이번 달 번 코인: <strong className="text-emerald-600">+{summary.monthlyEarned.toLocaleString()}</strong>
+                        이번 달 번 포인트: <strong className="text-emerald-600">+{summary.monthlyEarned.toLocaleString()}</strong>
                       </p>
                       <p className="text-sm text-slate-600">
-                        이번 달 쓴 코인: <strong className="text-orange-600">-{summary.monthlySpent.toLocaleString()}</strong>
+                        이번 달 쓴 포인트: <strong className="text-orange-600">-{summary.monthlySpent.toLocaleString()}</strong>
                       </p>
                       {summary.monthlyInterest > 0 && (
                         <p className="text-sm text-slate-600">

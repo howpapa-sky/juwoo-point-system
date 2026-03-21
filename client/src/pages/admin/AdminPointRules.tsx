@@ -135,7 +135,7 @@ export default function AdminPointRules() {
     const ruleData = {
       name: editingRule.name,
       description: editingRule.description || null,
-      points: editingRule.points || 0,
+      points: editingRule.points ?? 0,
       category: editingRule.category,
       icon: editingRule.icon || null,
       is_active: editingRule.is_active ?? true,
@@ -506,7 +506,7 @@ export default function AdminPointRules() {
                 <Label>포인트</Label>
                 <Input
                   type="number"
-                  value={editingRule?.points || 0}
+                  value={editingRule?.points ?? 0}
                   onChange={(e) =>
                     setEditingRule((prev) => ({ ...prev, points: parseInt(e.target.value) || 0 }))
                   }

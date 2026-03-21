@@ -6,7 +6,7 @@ import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
 import { ArrowLeft, Plus, Minus, Coins, Sparkles, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +45,12 @@ export default function PointsManage() {
         .select('role')
         .eq('user_id', user.id)
         .single()
-        .then(({ data }) => setUserRole(data?.role ?? 'child'));
+        .then(({ data, error }) => {
+          if (error) {
+            if (import.meta.env.DEV) console.error('Error fetching user role:', error);
+          }
+          setUserRole(data?.role ?? 'child');
+        });
     }
   }, [user]);
 
@@ -63,7 +68,11 @@ export default function PointsManage() {
           .order('category')
           .order('point_amount', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          if (import.meta.env.DEV) console.error('Error fetching rules:', error);
+          toast.error('규칙을 불러오지 못했어요.');
+          return;
+        }
         setRules(data ?? []);
 
         // Fetch current points
@@ -73,7 +82,11 @@ export default function PointsManage() {
           .eq('id', 1)
           .single();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          if (import.meta.env.DEV) console.error('Error fetching profile:', profileError);
+          toast.error('프로필을 불러오지 못했어요.');
+          return;
+        }
         setCurrentPoints(profileData?.current_points ?? 0);
       } catch (error: any) {
         if (import.meta.env.DEV) console.error('Error fetching data:', error);
@@ -95,11 +108,16 @@ export default function PointsManage() {
         .eq('id', 1)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        if (import.meta.env.DEV) console.error('Error fetching profile:', profileError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
       const currentBalance = profileData?.current_points ?? 0;
       const newBalance = currentBalance + amount;
 
+      // 1. 거래 내역 기록
       const { error: txError } = await supabase
         .from('point_transactions')
         .insert({
@@ -111,14 +129,23 @@ export default function PointsManage() {
           created_by: 1,
         });
 
-      if (txError) throw txError;
+      if (txError) {
+        if (import.meta.env.DEV) console.error('Error inserting transaction:', txError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
+      // 2. 포인트 업데이트
       const { error: updateError } = await supabase
         .from('juwoo_profile')
         .update({ current_points: newBalance })
         .eq('id', 1);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        if (import.meta.env.DEV) console.error('Error updating profile:', updateError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
       setCurrentPoints(newBalance);
       toast.success(`${WORLDVIEW.points}가 적용되었어요!`);
@@ -147,6 +174,7 @@ export default function PointsManage() {
       const finalAmount = manualType === "add" ? amount : -amount;
       const newBalance = currentPoints + finalAmount;
 
+      // 1. 거래 내역 기록
       const { error: txError } = await supabase
         .from('point_transactions')
         .insert({
@@ -158,14 +186,24 @@ export default function PointsManage() {
           created_by: 1,
         });
 
-      if (txError) throw txError;
+      if (txError) {
+        if (import.meta.env.DEV) console.error('Error inserting transaction:', txError);
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
+      // 2. 포인트 업데이트
       const { error: updateError } = await supabase
         .from('juwoo_profile')
         .update({ current_points: newBalance })
         .eq('id', 1);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        if (import.meta.env.DEV) console.error('Error updating profile:', updateError);
+        // 롤백 불가 (tx는 이미 기록됨) - 사용자에게 알림
+        toast.error('잠깐, 문제가 생겼어요. 다시 시도해주세요');
+        return;
+      }
 
       setCurrentPoints(newBalance);
       toast.success(`${WORLDVIEW.points}가 ${manualType === "add" ? "적립" : "차감"}되었어요!`);
@@ -184,22 +222,35 @@ export default function PointsManage() {
     setApplying(true);
     try {
       // 1. 의존 테이블부터 삭제 (FK 순서)
-      await supabase.from('goal_deposits').delete().neq('id', 0);
-      await supabase.from('saving_goals').delete().eq('juwoo_id', 1);
-      await supabase.from('interest_history').delete().neq('id', 0);
-      await supabase.from('seeds').delete().eq('juwoo_id', 1);
-      await supabase.from('purchases').delete().neq('id', 0);
-      await supabase.from('point_transactions').delete().eq('juwoo_id', 1);
+      const { error: e1 } = await supabase.from('goal_deposits').delete().neq('id', 0);
+      if (e1) { if (import.meta.env.DEV) console.error('Error deleting goal_deposits:', e1); throw e1; }
+
+      const { error: e2 } = await supabase.from('saving_goals').delete().eq('juwoo_id', 1);
+      if (e2) { if (import.meta.env.DEV) console.error('Error deleting saving_goals:', e2); throw e2; }
+
+      const { error: e3 } = await supabase.from('interest_history').delete().neq('id', 0);
+      if (e3) { if (import.meta.env.DEV) console.error('Error deleting interest_history:', e3); throw e3; }
+
+      const { error: e4 } = await supabase.from('seeds').delete().eq('juwoo_id', 1);
+      if (e4) { if (import.meta.env.DEV) console.error('Error deleting seeds:', e4); throw e4; }
+
+      const { error: e5 } = await supabase.from('purchases').delete().neq('id', 0);
+      if (e5) { if (import.meta.env.DEV) console.error('Error deleting purchases:', e5); throw e5; }
+
+      const { error: e6 } = await supabase.from('point_transactions').delete().eq('juwoo_id', 1);
+      if (e6) { if (import.meta.env.DEV) console.error('Error deleting point_transactions:', e6); throw e6; }
 
       // 2. 금고 잔액 초기화
-      await supabase.from('savings_account')
+      const { error: e7 } = await supabase.from('savings_account')
         .update({ balance: 0, last_interest_date: null })
         .eq('juwoo_id', 1);
+      if (e7) { if (import.meta.env.DEV) console.error('Error resetting savings_account:', e7); throw e7; }
 
       // 3. 지갑 잔액 초기화
-      await supabase.from('juwoo_profile')
+      const { error: e8 } = await supabase.from('juwoo_profile')
         .update({ current_points: 0 })
         .eq('id', 1);
+      if (e8) { if (import.meta.env.DEV) console.error('Error resetting juwoo_profile:', e8); throw e8; }
 
       setCurrentPoints(0);
       toast.success("모든 포인트와 투자/저축 데이터가 초기화되었어요!");

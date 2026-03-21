@@ -132,12 +132,12 @@ export default function AdminBadges() {
 
       const earnedCounts: Record<number, number> = {};
       (earnedData || []).forEach((ub) => {
-        earnedCounts[ub.badge_id] = (earnedCounts[ub.badge_id] || 0) + 1;
+        earnedCounts[ub.badge_id] = (earnedCounts[ub.badge_id] ?? 0) + 1;
       });
 
       const badgesWithCounts = (badgesData || []).map((b) => ({
         ...b,
-        earned_count: earnedCounts[b.id] || 0,
+        earned_count: earnedCounts[b.id] ?? 0,
       }));
 
       setBadges(badgesWithCounts);

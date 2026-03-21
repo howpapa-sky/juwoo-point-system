@@ -53,23 +53,31 @@ export default function GoalSaving() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("juwoo_profile")
         .select("current_points")
         .eq("id", 1)
         .single();
-      setWalletBalance(profileData?.current_points || 0);
+      if (profileError) {
+        if (import.meta.env.DEV) console.error("Error fetching profile:", profileError);
+        toast.error("프로필을 불러오지 못했어요.");
+        return;
+      }
+      setWalletBalance(profileData?.current_points ?? 0);
 
-      const { data: activeGoals } = await supabase
+      const { data: activeGoals, error: activeError } = await supabase
         .from("saving_goals")
         .select("*")
         .eq("juwoo_id", 1)
         .eq("status", "active")
         .order("created_at", { ascending: false });
 
-      setGoals(activeGoals || []);
+      if (activeError) {
+        if (import.meta.env.DEV) console.error("Error fetching active goals:", activeError);
+      }
+      setGoals(activeGoals ?? []);
 
-      const { data: doneGoals } = await supabase
+      const { data: doneGoals, error: doneError } = await supabase
         .from("saving_goals")
         .select("*")
         .eq("juwoo_id", 1)
@@ -77,7 +85,10 @@ export default function GoalSaving() {
         .order("achieved_at", { ascending: false })
         .limit(10);
 
-      setAchievedGoals(doneGoals || []);
+      if (doneError) {
+        if (import.meta.env.DEV) console.error("Error fetching achieved goals:", doneError);
+      }
+      setAchievedGoals(doneGoals ?? []);
     } catch (error: any) {
       if (import.meta.env.DEV) console.error("Error fetching goals:", error);
       toast.error("목표 데이터를 불러오지 못했습니다.");
@@ -104,7 +115,7 @@ export default function GoalSaving() {
 
     setProcessing(true);
     try {
-      await supabase.from("saving_goals").insert({
+      const { error: insertError } = await supabase.from("saving_goals").insert({
         juwoo_id: 1,
         title: newTitle,
         emoji: newEmoji,
@@ -112,6 +123,12 @@ export default function GoalSaving() {
         current_amount: 0,
         status: "active",
       });
+
+      if (insertError) {
+        if (import.meta.env.DEV) console.error("Error creating goal:", insertError);
+        toast.error("목표 만들기가 잘 안 됐어요. 다시 해볼까?");
+        return;
+      }
 
       toast.success("새 목표를 만들었어요!", {
         description: `${newEmoji} ${newTitle} - ${target}코인`,
@@ -145,34 +162,57 @@ export default function GoalSaving() {
     try {
       const newGoalAmount = selectedGoal.current_amount + amount;
       const isAchieved = newGoalAmount >= selectedGoal.target_amount;
+      const originalGoalAmount = selectedGoal.current_amount;
 
-      // 목표 업데이트
+      // 1. 목표 업데이트
       const updateData: any = { current_amount: newGoalAmount };
       if (isAchieved) {
         updateData.status = "achieved";
         updateData.achieved_at = new Date().toISOString();
       }
 
-      await supabase
+      const { error: goalUpdateError } = await supabase
         .from("saving_goals")
         .update(updateData)
         .eq("id", selectedGoal.id);
 
-      // 입금 기록
-      await supabase.from("goal_deposits").insert({
+      if (goalUpdateError) {
+        if (import.meta.env.DEV) console.error("Error updating goal:", goalUpdateError);
+        toast.error("잠깐, 문제가 생겼어요. 다시 시도해주세요");
+        return;
+      }
+
+      // 2. 입금 기록
+      const { error: depositError } = await supabase.from("goal_deposits").insert({
         goal_id: selectedGoal.id,
         amount,
       });
 
-      // 지갑 차감
+      if (depositError) {
+        if (import.meta.env.DEV) console.error("Error inserting deposit:", depositError);
+        // 롤백: 목표 복구
+        await supabase.from("saving_goals").update({ current_amount: originalGoalAmount, status: "active", achieved_at: null }).eq("id", selectedGoal.id);
+        toast.error("잠깐, 문제가 생겼어요. 다시 시도해주세요");
+        return;
+      }
+
+      // 3. 지갑 차감
       const newBalance = walletBalance - amount;
-      await supabase
+      const { error: walletError } = await supabase
         .from("juwoo_profile")
         .update({ current_points: newBalance })
         .eq("id", 1);
 
-      // 거래 내역
-      await supabase.from("point_transactions").insert({
+      if (walletError) {
+        if (import.meta.env.DEV) console.error("Error updating wallet:", walletError);
+        // 롤백: 목표 복구
+        await supabase.from("saving_goals").update({ current_amount: originalGoalAmount, status: "active", achieved_at: null }).eq("id", selectedGoal.id);
+        toast.error("잠깐, 문제가 생겼어요. 다시 시도해주세요");
+        return;
+      }
+
+      // 4. 거래 내역
+      const { error: txError } = await supabase.from("point_transactions").insert({
         juwoo_id: 1,
         rule_id: null,
         amount: -amount,
@@ -180,6 +220,15 @@ export default function GoalSaving() {
         note: `🎯 목표 저축: ${selectedGoal.emoji} ${selectedGoal.title} (${amount}코인)`,
         created_by: 1,
       });
+
+      if (txError) {
+        if (import.meta.env.DEV) console.error("Error inserting transaction:", txError);
+        // 롤백: 지갑 복구 + 목표 복구
+        await supabase.from("juwoo_profile").update({ current_points: walletBalance }).eq("id", 1);
+        await supabase.from("saving_goals").update({ current_amount: originalGoalAmount, status: "active", achieved_at: null }).eq("id", selectedGoal.id);
+        toast.error("잠깐, 문제가 생겼어요. 포인트는 돌려놨어요");
+        return;
+      }
 
       if (isAchieved) {
         confetti({

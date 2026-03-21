@@ -509,7 +509,7 @@ export function useBadges() {
           // DB에서 불러온 배지 이름으로 BADGE_DEFINITIONS의 id와 매칭
           const badgeName = badgeNameMap.get(ub.badge_id);
           const def = BADGE_DEFINITIONS.find(d => d.name === badgeName);
-          return def?.id || '';
+          return def?.id ?? '';
         }).filter(Boolean) || []
       );
 
@@ -544,13 +544,13 @@ export function useBadges() {
         .eq('juwoo_id', 1)
         .gt('amount', 0);
 
-      const totalEarned = transactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
+      const totalEarned = transactions?.reduce((sum, t) => sum + t.amount, 0) ?? 0;
 
       // 학습 통계 계산
-      const wordsLearned = progress?.length || 0;
-      const wordsMastered = progress?.filter(p => p.mastery_level >= 3).length || 0;
-      const totalReviews = progress?.reduce((sum, p) => sum + (p.review_count || 0), 0) || 0;
-      const totalCorrect = progress?.reduce((sum, p) => sum + (p.correct_count || 0), 0) || 0;
+      const wordsLearned = progress?.length ?? 0;
+      const wordsMastered = progress?.filter(p => p.mastery_level >= 3).length ?? 0;
+      const totalReviews = progress?.reduce((sum, p) => sum + (p.review_count ?? 0), 0) ?? 0;
+      const totalCorrect = progress?.reduce((sum, p) => sum + (p.correct_count ?? 0), 0) ?? 0;
       const accuracy = totalReviews > 0 ? Math.round((totalCorrect / totalReviews) * 100) : 0;
 
       // 연속 학습 일수 계산
@@ -579,7 +579,7 @@ export function useBadges() {
       const flashcardSessions = Math.ceil(totalReviews / 10);
 
       const userStats: UserStats = {
-        currentPoints: profile?.current_points || 0,
+        currentPoints: profile?.current_points ?? 0,
         totalPointsEarned: totalEarned,
         wordsLearned,
         wordsMastered,

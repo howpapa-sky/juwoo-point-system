@@ -175,13 +175,13 @@ export default function AdminSettings() {
         supabase.from('english_learning_progress').select('id', { count: 'exact' }),
       ]);
 
-      const totalPoints = txRes.data?.reduce((sum, t) => sum + (t.amount > 0 ? t.amount : 0), 0) || 0;
+      const totalPoints = txRes.data?.reduce((sum, t) => sum + (t.amount > 0 ? t.amount : 0), 0) ?? 0;
 
       setStats({
-        totalTransactions: txRes.count || 0,
+        totalTransactions: txRes.count ?? 0,
         totalPoints,
-        totalBadges: badgesRes.count || 0,
-        totalWords: wordsRes.count || 0,
+        totalBadges: badgesRes.count ?? 0,
+        totalWords: wordsRes.count ?? 0,
         lastBackup: new Date(),
         storageUsed: `${(JSON.stringify(localStorage).length / 1024).toFixed(2)} KB`,
       });

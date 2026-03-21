@@ -156,28 +156,28 @@ export default function SeedAlbum() {
 
         // 총 투자액
         const totalInvested = all.reduce(
-          (sum: number, s: any) => sum + (s.invested_amount || 0),
+          (sum: number, s: any) => sum + (s.invested_amount ?? 0),
           0
         );
 
         // 총 수익
         const totalProfit = seeds.reduce(
           (sum: number, s: any) =>
-            sum + ((s.harvested_amount || 0) - (s.invested_amount || 0)),
+            sum + ((s.harvested_amount ?? 0) - (s.invested_amount ?? 0)),
           0
         );
 
         // 씨앗별 수확 횟수
         const harvestCounts: Record<string, number> = {};
         for (const s of seeds) {
-          harvestCounts[s.seed_type] = (harvestCounts[s.seed_type] || 0) + 1;
+          harvestCounts[s.seed_type] = (harvestCounts[s.seed_type] ?? 0) + 1;
         }
 
         // 씨앗별 최고 수익률
         const bestRecords: Record<string, number> = {};
         for (const s of seeds) {
           if (s.result_multiplier) {
-            const current = bestRecords[s.seed_type] || 0;
+            const current = bestRecords[s.seed_type] ?? 0;
             if (s.result_multiplier > current) {
               bestRecords[s.seed_type] = s.result_multiplier;
             }
@@ -298,7 +298,7 @@ export default function SeedAlbum() {
         <div className="space-y-3">
           {ALBUM_SEEDS.map((seed, index) => {
             const isUnlocked = !seed.hidden || seed.unlockCondition(stats);
-            const harvestCount = stats.harvestCounts[seed.type] || 0;
+            const harvestCount = stats.harvestCounts[seed.type] ?? 0;
             const bestMultiplier = stats.bestRecords[seed.type];
             const stars = getStarRating(harvestCount);
 

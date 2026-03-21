@@ -566,7 +566,7 @@ export default function AdminShopItems() {
                 <Label>가격 (포인트) *</Label>
                 <Input
                   type="number"
-                  value={editingItem?.price || 0}
+                  value={editingItem?.price ?? 0}
                   onChange={(e) =>
                     setEditingItem((prev) => ({ ...prev, price: parseInt(e.target.value) || 0 }))
                   }

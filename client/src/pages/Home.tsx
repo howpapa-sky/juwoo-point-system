@@ -36,35 +36,48 @@ export default function Home() {
     if (!isAuthenticated) return;
 
     const fetchData = async () => {
-      const [profileRes, streakRes, missionRes] = await Promise.all([
-        supabase
-          .from("juwoo_profile")
-          .select("current_points")
-          .eq("id", 1)
-          .single(),
-        supabase
-          .from("streaks")
-          .select("streak_type, current_count"),
-        supabase
-          .from("parent_missions")
-          .select("title, is_completed")
-          .eq("is_completed", false)
-          .order("week_number", { ascending: true })
-          .limit(1),
-      ]);
+      try {
+        const [profileRes, streakRes, missionRes] = await Promise.all([
+          supabase
+            .from("juwoo_profile")
+            .select("current_points")
+            .eq("id", 1)
+            .single(),
+          supabase
+            .from("streaks")
+            .select("streak_type, current_count"),
+          supabase
+            .from("parent_missions")
+            .select("title, is_completed")
+            .eq("is_completed", false)
+            .order("week_number", { ascending: true })
+            .limit(1),
+        ]);
 
-      setBalance(profileRes.data?.current_points ?? 0);
-
-      if (streakRes.data) {
-        const streakMap: Record<string, number> = {};
-        for (const s of streakRes.data) {
-          streakMap[s.streak_type] = s.current_count ?? 0;
+        if (profileRes.error) {
+          if (import.meta.env.DEV) console.error('프로필 로드 에러:', profileRes.error);
         }
-        setStreaks(streakMap);
-      }
+        setBalance(profileRes.data?.current_points ?? 0);
 
-      if (missionRes.data && missionRes.data.length > 0) {
-        setCurrentMission(missionRes.data[0]);
+        if (streakRes.error) {
+          if (import.meta.env.DEV) console.error('스트릭 로드 에러:', streakRes.error);
+        }
+        if (streakRes.data) {
+          const streakMap: Record<string, number> = {};
+          for (const s of streakRes.data) {
+            streakMap[s.streak_type] = s.current_count ?? 0;
+          }
+          setStreaks(streakMap);
+        }
+
+        if (missionRes.error) {
+          if (import.meta.env.DEV) console.error('미션 로드 에러:', missionRes.error);
+        }
+        if (missionRes.data && missionRes.data.length > 0) {
+          setCurrentMission(missionRes.data[0]);
+        }
+      } catch (err) {
+        if (import.meta.env.DEV) console.error('홈 데이터 로드 실패:', err);
       }
     };
 

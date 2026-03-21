@@ -21,7 +21,7 @@ export default function ComboCounter({ streak, combo }: Props) {
         >
           <Flame className="h-4 w-4 text-orange-600" />
           <span className="font-bold text-orange-600">{streak}</span>
-          {combo > 1 && <span className="text-xs text-orange-500">x{combo.toFixed(1)}</span>}
+          {combo > 1 && <span className="text-sm text-orange-500">x{combo.toFixed(1)}</span>}
         </motion.div>
       )}
     </AnimatePresence>

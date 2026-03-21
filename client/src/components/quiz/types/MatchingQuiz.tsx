@@ -100,7 +100,7 @@ export default function MatchingQuiz({ pairs, onComplete, onSpeak }: Props) {
         <div className="grid grid-cols-2 gap-4">
           {/* 영어 열 */}
           <div className="space-y-3">
-            <p className="text-xs text-gray-400 text-center font-medium mb-1">🇺🇸 영어</p>
+            <p className="text-sm text-gray-400 text-center font-medium mb-1">🇺🇸 영어</p>
             <AnimatePresence>
               {shuffledEnglish.map(word => {
                 const isMatched = matchedPairs.has(word);
@@ -132,7 +132,7 @@ export default function MatchingQuiz({ pairs, onComplete, onSpeak }: Props) {
 
           {/* 한글 열 */}
           <div className="space-y-3">
-            <p className="text-xs text-gray-400 text-center font-medium mb-1">🇰🇷 뜻</p>
+            <p className="text-sm text-gray-400 text-center font-medium mb-1">🇰🇷 뜻</p>
             <AnimatePresence>
               {shuffledKorean.map(meaning => {
                 const matchWord = matchPairs.find(p => p.word.meaning === meaning);

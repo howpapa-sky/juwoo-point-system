@@ -247,7 +247,7 @@ export default function Home() {
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-900">{item.label}</h3>
-                        <p className="text-xs text-gray-500">{item.desc}</p>
+                        <p className="text-sm text-gray-500">{item.desc}</p>
                       </div>
                     </div>
                   </CardContent>

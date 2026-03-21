@@ -196,7 +196,7 @@ export default function EnglishLearning() {
                       플래시카드로 새 단어를 처음 만나요. 그림 + 뜻 + 예문 + 발음을 함께 봐요.
                       먼저 보여주고, 그 다음에 물어보니까 걱정 마!
                     </p>
-                    <p className="text-xs text-blue-500 mt-1">완료 시 +200P (하루 3회)</p>
+                    <p className="text-sm text-blue-500 mt-1">완료 시 +200P (하루 3회)</p>
                   </div>
                 </div>
               </CardContent>
@@ -245,7 +245,7 @@ export default function EnglishLearning() {
                       <BookOpen className="h-5 w-5 text-white" />
                     </div>
                     <p className="font-bold text-sm text-slate-700">단어 학습</p>
-                    <p className="text-xs text-slate-400">직접 입력</p>
+                    <p className="text-sm text-slate-400">직접 입력</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -256,7 +256,7 @@ export default function EnglishLearning() {
                       <Mic className="h-5 w-5 text-white" />
                     </div>
                     <p className="font-bold text-sm text-slate-700">음성 학습</p>
-                    <p className="text-xs text-slate-400">발음 체크</p>
+                    <p className="text-sm text-slate-400">발음 체크</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -274,7 +274,7 @@ export default function EnglishLearning() {
                       배운 단어로 퀴즈를 풀어요! 기본은 연습 모드라서 틀려도 괜찮아.
                       힌트도 쓸 수 있고, 틀리면 정답을 알려줘요.
                     </p>
-                    <p className="text-xs text-purple-500 mt-1">별 1~3개 기반 +300~500P (하루 상한 1,500P)</p>
+                    <p className="text-sm text-purple-500 mt-1">별 1~3개 기반 +300~500P (하루 상한 1,500P)</p>
                   </div>
                 </div>
               </CardContent>
@@ -330,7 +330,7 @@ export default function EnglishLearning() {
                       SRS(간격반복) 시스템이 까먹을 타이밍에 자동으로 복습 단어를 골라줘요.
                       오답 단어는 자동으로 다시 나와요!
                     </p>
-                    <p className="text-xs text-emerald-500 mt-1">완료 시 +200P (하루 2회)</p>
+                    <p className="text-sm text-emerald-500 mt-1">완료 시 +200P (하루 2회)</p>
                   </div>
                 </div>
               </CardContent>

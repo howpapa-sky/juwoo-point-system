@@ -46,7 +46,7 @@ function ToggleRow({
         <span className="text-gray-500">{icon}</span>
         <div>
           <p className="font-medium text-gray-800">{label}</p>
-          {description && <p className="text-xs text-gray-500">{description}</p>}
+          {description && <p className="text-sm text-gray-500">{description}</p>}
         </div>
       </div>
       <button

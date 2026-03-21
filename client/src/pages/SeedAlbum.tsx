@@ -337,19 +337,19 @@ export default function SeedAlbum() {
                             "{seed.description}"
                           </p>
                           <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <span className="px-2 py-1 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
+                            <span className="px-2 py-1 bg-slate-100 rounded-lg text-sm font-medium text-slate-600">
                               {seed.growthLabel}
                             </span>
-                            <span className="px-2 py-1 bg-slate-100 rounded-lg text-xs font-bold text-emerald-600">
+                            <span className="px-2 py-1 bg-slate-100 rounded-lg text-sm font-bold text-emerald-600">
                               {seed.resultRange}
                             </span>
                             {seed.hidden && (
-                              <span className="px-2 py-1 bg-violet-100 rounded-lg text-xs font-bold text-violet-600">
+                              <span className="px-2 py-1 bg-violet-100 rounded-lg text-sm font-bold text-violet-600">
                                 숨겨진 씨앗!
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-4 text-xs text-slate-500">
+                          <div className="flex items-center gap-4 text-sm text-slate-500">
                             <span>수확 {harvestCount}회</span>
                             {bestMultiplier && (
                               <span>

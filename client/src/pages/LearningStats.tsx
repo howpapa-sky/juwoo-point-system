@@ -287,7 +287,7 @@ export default function LearningStats() {
                 </div>
                 {levelProgress?.next && (
                   <div>
-                    <div className="flex justify-between text-xs mb-1">
+                    <div className="flex justify-between text-sm mb-1">
                       <span>다음 레벨까지</span>
                       <span>{Math.round((levelProgress.progress ?? 0) * 100)}%</span>
                     </div>
@@ -310,7 +310,7 @@ export default function LearningStats() {
                     <div key={box} className="flex-1 text-center">
                       <div className="text-xl">{SRS_BOX_META[box].icon}</div>
                       <div className="font-bold">{gardenStats[box] ?? 0}</div>
-                      <div className="text-[10px] text-muted-foreground">{SRS_BOX_META[box].label}</div>
+                      <div className="text-sm text-muted-foreground">{SRS_BOX_META[box].label}</div>
                     </div>
                   ))}
                 </div>
@@ -355,7 +355,7 @@ export default function LearningStats() {
                   <span className="text-sm font-medium opacity-90">연속 학습</span>
                 </div>
                 <div className="text-4xl font-black">{stats.streak}일</div>
-                <p className="text-xs opacity-80 mt-1">
+                <p className="text-sm opacity-80 mt-1">
                   {stats.streak >= 7 ? "🔥 대단해!" : stats.streak >= 3 ? "💪 잘하고 있어!" : "🌟 시작이 좋아!"}
                 </p>
               </CardContent>
@@ -374,7 +374,7 @@ export default function LearningStats() {
                   <span className="text-sm font-medium opacity-90">학습한 단어</span>
                 </div>
                 <div className="text-4xl font-black">{stats.learnedCount}개</div>
-                <p className="text-xs opacity-80 mt-1">총 {totalWordsCount}개 중</p>
+                <p className="text-sm opacity-80 mt-1">총 {totalWordsCount}개 중</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -391,7 +391,7 @@ export default function LearningStats() {
                   <span className="text-sm font-medium opacity-90">마스터</span>
                 </div>
                 <div className="text-4xl font-black">{stats.masteredCount}개</div>
-                <p className="text-xs opacity-80 mt-1">완벽하게 외운 단어!</p>
+                <p className="text-sm opacity-80 mt-1">완벽하게 외운 단어!</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -408,7 +408,7 @@ export default function LearningStats() {
                   <span className="text-sm font-medium opacity-90">정답률</span>
                 </div>
                 <div className="text-4xl font-black">{stats.avgAccuracy}%</div>
-                <p className="text-xs opacity-80 mt-1">
+                <p className="text-sm opacity-80 mt-1">
                   {stats.avgAccuracy >= 80 ? "👍 최고예요!" : stats.avgAccuracy >= 60 ? "💪 잘하고 있어!" : "🌟 화이팅!"}
                 </p>
               </CardContent>
@@ -443,7 +443,7 @@ export default function LearningStats() {
                   </div>
                   <div className="relative">
                     <Progress value={progressPercent} className="h-4" />
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow">
+                    <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white drop-shadow">
                       {progressPercent}%
                     </span>
                   </div>
@@ -463,7 +463,7 @@ export default function LearningStats() {
                   </div>
                   <div className="relative">
                     <Progress value={masteryPercent} className="h-4 [&>div]:bg-gradient-to-r [&>div]:from-yellow-400 [&>div]:to-amber-500" />
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow">
+                    <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white drop-shadow">
                       {masteryPercent}%
                     </span>
                   </div>
@@ -637,7 +637,7 @@ export default function LearningStats() {
                           backgroundColor: cat.color + '20',
                         }}
                       />
-                      <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
                         <Crown className="h-3 w-3 text-yellow-500" />
                         <span>{cat.mastered}개 마스터</span>
                       </div>

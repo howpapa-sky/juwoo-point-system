@@ -691,7 +691,7 @@ export default function SeedFarm() {
                 </p>
 
                 {harvestResult.weatherBonus !== undefined && harvestResult.weatherBonus !== 0 && (
-                  <p className="mt-2 text-xs text-slate-500">
+                  <p className="mt-2 text-sm text-slate-500">
                     {harvestResult.weatherIcon} 오늘 {harvestResult.weatherName} 날씨가 영향을 줬어요!
                   </p>
                 )}
@@ -747,7 +747,7 @@ export default function SeedFarm() {
                 onClick={() => handleSaveReflection({ navigateTo: "/shop" })}
               >
                 <span className="text-lg">🛒</span>
-                <span className="text-xs font-bold">쓰기</span>
+                <span className="text-base font-bold">쓰기</span>
               </Button>
               <Button
                 variant="outline"
@@ -755,7 +755,7 @@ export default function SeedFarm() {
                 onClick={() => handleSaveReflection({ navigateTo: "/savings" })}
               >
                 <span className="text-lg">🏦</span>
-                <span className="text-xs font-bold">금고에 넣기</span>
+                <span className="text-base font-bold">금고에 넣기</span>
               </Button>
               <Button
                 variant="outline"
@@ -763,7 +763,7 @@ export default function SeedFarm() {
                 onClick={() => handleSaveReflection({ nextStep: "select" })}
               >
                 <span className="text-lg">🌱</span>
-                <span className="text-xs font-bold">다시 심기</span>
+                <span className="text-base font-bold">다시 심기</span>
               </Button>
             </div>
           </motion.div>
@@ -833,7 +833,7 @@ export default function SeedFarm() {
                           <div className="flex items-center gap-2">
                             <h3 className="font-black text-slate-800 text-lg">{seed.name}</h3>
                             {seed.hidden && (
-                              <span className="px-1.5 py-0.5 bg-violet-100 rounded text-[10px] font-bold text-violet-600">특별</span>
+                              <span className="px-1.5 py-0.5 bg-violet-100 rounded text-sm font-bold text-violet-600">특별</span>
                             )}
                           </div>
                           <p className="text-slate-500 text-sm mb-2">"{seed.description}"</p>
@@ -841,16 +841,16 @@ export default function SeedFarm() {
                           {harvestHistory.find(h => h.seed_type === seed.type) && (() => {
                             const last = harvestHistory.find(h => h.seed_type === seed.type)!;
                             return (
-                              <p className="text-xs text-slate-400 mb-2">
+                              <p className="text-sm text-slate-400 mb-2">
                                 지난번: {last.invested_amount}코인 → {last.harvested_amount}코인 됐어요
                               </p>
                             );
                           })()}
                           <div className="flex items-center gap-3">
-                            <span className="px-2 py-1 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
+                            <span className="px-2 py-1 bg-slate-100 rounded-lg text-sm font-medium text-slate-600">
                               {GROWTH_LABELS[seed.type] || "2주 후 결과"}
                             </span>
-                            <span className={`px-2 py-1 bg-slate-100 rounded-lg text-xs font-bold ${seed.color}`}>
+                            <span className={`px-2 py-1 bg-slate-100 rounded-lg text-sm font-bold ${seed.color}`}>
                               {seed.resultRange}
                             </span>
                           </div>
@@ -1171,21 +1171,21 @@ export default function SeedFarm() {
           <div className="grid grid-cols-3 gap-2">
             <Button
               variant="outline"
-              className="h-10 rounded-xl text-xs font-bold border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              className="h-12 rounded-xl text-base font-bold border-emerald-200 text-emerald-700 hover:bg-emerald-50"
               onClick={() => applyPreset("equal")}
             >
               균등 분배
             </Button>
             <Button
               variant="outline"
-              className="h-10 rounded-xl text-xs font-bold border-blue-200 text-blue-700 hover:bg-blue-50"
+              className="h-12 rounded-xl text-base font-bold border-blue-200 text-blue-700 hover:bg-blue-50"
               onClick={() => applyPreset("safe")}
             >
               안전 위주
             </Button>
             <Button
               variant="outline"
-              className="h-10 rounded-xl text-xs font-bold border-violet-200 text-violet-700 hover:bg-violet-50"
+              className="h-12 rounded-xl text-base font-bold border-violet-200 text-violet-700 hover:bg-violet-50"
               onClick={() => applyPreset("adventure")}
             >
               모험 위주
@@ -1200,7 +1200,7 @@ export default function SeedFarm() {
                   <span className="text-2xl w-8 text-center">{seed.icon}</span>
                   <div className="flex-1">
                     <p className="text-sm font-bold text-slate-700">{seed.name}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-sm text-slate-400">
                       {GROWTH_LABELS[seed.type]} | {seed.resultRange}
                     </p>
                   </div>
@@ -1240,7 +1240,7 @@ export default function SeedFarm() {
               </div>
               {totalAllocated > 0 && (
                 <div className="pt-2 border-t border-slate-200">
-                  <p className="text-xs text-slate-500">
+                  <p className="text-sm text-slate-500">
                     예상 수확: {bundleMin.toLocaleString()}~{bundleMax.toLocaleString()}코인
                   </p>
                 </div>
@@ -1309,7 +1309,7 @@ export default function SeedFarm() {
                   <p className="text-sm font-bold text-slate-700">
                     오늘의 씨앗밭 날씨: {weather.name}
                   </p>
-                  <p className="text-xs text-slate-500">{weather.description}</p>
+                  <p className="text-sm text-slate-500">{weather.description}</p>
                 </div>
               </div>
             </motion.div>
@@ -1356,7 +1356,7 @@ export default function SeedFarm() {
                         </div>
 
                         <div className="mb-2">
-                          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                          <div className="flex items-center justify-between text-sm text-slate-500 mb-1">
                             <span>{progress}% 자람</span>
                             <span>
                               예상 수확:{" "}
@@ -1366,7 +1366,7 @@ export default function SeedFarm() {
                             </span>
                           </div>
                           <Progress value={progress} className="h-2.5" />
-                          <p className="text-xs text-emerald-600 mt-1 font-medium">
+                          <p className="text-sm text-emerald-600 mt-1 font-medium">
                             {getGrowthStory(progress, daysLeft, isReady)}
                           </p>
                         </div>
@@ -1387,7 +1387,7 @@ export default function SeedFarm() {
                 <div className="text-center py-6">
                   <span className="text-4xl block mb-2">🌿</span>
                   <p className="text-slate-500 text-sm">아직 심은 씨앗이 없어요</p>
-                  <p className="text-slate-400 text-xs mt-1">아래에서 씨앗을 심어보세요!</p>
+                  <p className="text-slate-400 text-sm mt-1">아래에서 씨앗을 심어보세요!</p>
                 </div>
               )}
             </CardContent>
@@ -1454,7 +1454,7 @@ export default function SeedFarm() {
                             <p className="text-sm font-semibold text-slate-700">
                               {getSeedName(seed.seed_type)}
                             </p>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-sm text-slate-500">
                               {new Date(seed.harvest_date).toLocaleDateString("ko-KR", {
                                 month: "short",
                                 day: "numeric",

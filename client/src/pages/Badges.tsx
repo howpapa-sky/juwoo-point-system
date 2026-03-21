@@ -144,7 +144,7 @@ function BadgeCard({
         {/* 희귀도 배지 */}
         <div className="absolute top-2 right-2 z-10">
           <Badge
-            className={`text-[10px] ${
+            className={`text-sm ${
               isEarned
                 ? `${rarityConfig.bgColor} ${rarityConfig.color} border-0`
                 : 'bg-gray-200 text-gray-500'
@@ -185,12 +185,12 @@ function BadgeCard({
           </motion.div>
 
           {/* 이름 */}
-          <h3 className={`font-bold text-xs mb-0.5 leading-tight ${isEarned ? rarityConfig.color : 'text-gray-400'}`}>
+          <h3 className={`font-bold text-base mb-0.5 leading-tight ${isEarned ? rarityConfig.color : 'text-gray-400'}`}>
             {badge.name}
           </h3>
 
           {/* 조건 */}
-          <p className="text-[10px] text-muted-foreground line-clamp-1 mb-2">
+          <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
             {badge.requirement}
           </p>
 
@@ -198,7 +198,7 @@ function BadgeCard({
           {!isEarned && progress.percent > 0 && (
             <div className="w-full">
               <Progress value={progress.percent} className="h-1.5 mb-0.5" />
-              <p className="text-[10px] text-slate-400">{progress.percent}%</p>
+              <p className="text-sm text-slate-400">{progress.percent}%</p>
             </div>
           )}
 
@@ -206,7 +206,7 @@ function BadgeCard({
           {isEarned && (
             <div className="flex items-center gap-1 text-green-600">
               <CheckCircle className="h-3 w-3" />
-              <span className="text-[10px] font-bold">획득!</span>
+              <span className="text-sm font-bold">획득!</span>
             </div>
           )}
         </CardContent>
@@ -539,11 +539,11 @@ export default function Badges() {
                           <h3 className={`font-bold text-xs mb-0.5 ${badge.is_earned ? 'text-indigo-600' : 'text-gray-400'}`}>
                             {badge.name}
                           </h3>
-                          <p className="text-[10px] text-muted-foreground">{badge.description}</p>
+                          <p className="text-sm text-muted-foreground">{badge.description}</p>
                           {badge.is_earned && (
                             <div className="flex items-center gap-1 text-green-600 mt-1">
                               <CheckCircle className="h-3 w-3" />
-                              <span className="text-[10px] font-bold">획득!</span>
+                              <span className="text-sm font-bold">획득!</span>
                             </div>
                           )}
                         </CardContent>
@@ -588,11 +588,11 @@ export default function Badges() {
                           <h3 className={`font-bold text-xs mb-0.5 ${badge.is_earned ? 'text-emerald-600' : 'text-gray-400'}`}>
                             {badge.name}
                           </h3>
-                          <p className="text-[10px] text-muted-foreground">{badge.description}</p>
+                          <p className="text-sm text-muted-foreground">{badge.description}</p>
                           {badge.is_earned && (
                             <div className="flex items-center gap-1 text-green-600 mt-1">
                               <CheckCircle className="h-3 w-3" />
-                              <span className="text-[10px] font-bold">획득!</span>
+                              <span className="text-sm font-bold">획득!</span>
                             </div>
                           )}
                         </CardContent>
@@ -655,7 +655,7 @@ export default function Badges() {
                     return (
                       <div key={rarity} className="p-2 bg-white/15 rounded-xl backdrop-blur-sm text-center">
                         <p className="text-base font-black">{stat.earned}/{stat.total}</p>
-                        <p className="text-[10px] text-white/70">{config.label}</p>
+                        <p className="text-sm text-white/70">{config.label}</p>
                       </div>
                     );
                   })}
@@ -695,7 +695,7 @@ export default function Badges() {
                             <span className="text-xs font-bold text-orange-600 ml-2">{badge.progress.percent}%</span>
                           </div>
                           <Progress value={badge.progress.percent} className="h-2 mb-1" />
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-sm text-slate-500">
                             {badge.progress.current.toLocaleString()} / {badge.progress.target.toLocaleString()} - {badge.requirement}
                           </p>
                         </div>

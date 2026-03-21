@@ -103,7 +103,7 @@ export default function QuizFeedbackBanner({
 
                 {/* 예문 */}
                 <p className="text-sm opacity-90 mb-1">📝 {word.example}</p>
-                <p className="text-xs opacity-75 mb-3">{word.exampleKorean}</p>
+                <p className="text-sm opacity-75 mb-3">{word.exampleKorean}</p>
 
                 {/* 실수 친구 안내 (오답 시) */}
                 {!isCorrect && newMistakeFriend && (

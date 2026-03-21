@@ -400,7 +400,7 @@ export default function RoutineTimeline() {
                           ) : (
                             config.icon
                           )}
-                          <span className="text-xs text-gray-500">{config.label}</span>
+                          <span className="text-sm text-gray-500">{config.label}</span>
                         </div>
                       </div>
                     </div>

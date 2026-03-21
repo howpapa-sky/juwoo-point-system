@@ -594,7 +594,7 @@ export default function Statistics() {
                     <div className="text-3xl md:text-4xl font-black">
                       {profile?.current_points?.toLocaleString() || 0}
                     </div>
-                    <p className="text-xs opacity-80 mt-1">보유 중</p>
+                    <p className="text-sm opacity-80 mt-1">보유 중</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -614,7 +614,7 @@ export default function Statistics() {
                     <div className="text-3xl md:text-4xl font-black">
                       +{stats.totalEarned.toLocaleString()}
                     </div>
-                    <div className="flex items-center gap-1 text-xs opacity-80 mt-1">
+                    <div className="flex items-center gap-1 text-sm opacity-80 mt-1">
                       {stats.trendDirection === 'up' && <ArrowUpRight className="h-3 w-3" />}
                       {stats.trendDirection === 'down' && <ArrowDownRight className="h-3 w-3" />}
                       {stats.trendPercent !== 0 && `${stats.trendPercent > 0 ? '+' : ''}${stats.trendPercent}%`}
@@ -636,7 +636,7 @@ export default function Statistics() {
                       <span className="text-sm font-medium opacity-90">연속 활동</span>
                     </div>
                     <div className="text-3xl md:text-4xl font-black">{stats.streak.current}일</div>
-                    <p className="text-xs opacity-80 mt-1">
+                    <p className="text-sm opacity-80 mt-1">
                       최고 {stats.streak.longest}일
                     </p>
                   </CardContent>
@@ -656,7 +656,7 @@ export default function Statistics() {
                       <span className="text-sm font-medium opacity-90">획득 배지</span>
                     </div>
                     <div className="text-3xl md:text-4xl font-black">{badgeStats.earnedCount}개</div>
-                    <p className="text-xs opacity-80 mt-1">컬렉션 중</p>
+                    <p className="text-sm opacity-80 mt-1">컬렉션 중</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -1027,15 +1027,15 @@ export default function Statistics() {
                     <div className="grid grid-cols-3 gap-2 mt-4">
                       <div className="text-center p-3 bg-blue-50 rounded-lg">
                         <div className="text-xl font-bold text-blue-600">{learningStats.totalReviews}</div>
-                        <div className="text-xs text-blue-700">총 복습</div>
+                        <div className="text-sm text-blue-700">총 복습</div>
                       </div>
                       <div className="text-center p-3 bg-green-50 rounded-lg">
                         <div className="text-xl font-bold text-green-600">{learningStats.accuracy}%</div>
-                        <div className="text-xs text-green-700">정답률</div>
+                        <div className="text-sm text-green-700">정답률</div>
                       </div>
                       <div className="text-center p-3 bg-yellow-50 rounded-lg">
                         <div className="text-xl font-bold text-yellow-600">{learningStats.masteredWords}</div>
-                        <div className="text-xs text-yellow-700">마스터</div>
+                        <div className="text-sm text-yellow-700">마스터</div>
                       </div>
                     </div>
                   </div>
@@ -1138,7 +1138,7 @@ export default function Statistics() {
                       >
                         <div className="text-4xl mb-2">{badge.badges?.icon || '🏆'}</div>
                         <div className="font-bold text-sm">{badge.badges?.name || '배지'}</div>
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-sm text-gray-500 mt-1">
                           {new Date(badge.earned_at).toLocaleDateString('ko-KR')}
                         </div>
                       </motion.div>
@@ -1169,7 +1169,7 @@ export default function Statistics() {
                     <div className="text-3xl font-black text-green-600">{goalStats.totalSaved.toLocaleString()}</div>
                     <div className="text-sm text-green-700">모은 포인트</div>
                     <Progress value={goalStats.progressPercent} className="h-2 mt-3" />
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-sm text-gray-500 mt-1">
                       목표의 {goalStats.progressPercent}% 달성
                     </div>
                   </div>

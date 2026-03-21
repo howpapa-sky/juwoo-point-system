@@ -324,7 +324,7 @@ export default function ExerciseLog() {
                 onClick={() => setSelectedType(exercise.value)}
               >
                 <div className="text-2xl mb-1">{exercise.emoji}</div>
-                <p className="text-xs font-bold text-slate-700">{exercise.label}</p>
+                <p className="text-sm font-bold text-slate-700">{exercise.label}</p>
               </button>
             ))}
           </div>
@@ -429,7 +429,7 @@ export default function ExerciseLog() {
               <p className="font-bold text-slate-800" style={{ fontSize: 16 }}>
                 아빠와 함께!
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-sm text-slate-500">
                 {withParent ? '탐험대 합동 훈련 보너스 +500' : '함께 하면 보너스 +500'}
               </p>
             </div>
@@ -451,7 +451,7 @@ export default function ExerciseLog() {
                   +{estimatedPoints.toLocaleString()} E
                 </p>
                 {withParent && (
-                  <p className="text-xs text-amber-600 mt-1">
+                  <p className="text-sm text-amber-600 mt-1">
                     아빠와 함께 보너스 포함!
                   </p>
                 )}
@@ -499,7 +499,7 @@ export default function ExerciseLog() {
                           <p className="font-bold text-emerald-600">
                             +{log.points_earned.toLocaleString()}
                           </p>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-sm text-slate-400">
                             {log.status === 'pending'
                               ? '승인 대기'
                               : log.status === 'approved'

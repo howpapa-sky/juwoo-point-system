@@ -123,7 +123,7 @@ export default function BossBattle({ questions, onComplete, onSpeak, playSound }
 
         {/* 보스 HP 바 (주황색, 빨간색 안 씀!) */}
         <div className="mb-2">
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <div className="flex justify-between text-sm text-gray-500 mb-1">
             <span>보스 HP</span>
             <span>{bossHP}%</span>
           </div>
@@ -139,7 +139,7 @@ export default function BossBattle({ questions, onComplete, onSpeak, playSound }
 
         {/* 플레이어 HP */}
         <div className="mb-6">
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <div className="flex justify-between text-sm text-gray-500 mb-1">
             <span>주우 HP</span>
             <span>{playerHP}%</span>
           </div>

@@ -173,9 +173,9 @@ export default function EnglishAdventure() {
                         {/* 유닛 정보 */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-xs font-bold text-slate-400">Unit {unit.unitNumber}</span>
+                            <span className="text-sm font-bold text-slate-400">Unit {unit.unitNumber}</span>
                             {isCompleted && (
-                              <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                              <span className="text-sm font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
                                 완료
                               </span>
                             )}
@@ -190,7 +190,7 @@ export default function EnglishAdventure() {
                           {/* 진행률 (active일 때) */}
                           {isActive && unitProg && (
                             <div className="mt-2">
-                              <div className="flex justify-between text-xs text-slate-500 mb-1">
+                              <div className="flex justify-between text-sm text-slate-500 mb-1">
                                 <span>{unitProg.words_mastered ?? 0} / {unitProg.total_words ?? unit.targetWords.length} 단어</span>
                                 <span>{unitProg.mastery_percent ?? 0}%</span>
                               </div>
@@ -200,7 +200,7 @@ export default function EnglishAdventure() {
 
                           {/* 잠금 메시지 */}
                           {isLocked && (
-                            <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                            <p className="text-sm text-slate-400 mt-1 flex items-center gap-1">
                               <Lock className="h-3 w-3" />
                               이전 유닛 60% 달성 필요
                             </p>
